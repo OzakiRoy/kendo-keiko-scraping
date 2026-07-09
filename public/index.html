@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>剣道オープン稽古会一覧</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f7f7f8;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #1f6feb;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111827;
+        --card: #1f2937;
+        --text: #f9fafb;
+        --muted: #9ca3af;
+        --border: #374151;
+        --accent: #60a5fa;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      padding: 32px 20px 16px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr 180px;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    @media (max-width: 720px) {
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    input, select {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    .count {
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+
+    .date {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .org {
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .title {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .row {
+      margin: 4px 0;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 13px;
+      display: inline-block;
+      min-width: 64px;
+    }
+
+    a {
+      color: var(--accent);
+      word-break: break-all;
+    }
+
+    .empty, .error {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    footer {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>剣道オープン稽古会一覧</h1>
+    <div class="meta" id="meta">読み込み中...</div>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <input id="keyword" type="search" placeholder="団体名・会場・タイトルで検索">
+      <select id="organization">
+        <option value="">すべての団体</option>
+      </select>
+    </div>
+
+    <div class="count" id="count"></div>
+    <div class="cards" id="cards"></div>
+  </main>
+
+  <footer>
+    参加前に必ず各団体の公式情報を確認してください。この画面はDynamoDBから取得したJSONを元に表示しています。
+  </footer>
+
+  <script>
+    let allEvents = [];
+
+    function escapeHtml(value) {
+      if (value === null || value === undefined) return "";
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatDate(event) {
+      const weekday = event.weekday ? `(${event.weekday})` : "";
+      return `${event.event_date || ""}${weekday}`;
+    }
+
+    function formatTime(event) {
+      if (event.start_time && event.end_time) {
+        return `${event.start_time} - ${event.end_time}`;
+      }
+      if (event.start_time) return event.start_time;
+      return "時間未定";
+    }
+
+    function renderOrganizations(events) {
+      const select = document.getElementById("organization");
+      const names = [...new Set(events.map(e => e.organization_name).filter(Boolean))].sort();
+
+      for (const name of names) {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+      }
+    }
+
+    function matchesKeyword(event, keyword) {
+      if (!keyword) return true;
+
+      const target = [
+        event.organization_name,
+        event.title,
+        event.venue,
+        event.area,
+        event.access,
+        event.fee,
+        event.raw_note
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      return target.includes(keyword.toLowerCase());
+    }
+
+    function render() {
+      const keyword = document.getElementById("keyword").value.trim();
+      const org = document.getElementById("organization").value;
+
+      const events = allEvents.filter(event => {
+        if (org && event.organization_name !== org) return false;
+        if (!matchesKeyword(event, keyword)) return false;
+        return true;
+      });
+
+      document.getElementById("count").textContent = `${events.length}件表示中`;
+
+      const cards = document.getElementById("cards");
+      cards.innerHTML = "";
+
+      if (events.length === 0) {
+        cards.innerHTML = '<div class="empty">該当する稽古会はありません。</div>';
+        return;
+      }
+
+      for (const event of events) {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const sourceUrl = event.source_url ? `
+          <div class="row">
+            <span class="label">公式</span>
+            <a href="${escapeHtml(event.source_url)}" target="_blank" rel="noopener noreferrer">公式情報を確認</a>
+          </div>
+        ` : "";
+
+        const fee = event.fee ? `
+          <div class="row"><span class="label">参加費</span>${escapeHtml(event.fee)}</div>
+        ` : "";
+
+        const access = event.access ? `
+          <div class="row"><span class="label">アクセス</span>${escapeHtml(event.access)}</div>
+        ` : "";
+
+        const title = event.title ? `
+          <div class="title">${escapeHtml(event.title)}</div>
+        ` : "";
+
+        card.innerHTML = `
+          <div class="date">${escapeHtml(formatDate(event))}</div>
+          <div class="org">${escapeHtml(event.organization_name || "")}</div>
+          ${title}
+          <div class="row"><span class="label">時間</span>${escapeHtml(formatTime(event))}</div>
+          <div class="row"><span class="label">会場</span>${escapeHtml(event.venue || "未取得")}</div>
+          <div class="row"><span class="label">エリア</span>${escapeHtml(event.area || "未設定")}</div>
+          ${access}
+          ${fee}
+          ${sourceUrl}
+        `;
+
+        cards.appendChild(card);
+      }
+    }
+
+    async function main() {
+      try {
+        const response = await fetch("./events.json", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`events.json の取得に失敗しました: ${response.status}`);
+        }
+
+        const payload = await response.json();
+        allEvents = payload.events || [];
+
+        document.getElementById("meta").textContent =
+          `生成日時: ${payload.generated_at || "-"} / 取得元: ${payload.source || "-"} / 件数: ${payload.event_count ?? allEvents.length}`;
+
+        renderOrganizations(allEvents);
+        render();
+
+        document.getElementById("keyword").addEventListener("input", render);
+        document.getElementById("organization").addEventListener("change", render);
+      } catch (error) {
+        document.getElementById("meta").textContent = "読み込み失敗";
+        document.getElementById("cards").innerHTML =
+          `<div class="error">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    main();
+  </script>
+</body>
+</html>

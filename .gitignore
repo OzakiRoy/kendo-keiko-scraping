@@ -24,3 +24,4 @@ data/events.json
 
 # master data
 !data/organizations.json
+public/events.json
