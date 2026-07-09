@@ -1,0 +1,35 @@
+[
+  {
+    "organization_id": "kent",
+    "name": "社会人剣道サークルkent",
+    "area": "東京都",
+    "website_url": "https://kendonetwork.com/",
+    "source_type": "official_site",
+    "scraper_type": "kent",
+    "scraper_enabled": true,
+    "event_type": "open_keiko",
+    "notes": "公式サイトのSCHEDULEから取得"
+  },
+  {
+    "organization_id": "kenkyukai",
+    "name": "剣究会",
+    "area": "東京都",
+    "website_url": "https://kenkyukai-kendo.com/",
+    "source_type": "official_site",
+    "scraper_type": "kenkyukai",
+    "scraper_enabled": true,
+    "event_type": "open_keiko",
+    "notes": "公式サイトの新着情報から取得"
+  },
+  {
+    "organization_id": "kenbokukai",
+    "name": "剣睦会",
+    "area": "東京都",
+    "website_url": "https://kenbokukai.com/",
+    "source_type": "official_site",
+    "scraper_type": "kenbokukai",
+    "scraper_enabled": true,
+    "event_type": "open_keiko",
+    "notes": "公式サイトの稽古会情報記事から取得"
+  }
+]

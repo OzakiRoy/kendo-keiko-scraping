@@ -18,3 +18,9 @@ venv/
 # output
 *.json
 *.log
+
+# generated data
+data/events.json
+
+# master data
+!data/organizations.json
