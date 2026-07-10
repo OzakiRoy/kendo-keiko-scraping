@@ -32,3 +32,7 @@ lambda_function.zip
 lambda-trust-policy.json
 lambda-dynamodb-policy.json
 
+
+# local AWS deploy policy files
+scheduler-trust-policy.json
+scheduler-lambda-invoke-policy.json
