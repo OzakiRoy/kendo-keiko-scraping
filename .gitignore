@@ -25,3 +25,10 @@ data/events.json
 # master data
 !data/organizations.json
 public/events.json
+
+# lambda build and deploy
+build/
+lambda_function.zip
+lambda-trust-policy.json
+lambda-dynamodb-policy.json
+
