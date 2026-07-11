@@ -36,3 +36,10 @@ lambda-dynamodb-policy.json
 # local AWS deploy policy files
 scheduler-trust-policy.json
 scheduler-lambda-invoke-policy.json
+
+# local AWS DynamoDB query policy files
+lambda-dynamodb-query-index-policy.json
+
+# local AWS S3 export policy files
+lambda-s3-putobject-policy.json
+

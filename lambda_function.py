@@ -2,36 +2,44 @@
 # -*- coding: utf-8 -*-
 
 """
-AWS Lambda entry point for kendo-keiko-scraping.
+Lambda entrypoint for kendo-keiko-scraping.
 
-This wrapper intentionally reuses export_events.py's CLI-oriented main().
-For the MVP, this keeps the Lambda adaptation small and avoids rewriting
-scraping / normalization / DynamoDB storage logic.
+Flow:
+  1. Call export_events.py main() with --storage dynamodb
+  2. Update DynamoDB KendoKeikoEvents
+  3. Optionally query DynamoDB DateIndex
+  4. Export public events.json to S3
 
-Required environment variables:
+Environment variables:
   TABLE_NAME=KendoKeikoEvents
-
-Optional environment variables:
+  AWS_REGION=ap-northeast-1
   GROUP=all
-  FROM_DATE=YYYY-MM-DD
-  INCLUDE_PAST=false
   DEBUG=false
 
-AWS_REGION is provided by Lambda runtime. You can override it if needed.
+  PUBLISH_TO_S3=false
+  EVENTS_BUCKET=<your-s3-bucket>
+  EVENTS_KEY=events.json
 """
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 import os
 import sys
+from contextlib import redirect_stderr, redirect_stdout
+from decimal import Decimal
+from io import StringIO
 from typing import Any
+from zoneinfo import ZoneInfo
+
+import boto3
+from boto3.dynamodb.conditions import Key
 
 import export_events
 
 
-DEFAULT_TABLE_NAME = "KendoKeikoEvents"
-DEFAULT_REGION = "ap-northeast-1"
+JST = ZoneInfo("Asia/Tokyo")
 
 
 def str_to_bool(value: Any, default: bool = False) -> bool:
@@ -44,84 +52,246 @@ def str_to_bool(value: Any, default: bool = False) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
-def read_setting(event: dict[str, Any], key: str, env_key: str, default: Any = None) -> Any:
+def json_default(value: Any) -> Any:
+    if isinstance(value, Decimal):
+        if value % 1 == 0:
+            return int(value)
+        return float(value)
+
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+
+def today_jst() -> dt.date:
+    return dt.datetime.now(JST).date()
+
+
+def query_events_from_dynamodb(
+    *,
+    table_name: str,
+    region_name: str,
+    from_date: str,
+) -> list[dict[str, Any]]:
+    dynamodb = boto3.resource("dynamodb", region_name=region_name)
+    table = dynamodb.Table(table_name)
+
+    events: list[dict[str, Any]] = []
+    last_evaluated_key = None
+
+    while True:
+        kwargs: dict[str, Any] = {
+            "IndexName": "DateIndex",
+            "KeyConditionExpression": Key("gsi1_pk").eq("EVENT")
+            & Key("gsi1_sk").gte(from_date),
+        }
+
+        if last_evaluated_key:
+            kwargs["ExclusiveStartKey"] = last_evaluated_key
+
+        response = table.query(**kwargs)
+        events.extend(response.get("Items", []))
+
+        last_evaluated_key = response.get("LastEvaluatedKey")
+        if not last_evaluated_key:
+            break
+
+    return sorted(
+        events,
+        key=lambda e: (
+            e.get("event_date", ""),
+            e.get("start_time", ""),
+            e.get("organization_id", ""),
+            e.get("event_id", ""),
+        ),
+    )
+
+
+def build_public_events_payload(
+    *,
+    events: list[dict[str, Any]],
+    table_name: str,
+    region_name: str,
+    from_date: str,
+) -> dict[str, Any]:
+    return {
+        "schema_version": "public-events-0.1",
+        "generated_at": dt.datetime.now(JST).isoformat(timespec="seconds"),
+        "timezone": "Asia/Tokyo",
+        "source": "dynamodb",
+        "table_name": table_name,
+        "region": region_name,
+        "from_date": from_date,
+        "event_count": len(events),
+        "events": events,
+    }
+
+
+def upload_events_json_to_s3(
+    *,
+    bucket: str,
+    key: str,
+    payload: dict[str, Any],
+    region_name: str,
+) -> None:
+    s3 = boto3.client("s3", region_name=region_name)
+
+    body = json.dumps(
+        payload,
+        ensure_ascii=False,
+        indent=2,
+        default=json_default,
+    ).encode("utf-8")
+
+    s3.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=body,
+        ContentType="application/json; charset=utf-8",
+        CacheControl="max-age=300",
+    )
+
+
+def run_export_events_main(
+    *,
+    table_name: str,
+    region_name: str,
+    group: str,
+    debug: bool,
+) -> dict[str, Any]:
     """
-    Manual Lambda invoke event can override environment variables.
-
-    Example invoke payload:
-      {"group":"kenbokukai","debug":true}
+    Reuse existing export_events.py CLI implementation.
     """
-    if key in event and event[key] is not None:
-        return event[key]
-
-    return os.environ.get(env_key, default)
-
-
-def build_export_argv(event: dict[str, Any]) -> list[str]:
-    table_name = read_setting(event, "table_name", "TABLE_NAME", DEFAULT_TABLE_NAME)
-    region = read_setting(event, "region", "AWS_REGION", DEFAULT_REGION)
-    group = read_setting(event, "group", "GROUP", "all")
-    from_date = read_setting(event, "from_date", "FROM_DATE", None)
-    include_past = str_to_bool(read_setting(event, "include_past", "INCLUDE_PAST", False))
-    debug = str_to_bool(read_setting(event, "debug", "DEBUG", False))
-
     argv = [
         "export_events.py",
         "--storage",
         "dynamodb",
         "--table-name",
-        str(table_name),
+        table_name,
         "--region",
-        str(region),
+        region_name,
         "--group",
-        str(group),
+        group,
         "--no-stdout",
     ]
-
-    if from_date:
-        argv.extend(["--from-date", str(from_date)])
-
-    if include_past:
-        argv.append("--include-past")
 
     if debug:
         argv.append("--debug")
 
-    return argv
+    old_argv = sys.argv[:]
+    stdout = StringIO()
+    stderr = StringIO()
+
+    try:
+        sys.argv = argv
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            exit_code = export_events.main()
+    finally:
+        sys.argv = old_argv
+
+    return {
+        "exit_code": exit_code,
+        "stdout": stdout.getvalue(),
+        "stderr": stderr.getvalue(),
+    }
 
 
 def lambda_handler(event: dict[str, Any] | None, context: Any) -> dict[str, Any]:
     event = event or {}
-    argv = build_export_argv(event)
 
-    print("[INFO] start kendo keiko scrape job")
-    print("[INFO] argv:", " ".join(argv))
+    table_name = event.get("table_name") or os.environ.get("TABLE_NAME", "KendoKeikoEvents")
+    region_name = event.get("region") or os.environ.get("AWS_REGION", "ap-northeast-1")
+    group = event.get("group") or os.environ.get("GROUP", "all")
+    debug = str_to_bool(event.get("debug"), str_to_bool(os.environ.get("DEBUG"), False))
 
-    old_argv = sys.argv[:]
-    try:
-        sys.argv = argv
-        exit_code = export_events.main()
-    finally:
-        sys.argv = old_argv
+    publish_to_s3 = str_to_bool(
+        event.get("publish_to_s3"),
+        str_to_bool(os.environ.get("PUBLISH_TO_S3"), False),
+    )
+    events_bucket = event.get("events_bucket") or os.environ.get("EVENTS_BUCKET")
+    events_key = event.get("events_key") or os.environ.get("EVENTS_KEY", "events.json")
+    from_date = event.get("from_date") or today_jst().isoformat()
 
-    if exit_code != 0:
-        message = f"export_events.py failed with exit_code={exit_code}"
-        print(f"[ERROR] {message}")
-        raise RuntimeError(message)
+    print(
+        json.dumps(
+            {
+                "message": "kendo scraper started",
+                "table_name": table_name,
+                "region": region_name,
+                "group": group,
+                "publish_to_s3": publish_to_s3,
+                "events_bucket": events_bucket,
+                "events_key": events_key,
+                "from_date": from_date,
+            },
+            ensure_ascii=False,
+        )
+    )
 
-    table_name = read_setting(event, "table_name", "TABLE_NAME", DEFAULT_TABLE_NAME)
-    region = read_setting(event, "region", "AWS_REGION", DEFAULT_REGION)
-    group = read_setting(event, "group", "GROUP", "all")
+    export_result = run_export_events_main(
+        table_name=table_name,
+        region_name=region_name,
+        group=group,
+        debug=debug,
+    )
 
-    body = {
-        "message": "scrape job completed",
-        "table_name": table_name,
-        "region": region,
-        "group": group,
-    }
+    if export_result["stdout"]:
+        print(export_result["stdout"])
 
-    print("[INFO] completed kendo keiko scrape job")
-    return {
+    if export_result["stderr"]:
+        print(export_result["stderr"], file=sys.stderr)
+
+    if export_result["exit_code"] != 0:
+        raise RuntimeError(f"export_events.py failed: exit_code={export_result['exit_code']}")
+
+    response: dict[str, Any] = {
         "statusCode": 200,
-        "body": json.dumps(body, ensure_ascii=False),
+        "table_name": table_name,
+        "region": region_name,
+        "group": group,
+        "dynamodb_updated": True,
+        "s3_published": False,
     }
+
+    if publish_to_s3:
+        if not events_bucket:
+            raise ValueError("PUBLISH_TO_S3 is true, but EVENTS_BUCKET is not set.")
+
+        events = query_events_from_dynamodb(
+            table_name=table_name,
+            region_name=region_name,
+            from_date=from_date,
+        )
+        payload = build_public_events_payload(
+            events=events,
+            table_name=table_name,
+            region_name=region_name,
+            from_date=from_date,
+        )
+        upload_events_json_to_s3(
+            bucket=events_bucket,
+            key=events_key,
+            payload=payload,
+            region_name=region_name,
+        )
+
+        print(
+            json.dumps(
+                {
+                    "message": "events.json uploaded to S3",
+                    "bucket": events_bucket,
+                    "key": events_key,
+                    "event_count": len(events),
+                },
+                ensure_ascii=False,
+            )
+        )
+
+        response.update(
+            {
+                "s3_published": True,
+                "events_bucket": events_bucket,
+                "events_key": events_key,
+                "event_count": len(events),
+            }
+        )
+
+    return response
