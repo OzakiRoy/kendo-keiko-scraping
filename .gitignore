@@ -43,3 +43,8 @@ lambda-dynamodb-query-index-policy.json
 # local AWS S3 export policy files
 lambda-s3-putobject-policy.json
 
+
+# local CloudFront setup files
+cloudfront-distribution-config.json
+cloudfront-create-output.json
+s3-cloudfront-oac-bucket-policy.json
