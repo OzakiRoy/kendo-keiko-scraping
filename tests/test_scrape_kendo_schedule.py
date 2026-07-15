@@ -2,11 +2,8 @@ import datetime as dt
 import unittest
 
 from kendo_keiko.models import RawScrapedEvent
-from scrape_kendo_schedule import (
-    dedupe_events,
-    html_to_text,
-    parse_events_from_text,
-)
+from kendo_keiko.scrapers.common import html_to_text, parse_events_from_text
+from scrape_kendo_schedule import dedupe_events
 
 
 class HtmlToTextTests(unittest.TestCase):

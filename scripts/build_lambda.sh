@@ -76,6 +76,7 @@ required_files=(
   "kendo_keiko/models.py"
   "kendo_keiko/scrapers/__init__.py"
   "kendo_keiko/scrapers/ajkf.py"
+  "kendo_keiko/scrapers/common.py"
   "kendo_keiko/scrapers/kent.py"
   "data/organizations.json"
 )

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from kendo_keiko.models import Organization, RawScrapedEvent
-from scrape_kendo_schedule import (
+from kendo_keiko.scrapers.common import (
     fetch,
     html_to_text,
     parse_events_from_text,
