@@ -78,6 +78,7 @@ required_files=(
   "kendo_keiko/scrapers/ajkf.py"
   "kendo_keiko/scrapers/common.py"
   "kendo_keiko/scrapers/kent.py"
+  "kendo_keiko/scrapers/kenkyukai.py"
   "data/organizations.json"
 )
 

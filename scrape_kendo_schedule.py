@@ -37,7 +37,6 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import html
 import json
 import re
 import sys
@@ -48,13 +47,18 @@ from urllib.parse import urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 
-from kendo_keiko.models import RawScrapedEvent
+from kendo_keiko.models import Organization, RawScrapedEvent
 from kendo_keiko.scrapers.common import (
     JST,
     fetch,
     html_to_text,
+    normalize_title,
     normalize_weekday,
     parse_events_from_text,
+    parse_wp_posts,
+)
+from kendo_keiko.scrapers.kenkyukai import (
+    scrape as scrape_kenkyukai_for_org,
 )
 
 
@@ -81,29 +85,8 @@ def debug_print(enabled: bool, message: str) -> None:
         print(f"[DEBUG] {message}", file=sys.stderr)
 
 
-def normalize_title(text: str) -> str:
-    """
-    WordPress APIのtitle.renderedなどからHTMLタグを除去する。
-    """
-    return BeautifulSoup(html.unescape(text), "html.parser").get_text("", strip=True)
-
-
 def normalize_space(value: str) -> str:
     return re.sub(r"\s+", " ", value.replace("\u3000", " ")).strip()
-
-
-def parse_wp_posts(site_url: str, per_page: int = 10) -> list[dict]:
-    """
-    WordPress REST API から投稿を取得する。
-    APIが閉じている場合もあるので、呼び出し元で例外を拾ってHTML fallbackする。
-    """
-    api_url = site_url.rstrip("/") + (
-        "/wp-json/wp/v2/posts"
-        f"?per_page={per_page}"
-        "&_fields=date,link,title,content,excerpt"
-    )
-    raw = fetch(api_url)
-    return json.loads(raw)
 
 
 # 剣睦会向け:
@@ -435,64 +418,31 @@ def scrape_kent() -> list[RawScrapedEvent]:
     )
 
 
-def scrape_kenkyukai(debug: bool = False) -> list[RawScrapedEvent]:
+def scrape_kenkyukai(
+    debug: bool = False,
+) -> list[RawScrapedEvent]:
     """
-    剣究会の新着情報から稽古予定を取得する。
-    まずWordPress REST APIを試し、駄目ならトップページHTMLにfallbackする。
+    旧CLIとの互換性を保つための
+    剣究会スクレイパーラッパー。
     """
     site = SITES["kenkyukai"]
-    events: list[RawScrapedEvent] = []
 
-    try:
-        posts = parse_wp_posts(site["url"], per_page=10)
-        debug_print(debug, f"剣究会 WP posts: {len(posts)}")
+    organization = Organization(
+        organization_id="kenkyukai",
+        name=site["name"],
+        area="東京都",
+        website_url=site["url"],
+        source_type="official_site",
+        scraper_type="kenkyukai",
+        scraper_enabled=True,
+        event_type=site["event_type"],
+        notes=None,
+    )
 
-        for post in posts:
-            title = normalize_title(post.get("title", {}).get("rendered", ""))
-            link = post.get("link") or site["url"]
-
-            post_date_raw = post.get("date", "")
-            try:
-                base_date = dt.date.fromisoformat(post_date_raw[:10])
-            except ValueError:
-                base_date = dt.datetime.now(JST).date()
-
-            body_html = (
-                post.get("content", {}).get("rendered", "")
-                or post.get("excerpt", {}).get("rendered", "")
-            )
-
-            text = title + "\n" + html_to_text(body_html)
-
-            parsed = parse_events_from_text(
-                group=site["name"],
-                event_type=site["event_type"],
-                text=text,
-                source_url=link,
-                base_date=base_date,
-            )
-            events.extend(parsed)
-
-    except Exception as e:
-        print(
-            f"[WARN] 剣究会のWordPress API取得に失敗しました。HTML fallbackします: {e}",
-            file=sys.stderr,
-        )
-
-        raw = fetch(site["url"])
-        text = html_to_text(raw)
-
-        events.extend(
-            parse_events_from_text(
-                group=site["name"],
-                event_type=site["event_type"],
-                text=text,
-                source_url=site["url"],
-            )
-        )
-
-    debug_print(debug, f"剣究会 parsed events: {len(events)}")
-    return events
+    return scrape_kenkyukai_for_org(
+        organization,
+        debug=debug,
+    )
 
 
 def scrape_kenbokukai(debug: bool = False) -> list[RawScrapedEvent]:

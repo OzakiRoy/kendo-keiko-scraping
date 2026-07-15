@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 import html
+import json
 import re
 from typing import Optional
 from zoneinfo import ZoneInfo
@@ -86,6 +87,33 @@ def html_to_text(raw_html: str) -> str:
 
     lines = [line.strip() for line in text.splitlines()]
     return "\n".join(line for line in lines if line)
+
+def normalize_title(text: str) -> str:
+    """
+    WordPress APIのtitle.renderedなどから
+    HTMLタグを除去する。
+    """
+    return BeautifulSoup(
+        html.unescape(text),
+        "html.parser",
+    ).get_text("", strip=True)
+
+
+def parse_wp_posts(
+    site_url: str,
+    per_page: int = 10,
+) -> list[dict]:
+    """
+    WordPress REST APIから投稿を取得する。
+    """
+    api_url = site_url.rstrip("/") + (
+        "/wp-json/wp/v2/posts"
+        f"?per_page={per_page}"
+        "&_fields=date,link,title,content,excerpt"
+    )
+    raw = fetch(api_url)
+    return json.loads(raw)
+
 
 def normalize_weekday(value: Optional[str]) -> Optional[str]:
     if not value:
