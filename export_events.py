@@ -46,7 +46,6 @@ from scrape_kendo_schedule import (
     dedupe_events,
     filter_events_from_date,
     parse_from_date,
-    scrape_kent,
     scrape_kenbokukai,
     scrape_kenkyukai,
 )
@@ -58,6 +57,7 @@ from kendo_keiko.models import (
 )
 
 from kendo_keiko.scrapers.ajkf import scrape as scrape_ajkf
+from kendo_keiko.scrapers.kent import scrape as scrape_kent
 
 DEFAULT_ORGANIZATIONS_PATH = Path("data/organizations.json")
 DEFAULT_EVENTS_OUTPUT_PATH = Path("data/events.json")
@@ -83,7 +83,7 @@ def scrape_by_org(org: Organization, debug: bool = False):
         return []
 
     if org.scraper_type == "kent":
-        return scrape_kent()
+        return scrape_kent(org, debug=debug)
 
     if org.scraper_type == "kenkyukai":
         return scrape_kenkyukai(debug=debug)
