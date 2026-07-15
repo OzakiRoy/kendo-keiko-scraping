@@ -121,7 +121,7 @@ def html_to_text(raw_html: str) -> str:
     text = html.unescape(text)
     text = text.replace("\u3000", " ")
     text = text.replace("〜", "~").replace("～", "~")
-    text = text.replace("－", "-").replace("−", "-").replace("ー", "-")
+    text = text.replace("－", "-").replace("−", "-")
     text = text.replace("＠", "@")
 
     lines = [line.strip() for line in text.splitlines()]
@@ -165,7 +165,7 @@ DATE_TIME_RE = re.compile(
     \s*[（(](?P<weekday>[^）)]+)[）)]
     \s*
     (?P<start>\d{1,2}:\d{2})
-    \s*[~\-]\s*
+    \s*[~\-ー]\s*
     (?P<end>\d{1,2}:\d{2})
     """,
     re.VERBOSE,
@@ -200,7 +200,7 @@ TIME_LABEL_RE = re.compile(
     (?:[■□]\s*)?
     時間[:：]\s*
     (?P<start>\d{1,2}:\d{2})
-    \s*[~\-]\s*
+    \s*[~\-ー]\s*
     (?P<end>\d{1,2}:\d{2})
     """,
     re.VERBOSE,
