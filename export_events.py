@@ -35,7 +35,7 @@ import hashlib
 import json
 import re
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urljoin, urlparse, urlunparse
@@ -54,78 +54,17 @@ from scrape_kendo_schedule import (
     scrape_kenkyukai,
 )
 
+from kendo_keiko.models import (
+    Organization,
+    RawScrapedEvent,
+    ServiceEvent,
+)
+
 DEFAULT_ORGANIZATIONS_PATH = Path("data/organizations.json")
 DEFAULT_EVENTS_OUTPUT_PATH = Path("data/events.json")
 DEFAULT_TABLE_NAME = "KendoKeikoEvents"
 DEFAULT_REGION = "ap-northeast-1"
 
-
-@dataclass(frozen=True)
-class Organization:
-    organization_id: str
-    name: str
-    area: Optional[str]
-    website_url: str
-    source_type: str
-    scraper_type: str
-    scraper_enabled: bool
-    event_type: str
-    notes: Optional[str] = None
-
-
-
-
-@dataclass(frozen=True)
-class RawScrapedEvent:
-    """
-    export_events.py 内で追加スクレイパーが返す軽量イベント。
-
-    既存の scrape_kendo_schedule.KeikoEvent と同じ主要属性に加えて、
-    normalize_events() が参照している event_type を持たせる。
-    """
-    group: str
-    title: Optional[str]
-    date: str
-    weekday: Optional[str]
-    start_time: Optional[str]
-    end_time: Optional[str]
-    venue: Optional[str]
-    area: Optional[str]
-    access: Optional[str]
-    note: Optional[str]
-    source_url: str
-    event_type: str
-
-
-@dataclass(frozen=True)
-class ServiceEvent:
-    event_id: str
-    organization_id: str
-    organization_name: str
-    event_type: str
-    title: Optional[str]
-    event_date: str
-    weekday: Optional[str]
-    start_time: Optional[str]
-    end_time: Optional[str]
-    venue: Optional[str]
-    area: Optional[str]
-    address: Optional[str]
-    access: Optional[str]
-    fee: Optional[str]
-    application_required: Optional[bool]
-    source_url: str
-    source_type: str
-    last_scraped_at: str
-    status: str
-    raw_note: Optional[str]
-
-    # DynamoDB DateIndex 用
-    # DateIndex:
-    #   Partition key: gsi1_pk
-    #   Sort key:      gsi1_sk
-    gsi1_pk: str
-    gsi1_sk: str
 
 
 def debug_print(enabled: bool, message: str) -> None:
