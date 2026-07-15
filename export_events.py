@@ -54,10 +54,7 @@ from kendo_keiko.models import (
     ServiceEvent,
 )
 
-from kendo_keiko.scrapers.ajkf import scrape as scrape_ajkf
-from kendo_keiko.scrapers.kent import scrape as scrape_kent
-from kendo_keiko.scrapers.kenkyukai import scrape as scrape_kenkyukai
-from kendo_keiko.scrapers.kenbokukai import scrape as scrape_kenbokukai
+from kendo_keiko.scrapers import SCRAPER_REGISTRY
 
 DEFAULT_ORGANIZATIONS_PATH = Path("data/organizations.json")
 DEFAULT_EVENTS_OUTPUT_PATH = Path("data/events.json")
@@ -77,25 +74,27 @@ def load_organizations(path: Path) -> list[Organization]:
 
 
 
-def scrape_by_org(org: Organization, debug: bool = False):
+def scrape_by_org(
+    org: Organization,
+    debug: bool = False,
+) -> list[RawScrapedEvent]:
     if not org.scraper_enabled:
-        debug_print(debug, f"scraper disabled: {org.organization_id}")
+        debug_print(
+            debug,
+            f"scraper disabled: {org.organization_id}",
+        )
         return []
 
-    if org.scraper_type == "kent":
-        return scrape_kent(org, debug=debug)
+    scraper = SCRAPER_REGISTRY.get(org.scraper_type)
 
-    if org.scraper_type == "kenkyukai":
-        return scrape_kenkyukai(org, debug=debug)
+    if scraper is None:
+        print(
+            f"[WARN] unknown scraper_type: {org.scraper_type}",
+            file=sys.stderr,
+        )
+        return []
 
-    if org.scraper_type == "kenbokukai":
-        return scrape_kenbokukai(org, debug=debug)
-
-    if org.scraper_type == "ajkf":
-        return scrape_ajkf(org, debug=debug)
-
-    print(f"[WARN] unknown scraper_type: {org.scraper_type}", file=sys.stderr)
-    return []
+    return scraper(org, debug=debug)
 
 
 def make_event_id(
