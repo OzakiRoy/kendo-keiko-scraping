@@ -195,6 +195,24 @@ KENBOKUKAI_DATE_RE = re.compile(
     re.VERBOSE,
 )
 
+# 時刻の有無に関係なく、日付から始まる行をイベント境界として検出する。
+# 例:
+#   9/23(日)12:30~15:00
+#   9/26(土)&9/27(日)
+DATE_LINE_RE = re.compile(
+    r"""
+    ^
+    \s*
+    \d{1,2}
+    \s*(?:/|月)\s*
+    \d{1,2}
+    \s*(?:日)?
+    \s*[（(]
+    """,
+    re.VERBOSE,
+)
+
+
 TIME_LABEL_RE = re.compile(
     r"""
     (?:[■□]\s*)?
@@ -331,8 +349,8 @@ def find_venue_and_access(
         if not line:
             continue
 
-        # 次の稽古予定らしき行に到達したら打ち切る
-        if DATE_TIME_RE.search(line):
+        # 時刻が書かれていない予定も含め、次の日付行で打ち切る
+        if DATE_LINE_RE.search(line):
             break
 
         if line.startswith("@"):
@@ -582,7 +600,6 @@ def dedupe_events(events: Iterable[KeikoEvent]) -> list[KeikoEvent]:
             e.date,
             e.start_time,
             e.end_time,
-            e.title,
         )
 
         if key not in best or event_score(e) > event_score(best[key]):
