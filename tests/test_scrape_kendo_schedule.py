@@ -1,8 +1,8 @@
 import datetime as dt
 import unittest
 
+from kendo_keiko.models import RawScrapedEvent
 from scrape_kendo_schedule import (
-    KeikoEvent,
     dedupe_events,
     html_to_text,
     parse_events_from_text,
@@ -71,7 +71,7 @@ class ParseEventsFromTextTests(unittest.TestCase):
 
 class DedupeEventsTests(unittest.TestCase):
     def test_dedupes_same_datetime_when_titles_differ(self) -> None:
-        sparse = KeikoEvent(
+        sparse = RawScrapedEvent(
             group="kenkyukai",
             event_type="open_practice",
             title="7月＆8月稽古情報",
@@ -80,12 +80,13 @@ class DedupeEventsTests(unittest.TestCase):
             start_time="12:30",
             end_time="15:00",
             venue=None,
+            area=None,
             access=None,
             note=None,
             source_url="https://kenkyukai-kendo.com/archives/old",
         )
 
-        detailed = KeikoEvent(
+        detailed = RawScrapedEvent(
             group="kenkyukai",
             event_type="open_practice",
             title="2026年8月&9月稽古情報",
@@ -94,6 +95,7 @@ class DedupeEventsTests(unittest.TestCase):
             start_time="12:30",
             end_time="15:00",
             venue="文京区スポーツセンター",
+            area=None,
             access="茗荷谷駅 徒歩3分",
             note=None,
             source_url="https://kenkyukai-kendo.com/archives/new",

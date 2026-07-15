@@ -41,13 +41,15 @@ import html
 import json
 import re
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from typing import Iterable, Optional
 from urllib.parse import urljoin, urlparse
 from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
+
+from kendo_keiko.models import RawScrapedEvent
 
 
 SITES = {
@@ -76,21 +78,6 @@ HEADERS = {
 }
 
 JST = ZoneInfo("Asia/Tokyo")
-
-
-@dataclass(frozen=True)
-class KeikoEvent:
-    group: str
-    event_type: str
-    title: Optional[str]
-    date: str
-    weekday: Optional[str]
-    start_time: Optional[str]
-    end_time: Optional[str]
-    venue: Optional[str]
-    access: Optional[str]
-    note: Optional[str]
-    source_url: str
 
 
 def debug_print(enabled: bool, message: str) -> None:
@@ -399,7 +386,7 @@ def parse_events_from_text(
     text: str,
     source_url: str,
     base_date: Optional[dt.date] = None,
-) -> list[KeikoEvent]:
+) -> list[RawScrapedEvent]:
     """
     kent / 剣究会向け。
     プレーンテキストから稽古予定を抽出する。
@@ -410,7 +397,7 @@ def parse_events_from_text(
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     month_year_map = build_month_year_map(text)
 
-    events: list[KeikoEvent] = []
+    events: list[RawScrapedEvent] = []
     last_title: Optional[str] = None
 
     for i, line in enumerate(lines):
@@ -434,7 +421,7 @@ def parse_events_from_text(
 
         venue, access, note = find_venue_and_access(lines, i)
 
-        event = KeikoEvent(
+        event = RawScrapedEvent(
             group=group,
             event_type=event_type,
             title=last_title,
@@ -443,6 +430,7 @@ def parse_events_from_text(
             start_time=m.group("start"),
             end_time=m.group("end"),
             venue=venue,
+            area=None,
             access=access,
             note=note,
             source_url=source_url,
@@ -495,13 +483,13 @@ def parse_kenbokukai_events_from_text(
     event_type: str,
     text: str,
     source_url: str,
-) -> list[KeikoEvent]:
+) -> list[RawScrapedEvent]:
     """
     剣睦会向け。
     「■ 日付」「■ 時間」「■ 場所」のラベル付き情報から稽古予定を抽出する。
     """
     lines = [line.strip() for line in text.splitlines() if line.strip()]
-    events: list[KeikoEvent] = []
+    events: list[RawScrapedEvent] = []
     last_title: Optional[str] = None
 
     for i, line in enumerate(lines):
@@ -547,7 +535,7 @@ def parse_kenbokukai_events_from_text(
 
         note = " / ".join(note_parts) if note_parts else None
 
-        event = KeikoEvent(
+        event = RawScrapedEvent(
             group=group,
             event_type=event_type,
             title=last_title,
@@ -560,6 +548,7 @@ def parse_kenbokukai_events_from_text(
             start_time=time_match.group("start") if time_match else None,
             end_time=time_match.group("end") if time_match else None,
             venue=venue,
+            area=None,
             access=access,
             note=note,
             source_url=source_url,
@@ -569,7 +558,7 @@ def parse_kenbokukai_events_from_text(
     return events
 
 
-def event_score(e: KeikoEvent) -> int:
+def event_score(e: RawScrapedEvent) -> int:
     """
     同一イベントが複数ソースから取れたとき、情報量が多い方を残すためのスコア。
     """
@@ -589,13 +578,13 @@ def event_score(e: KeikoEvent) -> int:
     return score
 
 
-def dedupe_events(events: Iterable[KeikoEvent]) -> list[KeikoEvent]:
+def dedupe_events(events: Iterable[RawScrapedEvent]) -> list[RawScrapedEvent]:
     """
     同一イベントらしきものを重複排除する。
     venueが取れたり取れなかったりしても重複扱いできるよう、venueはkeyから外す。
     同一keyでは情報量の多いイベントを残す。
     """
-    best: dict[tuple, KeikoEvent] = {}
+    best: dict[tuple, RawScrapedEvent] = {}
 
     for e in events:
         key = (
@@ -613,14 +602,14 @@ def dedupe_events(events: Iterable[KeikoEvent]) -> list[KeikoEvent]:
 
 
 def filter_events_from_date(
-    events: Iterable[KeikoEvent],
+    events: Iterable[RawScrapedEvent],
     from_date: dt.date,
-) -> list[KeikoEvent]:
+) -> list[RawScrapedEvent]:
     """
     from_date 以降の稽古だけ残す。
     今日を含めたいので >= で判定する。
     """
-    result: list[KeikoEvent] = []
+    result: list[RawScrapedEvent] = []
 
     for e in events:
         try:
@@ -670,7 +659,7 @@ def extract_same_domain_archive_links(site_url: str, raw_html: str, limit: int =
     return links
 
 
-def scrape_kent() -> list[KeikoEvent]:
+def scrape_kent() -> list[RawScrapedEvent]:
     """
     kentのトップページから稽古予定を取得する。
     """
@@ -686,13 +675,13 @@ def scrape_kent() -> list[KeikoEvent]:
     )
 
 
-def scrape_kenkyukai(debug: bool = False) -> list[KeikoEvent]:
+def scrape_kenkyukai(debug: bool = False) -> list[RawScrapedEvent]:
     """
     剣究会の新着情報から稽古予定を取得する。
     まずWordPress REST APIを試し、駄目ならトップページHTMLにfallbackする。
     """
     site = SITES["kenkyukai"]
-    events: list[KeikoEvent] = []
+    events: list[RawScrapedEvent] = []
 
     try:
         posts = parse_wp_posts(site["url"], per_page=10)
@@ -746,7 +735,7 @@ def scrape_kenkyukai(debug: bool = False) -> list[KeikoEvent]:
     return events
 
 
-def scrape_kenbokukai(debug: bool = False) -> list[KeikoEvent]:
+def scrape_kenbokukai(debug: bool = False) -> list[RawScrapedEvent]:
     """
     剣睦会の最新情報から稽古予定を取得する。
 
@@ -760,7 +749,7 @@ def scrape_kenbokukai(debug: bool = False) -> list[KeikoEvent]:
     個別記事を辿る方がWebサービス向き。
     """
     site = SITES["kenbokukai"]
-    events: list[KeikoEvent] = []
+    events: list[RawScrapedEvent] = []
 
     # 1. WordPress API
     try:
@@ -847,7 +836,7 @@ def scrape_kenbokukai(debug: bool = False) -> list[KeikoEvent]:
     return events
 
 
-def format_text(events: list[KeikoEvent]) -> str:
+def format_text(events: list[RawScrapedEvent]) -> str:
     """
     テキスト形式で見やすく整形する。
     """
@@ -933,7 +922,7 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    events: list[KeikoEvent] = []
+    events: list[RawScrapedEvent] = []
 
     try:
         if args.group in ("all", "kent"):
