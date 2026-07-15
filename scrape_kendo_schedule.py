@@ -350,7 +350,7 @@ def find_venue_and_access(
             continue
 
         # 時刻が書かれていない予定も含め、次の日付行で打ち切る
-        if DATE_LINE_RE.search(line):
+        if DATE_TIME_RE.search(line) or DATE_LINE_RE.search(line):
             break
 
         if line.startswith("@"):
@@ -358,11 +358,15 @@ def find_venue_and_access(
             continue
 
         if line.startswith("会場"):
-            venue = re.sub(r"^会場[:：]\s*", "", line).strip()
+            candidate = re.sub(r"^会場[:：]\s*", "", line).strip()
+            if candidate:
+                venue = candidate
             continue
 
         if line.startswith("場所"):
-            venue = re.sub(r"^場所[:：]\s*", "", line).strip()
+            candidate = re.sub(r"^場所[:：]\s*", "", line).strip()
+            if candidate:
+                venue = candidate
             continue
 
         if "体育館" in line or "スポーツセンター" in line or "武道場" in line:
