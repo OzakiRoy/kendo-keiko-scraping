@@ -15,6 +15,7 @@ class Organization:
     scraper_enabled: bool
     event_type: str
     notes: Optional[str] = None
+    public_description: Optional[str] = None
 
 
 @dataclass(frozen=True)

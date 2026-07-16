@@ -8,7 +8,8 @@
     "scraper_type": "kent",
     "scraper_enabled": true,
     "event_type": "open_keiko",
-    "notes": "公式サイトのSCHEDULEから取得"
+    "notes": "公式サイトのSCHEDULEから取得",
+    "public_description": "東京都内で活動する社会人剣道サークルkentの稽古予定を掲載しています。"
   },
   {
     "organization_id": "kenkyukai",
@@ -19,7 +20,8 @@
     "scraper_type": "kenkyukai",
     "scraper_enabled": true,
     "event_type": "open_keiko",
-    "notes": "公式サイトの新着情報から取得"
+    "notes": "公式サイトの新着情報から取得",
+    "public_description": "剣究会が東京都内で開催する剣道稽古会の予定を掲載しています。"
   },
   {
     "organization_id": "kenbokukai",
@@ -30,7 +32,8 @@
     "scraper_type": "kenbokukai",
     "scraper_enabled": true,
     "event_type": "open_keiko",
-    "notes": "公式サイトの稽古会情報記事から取得"
+    "notes": "公式サイトの稽古会情報記事から取得",
+    "public_description": "剣睦会の公式サイトで案内されている剣道稽古会の予定を掲載しています。"
   },
   {
     "organization_id": "ajkf",
@@ -41,7 +44,8 @@
     "scraper_type": "ajkf",
     "scraper_enabled": true,
     "event_type": "federation_keiko",
-    "notes": "全剣連の稽古会一覧・個別行事ページから取得"
+    "notes": "全剣連の稽古会一覧・個別行事ページから取得",
+    "public_description": "全日本剣道連盟が全国各地で開催する公式稽古会の予定を掲載しています。"
   },
   {
     "organization_id": "tokyo",
@@ -52,6 +56,7 @@
     "scraper_type": "tokyo",
     "scraper_enabled": true,
     "event_type": "federation_keiko",
-    "notes": "公式の剣道稽古会・合同稽古会日程PDFから大武道場の合同稽古会を取得"
+    "notes": "公式の剣道稽古会・合同稽古会日程PDFから大武道場の合同稽古会を取得",
+    "public_description": "東京都剣道連盟が東京武道館で開催する剣道合同稽古会の予定を掲載しています。"
   }
 ]
