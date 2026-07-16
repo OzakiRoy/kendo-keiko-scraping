@@ -7,6 +7,7 @@ from kendo_keiko.scrapers.ajkf import scrape as scrape_ajkf
 from kendo_keiko.scrapers.kenbokukai import scrape as scrape_kenbokukai
 from kendo_keiko.scrapers.kenkyukai import scrape as scrape_kenkyukai
 from kendo_keiko.scrapers.kent import scrape as scrape_kent
+from kendo_keiko.scrapers.tokyo import scrape as scrape_tokyo
 
 
 Scraper = Callable[
@@ -20,6 +21,7 @@ SCRAPER_REGISTRY: dict[str, Scraper] = {
     "kent": scrape_kent,
     "kenkyukai": scrape_kenkyukai,
     "kenbokukai": scrape_kenbokukai,
+    "tokyo": scrape_tokyo,
 }
 
 
