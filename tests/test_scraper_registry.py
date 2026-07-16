@@ -32,6 +32,7 @@ class ScraperRegistryTests(unittest.TestCase):
                 "kent",
                 "kenkyukai",
                 "kenbokukai",
+            "tokyo",
             },
             set(SCRAPER_REGISTRY),
         )
