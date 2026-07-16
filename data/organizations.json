@@ -31,5 +31,16 @@
     "scraper_enabled": true,
     "event_type": "open_keiko",
     "notes": "公式サイトの稽古会情報記事から取得"
+  },
+  {
+  "organization_id": "ajkf",
+  "name": "全日本剣道連盟",
+  "area": "全国",
+  "website_url": "https://www.kendo.or.jp/event_cat/keiko-kai/",
+  "source_type": "official_site",
+  "scraper_type": "ajkf",
+  "scraper_enabled": true,
+  "event_type": "federation_keiko",
+  "notes": "全剣連の稽古会一覧・個別行事ページから取得"
   }
 ]

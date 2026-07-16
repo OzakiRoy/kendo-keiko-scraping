@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>剣道オープン稽古会一覧</title>
+  <title>剣道オープン稽古会一覧｜関東の合同稽古会情報</title>
   <style>
     :root {
       color-scheme: light dark;
@@ -145,11 +145,33 @@
       color: var(--muted);
       font-size: 13px;
     }
+  
+    .lead {
+      max-width: 900px;
+      margin: 8px 0 28px;
+      color: #cbd5e1;
+      line-height: 1.8;
+      font-size: 0.98rem;
+    }
+
   </style>
+  <meta name="description" content="関東を中心に、一般参加できる剣道のオープン稽古会・合同稽古会情報を日付順で掲載。東京・埼玉・神奈川・千葉などの稽古先探しにご活用ください。">
+  <link rel="canonical" href="https://kendo-keiko.com/">
+  <meta property="og:title" content="剣道オープン稽古会一覧｜関東の合同稽古会情報">
+  <meta property="og:description" content="関東を中心に、一般参加できる剣道のオープン稽古会・合同稽古会情報を日付順で掲載。東京・埼玉・神奈川・千葉などの稽古先探しにご活用ください。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kendo-keiko.com/">
+  <meta property="og:site_name" content="剣道オープン稽古会一覧">
+  <meta name="twitter:card" content="summary">
 </head>
 <body>
   <header>
     <h1>剣道オープン稽古会一覧</h1>
+<p class="lead">
+  関東を中心に、参加できる剣道のオープン稽古会・合同稽古会情報を掲載しています。
+  東京・埼玉・神奈川・千葉などの稽古会を日付順で確認できます。
+  参加前には必ず各団体・連盟の公式情報をご確認ください。
+</p>
     <div class="meta" id="meta">読み込み中...</div>
   </header>
 
@@ -313,7 +335,7 @@
         allEvents = payload.events || [];
 
         document.getElementById("meta").textContent =
-          `生成日時: ${payload.generated_at || "-"} / 取得元: ${payload.source || "-"} / 件数: ${payload.event_count ?? allEvents.length}`;
+          `生成日時: ${payload.generated_at || "-"} / 件数: ${payload.event_count ?? allEvents.length}`;
 
         renderOrganizations(allEvents);
         render();

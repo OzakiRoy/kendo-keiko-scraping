@@ -31,74 +31,22 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import hashlib
 import json
-import re
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
 
 import boto3
 
-from scrape_kendo_schedule import (
-    JST,
-    dedupe_events,
-    filter_events_from_date,
-    parse_from_date,
-    scrape_kent,
-    scrape_kenbokukai,
-    scrape_kenkyukai,
-)
+from kendo_keiko.models import Organization, ServiceEvent
+from kendo_keiko.pipeline import JST, parse_from_date, run_pipeline
 
 DEFAULT_ORGANIZATIONS_PATH = Path("data/organizations.json")
 DEFAULT_EVENTS_OUTPUT_PATH = Path("data/events.json")
 DEFAULT_TABLE_NAME = "KendoKeikoEvents"
 DEFAULT_REGION = "ap-northeast-1"
 
-
-@dataclass(frozen=True)
-class Organization:
-    organization_id: str
-    name: str
-    area: Optional[str]
-    website_url: str
-    source_type: str
-    scraper_type: str
-    scraper_enabled: bool
-    event_type: str
-    notes: Optional[str] = None
-
-
-@dataclass(frozen=True)
-class ServiceEvent:
-    event_id: str
-    organization_id: str
-    organization_name: str
-    event_type: str
-    title: Optional[str]
-    event_date: str
-    weekday: Optional[str]
-    start_time: Optional[str]
-    end_time: Optional[str]
-    venue: Optional[str]
-    area: Optional[str]
-    address: Optional[str]
-    access: Optional[str]
-    fee: Optional[str]
-    application_required: Optional[bool]
-    source_url: str
-    source_type: str
-    last_scraped_at: str
-    status: str
-    raw_note: Optional[str]
-
-    # DynamoDB DateIndex 用
-    # DateIndex:
-    #   Partition key: gsi1_pk
-    #   Sort key:      gsi1_sk
-    gsi1_pk: str
-    gsi1_sk: str
 
 
 def debug_print(enabled: bool, message: str) -> None:
@@ -111,158 +59,6 @@ def load_organizations(path: Path) -> list[Organization]:
     return [Organization(**item) for item in raw]
 
 
-def scrape_by_org(org: Organization, debug: bool = False):
-    if not org.scraper_enabled:
-        debug_print(debug, f"scraper disabled: {org.organization_id}")
-        return []
-
-    if org.scraper_type == "kent":
-        return scrape_kent()
-
-    if org.scraper_type == "kenkyukai":
-        return scrape_kenkyukai(debug=debug)
-
-    if org.scraper_type == "kenbokukai":
-        return scrape_kenbokukai(debug=debug)
-
-    print(f"[WARN] unknown scraper_type: {org.scraper_type}", file=sys.stderr)
-    return []
-
-
-def make_event_id(
-    *,
-    org_id: str,
-    event_date: str,
-    start_time: Optional[str],
-    end_time: Optional[str],
-    venue: Optional[str],
-    title: Optional[str],
-    source_url: str,
-) -> str:
-    """
-    DynamoDBの主キーとして使う安定IDを生成する。
-
-    例:
-      kenbokukai-20260808-1300-a1b2c3d4
-    """
-    start = (start_time or "unknown").replace(":", "")
-    date_part = event_date.replace("-", "")
-    base = "|".join(
-        [
-            org_id,
-            event_date,
-            start_time or "",
-            end_time or "",
-            venue or "",
-            title or "",
-            source_url,
-        ]
-    )
-    digest = hashlib.sha1(base.encode("utf-8")).hexdigest()[:8]
-    return f"{org_id}-{date_part}-{start}-{digest}"
-
-
-def make_gsi1_keys(
-    *,
-    event_date: str,
-    start_time: Optional[str],
-    organization_id: str,
-    event_id: str,
-) -> tuple[str, str]:
-    """
-    DateIndex 用のキーを生成する。
-
-    gsi1_pk はMVPでは全イベント共通で EVENT。
-    gsi1_sk は日付順に並ぶようにする。
-
-    例:
-      gsi1_pk = EVENT
-      gsi1_sk = 2026-08-08#13:00#kenbokukai#kenbokukai-20260808-1300-a1b2c3d4
-    """
-    safe_start_time = start_time or "00:00"
-    return "EVENT", f"{event_date}#{safe_start_time}#{organization_id}#{event_id}"
-
-
-def extract_fee(note: Optional[str]) -> Optional[str]:
-    if not note:
-        return None
-
-    m = re.search(r"参加費[:：]\s*(?P<fee>.+)", note)
-    if not m:
-        return None
-
-    return re.sub(r"\s+", " ", m.group("fee")).strip()
-
-
-def infer_application_required(note: Optional[str], title: Optional[str]) -> Optional[bool]:
-    text = " ".join(v for v in [note, title] if v)
-    if not text:
-        return None
-
-    if "事前申し込み" in text or "申込必須" in text or "申し込み必須" in text:
-        return True
-
-    if "申込不要" in text or "予約不要" in text or "自由参加" in text:
-        return False
-
-    return None
-
-
-def normalize_events(raw_events, organizations: list[Organization], scraped_at: str) -> list[ServiceEvent]:
-    org_by_name = {org.name: org for org in organizations}
-
-    service_events: list[ServiceEvent] = []
-
-    for raw in raw_events:
-        org = org_by_name.get(raw.group)
-        if not org:
-            print(f"[WARN] organization not found for group: {raw.group}", file=sys.stderr)
-            continue
-
-        event_id = make_event_id(
-            org_id=org.organization_id,
-            event_date=raw.date,
-            start_time=raw.start_time,
-            end_time=raw.end_time,
-            venue=raw.venue,
-            title=raw.title,
-            source_url=raw.source_url,
-        )
-        gsi1_pk, gsi1_sk = make_gsi1_keys(
-            event_date=raw.date,
-            start_time=raw.start_time,
-            organization_id=org.organization_id,
-            event_id=event_id,
-        )
-
-        service_events.append(
-            ServiceEvent(
-                event_id=event_id,
-                organization_id=org.organization_id,
-                organization_name=org.name,
-                event_type=raw.event_type,
-                title=raw.title,
-                event_date=raw.date,
-                weekday=raw.weekday,
-                start_time=raw.start_time,
-                end_time=raw.end_time,
-                venue=raw.venue,
-                area=org.area,
-                address=None,
-                access=raw.access,
-                fee=extract_fee(raw.note),
-                application_required=infer_application_required(raw.note, raw.title),
-                source_url=raw.source_url,
-                source_type=org.source_type,
-                last_scraped_at=scraped_at,
-                status="active",
-                raw_note=raw.note,
-                gsi1_pk=gsi1_pk,
-                gsi1_sk=gsi1_sk,
-            )
-        )
-
-    return sorted(service_events, key=lambda e: (e.event_date, e.start_time or "", e.organization_id))
 
 
 def build_payload(
@@ -425,15 +221,6 @@ def main() -> int:
             print(f"[ERROR] organization_id が見つかりません: {args.group}", file=sys.stderr)
             return 1
 
-    raw_events = []
-    for org in organizations:
-        debug_print(args.debug, f"scrape: {org.organization_id}")
-        raw_events.extend(scrape_by_org(org, debug=args.debug))
-
-    debug_print(args.debug, f"raw events before dedupe: {len(raw_events)}")
-    raw_events = dedupe_events(raw_events)
-    debug_print(args.debug, f"raw events after dedupe: {len(raw_events)}")
-
     filter_from_date = None
     if not args.include_past:
         try:
@@ -441,11 +228,14 @@ def main() -> int:
         except ValueError as e:
             print(f"[ERROR] {e}", file=sys.stderr)
             return 1
-        raw_events = filter_events_from_date(raw_events, filter_from_date)
-        debug_print(args.debug, f"raw events after date filter: {len(raw_events)}")
 
     scraped_at = dt.datetime.now(JST).isoformat(timespec="seconds")
-    events = normalize_events(raw_events, organizations, scraped_at)
+    events = run_pipeline(
+        organizations=organizations,
+        scraped_at=scraped_at,
+        from_date=filter_from_date,
+        debug=args.debug,
+    )
 
     from_date_text = filter_from_date.isoformat() if filter_from_date else None
 
