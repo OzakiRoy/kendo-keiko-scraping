@@ -154,6 +154,57 @@
       font-size: 0.98rem;
     }
 
+    .organization-section {
+      margin: 36px 0 0;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .organization-section h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+
+    .organization-intro {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .organization-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 4px 18px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .organization-item {
+      padding: 8px 0 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .organization-item h3 {
+      margin: 0 0 2px;
+      font-size: 15px;
+    }
+
+    .organization-item p {
+      margin: 2px 0;
+      font-size: 13px;
+    }
+
+    .organization-area,
+    .organization-source-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .organization-link {
+      font-size: 13px;
+    }
+
   </style>
   <meta name="description" content="関東を中心に、一般参加できる剣道のオープン稽古会・合同稽古会情報を日付順で掲載。東京・埼玉・神奈川・千葉などの稽古先探しにご活用ください。">
   <link rel="canonical" href="https://kendo-keiko.com/">
@@ -176,6 +227,8 @@
   </header>
 
   <main>
+
+
     <div class="toolbar">
       <input id="keyword" type="search" placeholder="団体名・会場・タイトルで検索">
       <select id="organization">
@@ -185,6 +238,50 @@
 
     <div class="count" id="count"></div>
     <div class="cards" id="cards"></div>
+
+    <!-- ORGANIZATION_SECTION_START -->
+    <section class="organization-section" id="listed-organizations" aria-labelledby="listed-organizations-heading">
+      <h2 id="listed-organizations-heading">掲載中の剣道団体・剣道連盟</h2>
+      <p class="organization-intro">
+        各団体・連盟の公式情報をもとに、一般参加できる稽古会や合同稽古会の予定を掲載しています。
+      </p>
+      <ul class="organization-list">
+        <li class="organization-item">
+          <h3>社会人剣道サークルkent</h3>
+          <p class="organization-area">主な地域: 東京都</p>
+          <p>東京都内で活動する社会人剣道サークルkentの稽古予定を掲載しています。</p>
+          <p class="organization-link"><a href="https://kendonetwork.com/" target="_blank" rel="noopener noreferrer">公式サイトを確認</a></p>
+        </li>
+        <li class="organization-item">
+          <h3>剣究会</h3>
+          <p class="organization-area">主な地域: 東京都</p>
+          <p>剣究会が東京都内で開催する剣道稽古会の予定を掲載しています。</p>
+          <p class="organization-link"><a href="https://kenkyukai-kendo.com/" target="_blank" rel="noopener noreferrer">公式サイトを確認</a></p>
+        </li>
+        <li class="organization-item">
+          <h3>剣睦会</h3>
+          <p class="organization-area">主な地域: 東京都</p>
+          <p>剣睦会の公式サイトで案内されている剣道稽古会の予定を掲載しています。</p>
+          <p class="organization-link"><a href="https://kenbokukai.com/" target="_blank" rel="noopener noreferrer">公式サイトを確認</a></p>
+        </li>
+        <li class="organization-item">
+          <h3>全日本剣道連盟</h3>
+          <p class="organization-area">主な地域: 全国</p>
+          <p>全日本剣道連盟が全国各地で開催する公式稽古会の予定を掲載しています。</p>
+          <p class="organization-link"><a href="https://www.kendo.or.jp/event_cat/keiko-kai/" target="_blank" rel="noopener noreferrer">公式サイトを確認</a></p>
+        </li>
+        <li class="organization-item">
+          <h3>東京都剣道連盟</h3>
+          <p class="organization-area">主な地域: 東京都</p>
+          <p>東京都剣道連盟が東京武道館で開催する剣道合同稽古会の予定を掲載しています。</p>
+          <p class="organization-link"><a href="https://www.tokyo-kendo.or.jp/keiko/keikokai-index.html" target="_blank" rel="noopener noreferrer">公式サイトを確認</a></p>
+        </li>
+      </ul>
+      <p class="organization-source-note">
+        日程や参加条件が変更される場合があります。参加前に必ず主催団体の公式情報をご確認ください。
+      </p>
+    </section>
+    <!-- ORGANIZATION_SECTION_END -->
   </main>
 
   <footer>
