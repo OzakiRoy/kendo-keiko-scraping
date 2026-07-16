@@ -36,15 +36,18 @@ kent / 剣究会 / 剣睦会 稽古予定スクレイピング
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import json
 import sys
 from dataclasses import asdict
-from typing import Iterable, Optional
 
 import requests
 
 from kendo_keiko.models import Organization, RawScrapedEvent
+from kendo_keiko.pipeline import (
+    dedupe_events,
+    filter_events_from_date,
+    parse_from_date,
+)
 from kendo_keiko.scrapers.common import (
     JST,
     fetch,
@@ -82,70 +85,6 @@ def debug_print(enabled: bool, message: str) -> None:
     if enabled:
         print(f"[DEBUG] {message}", file=sys.stderr)
 
-
-def event_score(e: RawScrapedEvent) -> int:
-    """
-    同一イベントが複数ソースから取れたとき、情報量が多い方を残すためのスコア。
-    """
-    score = 0
-    for value in (
-        e.title,
-        e.weekday,
-        e.start_time,
-        e.end_time,
-        e.venue,
-        e.access,
-        e.note,
-        e.source_url,
-    ):
-        if value:
-            score += 1
-    return score
-
-
-def dedupe_events(events: Iterable[RawScrapedEvent]) -> list[RawScrapedEvent]:
-    """
-    同一イベントらしきものを重複排除する。
-    venueが取れたり取れなかったりしても重複扱いできるよう、venueはkeyから外す。
-    同一keyでは情報量の多いイベントを残す。
-    """
-    best: dict[tuple, RawScrapedEvent] = {}
-
-    for e in events:
-        key = (
-            e.group,
-            e.event_type,
-            e.date,
-            e.start_time,
-            e.end_time,
-        )
-
-        if key not in best or event_score(e) > event_score(best[key]):
-            best[key] = e
-
-    return sorted(best.values(), key=lambda x: (x.date, x.start_time or "", x.group))
-
-
-def filter_events_from_date(
-    events: Iterable[RawScrapedEvent],
-    from_date: dt.date,
-) -> list[RawScrapedEvent]:
-    """
-    from_date 以降の稽古だけ残す。
-    今日を含めたいので >= で判定する。
-    """
-    result: list[RawScrapedEvent] = []
-
-    for e in events:
-        try:
-            event_date = dt.date.fromisoformat(e.date)
-        except ValueError:
-            continue
-
-        if event_date >= from_date:
-            result.append(e)
-
-    return sorted(result, key=lambda x: (x.date, x.start_time or "", x.group))
 
 
 def scrape_kent() -> list[RawScrapedEvent]:
@@ -241,21 +180,6 @@ def format_text(events: list[RawScrapedEvent]) -> str:
 
     return "\n".join(lines)
 
-
-def parse_from_date(value: Optional[str]) -> dt.date:
-    """
-    --from-date が指定されていればその日付、
-    未指定ならJSTの今日を返す。
-    """
-    if value:
-        try:
-            return dt.date.fromisoformat(value)
-        except ValueError as exc:
-            raise ValueError(
-                "--from-date は YYYY-MM-DD 形式で指定してください。例: 2026-07-09"
-            ) from exc
-
-    return dt.datetime.now(JST).date()
 
 
 def main() -> int:

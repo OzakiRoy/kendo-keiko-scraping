@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 
-from export_events import scrape_by_org
+from kendo_keiko.pipeline import scrape_by_org
 from kendo_keiko.models import Organization
 from kendo_keiko.scrapers import SCRAPER_REGISTRY
 

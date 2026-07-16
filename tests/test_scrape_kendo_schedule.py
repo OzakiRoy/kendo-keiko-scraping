@@ -3,7 +3,7 @@ import unittest
 
 from kendo_keiko.models import RawScrapedEvent
 from kendo_keiko.scrapers.common import html_to_text, parse_events_from_text
-from scrape_kendo_schedule import dedupe_events
+from kendo_keiko.pipeline import dedupe_events
 
 
 class HtmlToTextTests(unittest.TestCase):

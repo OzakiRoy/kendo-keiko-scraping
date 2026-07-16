@@ -3,7 +3,7 @@ import unittest
 from kendo_keiko.scrapers.kenbokukai import (
     parse_kenbokukai_events_from_text,
 )
-from scrape_kendo_schedule import dedupe_events
+from kendo_keiko.pipeline import dedupe_events
 
 
 class KenbokukaiParserTests(unittest.TestCase):

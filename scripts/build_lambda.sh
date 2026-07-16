@@ -74,6 +74,7 @@ required_files=(
   "scrape_kendo_schedule.py"
   "kendo_keiko/__init__.py"
   "kendo_keiko/models.py"
+  "kendo_keiko/pipeline.py"
   "kendo_keiko/scrapers/__init__.py"
   "kendo_keiko/scrapers/ajkf.py"
   "kendo_keiko/scrapers/common.py"
