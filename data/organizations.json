@@ -58,5 +58,17 @@
     "event_type": "federation_keiko",
     "notes": "公式の剣道稽古会・合同稽古会日程PDFから大武道場の合同稽古会を取得",
     "public_description": "東京都剣道連盟が東京武道館で開催する剣道合同稽古会の予定を掲載しています。"
+  },
+  {
+    "organization_id": "kanagawa",
+    "name": "神奈川県剣道連盟",
+    "area": "神奈川県",
+    "website_url": "https://kanagawa-kenren.com/taikai_cal/calender",
+    "source_type": "official_site",
+    "scraper_type": "kanagawa",
+    "scraper_enabled": true,
+    "event_type": "federation_keiko",
+    "notes": "公式の公開Googleカレンダーから一般合同稽古会・女子合同稽古会を取得",
+    "public_description": "神奈川県剣道連盟が神奈川県立武道館で開催する一般合同稽古会・女子合同稽古会の予定を掲載しています。"
   }
 ]

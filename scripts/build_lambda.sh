@@ -79,6 +79,7 @@ required_files=(
   "kendo_keiko/scrapers/ajkf.py"
   "kendo_keiko/scrapers/common.py"
   "kendo_keiko/scrapers/kent.py"
+  "kendo_keiko/scrapers/kanagawa.py"
   "kendo_keiko/scrapers/kenkyukai.py"
   "kendo_keiko/scrapers/kenbokukai.py"
   "kendo_keiko/scrapers/tokyo.py"
