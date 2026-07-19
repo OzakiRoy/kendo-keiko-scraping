@@ -29,10 +29,11 @@ class ScraperRegistryTests(unittest.TestCase):
         self.assertEqual(
             {
                 "ajkf",
+                "kanagawa",
                 "kent",
                 "kenkyukai",
                 "kenbokukai",
-            "tokyo",
+                "tokyo",
             },
             set(SCRAPER_REGISTRY),
         )
