@@ -9,6 +9,7 @@ Flow:
   2. Update DynamoDB KendoKeikoEvents
   3. Optionally query DynamoDB DateIndex
   4. Export public events.json to S3
+  5. Pre-render event cards into index.html and refresh sitemap.xml
 
 Environment variables:
   TABLE_NAME=KendoKeikoEvents
@@ -19,6 +20,11 @@ Environment variables:
   PUBLISH_TO_S3=false
   EVENTS_BUCKET=<your-s3-bucket>
   EVENTS_KEY=events.json
+
+  PUBLISH_INDEX_HTML=true
+  INDEX_KEY=index.html
+  SITEMAP_KEY=sitemap.xml
+  SITE_URL=https://kendo-keiko.com/
 """
 
 from __future__ import annotations
@@ -30,6 +36,7 @@ import sys
 from contextlib import redirect_stderr, redirect_stdout
 from decimal import Decimal
 from io import StringIO
+from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -37,6 +44,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 
 import export_events
+from kendo_keiko.static_site import build_sitemap_xml, render_static_index
 
 
 JST = ZoneInfo("Asia/Tokyo")
@@ -125,6 +133,25 @@ def build_public_events_payload(
     }
 
 
+def upload_text_to_s3(
+    *,
+    bucket: str,
+    key: str,
+    body: str,
+    content_type: str,
+    region_name: str,
+    cache_control: str = "max-age=300",
+) -> None:
+    s3 = boto3.client("s3", region_name=region_name)
+    s3.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=body.encode("utf-8"),
+        ContentType=content_type,
+        CacheControl=cache_control,
+    )
+
+
 def upload_events_json_to_s3(
     *,
     bucket: str,
@@ -132,22 +159,25 @@ def upload_events_json_to_s3(
     payload: dict[str, Any],
     region_name: str,
 ) -> None:
-    s3 = boto3.client("s3", region_name=region_name)
-
     body = json.dumps(
         payload,
         ensure_ascii=False,
         indent=2,
         default=json_default,
-    ).encode("utf-8")
-
-    s3.put_object(
-        Bucket=bucket,
-        Key=key,
-        Body=body,
-        ContentType="application/json; charset=utf-8",
-        CacheControl="max-age=300",
     )
+    upload_text_to_s3(
+        bucket=bucket,
+        key=key,
+        body=body,
+        content_type="application/json; charset=utf-8",
+        region_name=region_name,
+    )
+
+
+def build_public_index_html(payload: dict[str, Any]) -> str:
+    template_path = Path(__file__).resolve().parent / "public" / "index.html"
+    template_html = template_path.read_text(encoding="utf-8")
+    return render_static_index(template_html, payload)
 
 
 def run_export_events_main(
@@ -208,6 +238,13 @@ def lambda_handler(event: dict[str, Any] | None, context: Any) -> dict[str, Any]
     )
     events_bucket = event.get("events_bucket") or os.environ.get("EVENTS_BUCKET")
     events_key = event.get("events_key") or os.environ.get("EVENTS_KEY", "events.json")
+    publish_index_html = str_to_bool(
+        event.get("publish_index_html"),
+        str_to_bool(os.environ.get("PUBLISH_INDEX_HTML"), publish_to_s3),
+    )
+    index_key = event.get("index_key") or os.environ.get("INDEX_KEY", "index.html")
+    sitemap_key = event.get("sitemap_key") or os.environ.get("SITEMAP_KEY", "sitemap.xml")
+    site_url = event.get("site_url") or os.environ.get("SITE_URL", "https://kendo-keiko.com/")
     from_date = event.get("from_date") or today_jst().isoformat()
 
     print(
@@ -220,6 +257,10 @@ def lambda_handler(event: dict[str, Any] | None, context: Any) -> dict[str, Any]
                 "publish_to_s3": publish_to_s3,
                 "events_bucket": events_bucket,
                 "events_key": events_key,
+                "publish_index_html": publish_index_html,
+                "index_key": index_key,
+                "sitemap_key": sitemap_key,
+                "site_url": site_url,
                 "from_date": from_date,
             },
             ensure_ascii=False,
@@ -291,7 +332,54 @@ def lambda_handler(event: dict[str, Any] | None, context: Any) -> dict[str, Any]
                 "events_bucket": events_bucket,
                 "events_key": events_key,
                 "event_count": len(events),
+                "index_published": False,
+                "sitemap_published": False,
             }
         )
+
+        if publish_index_html:
+            index_html = build_public_index_html(payload)
+            upload_text_to_s3(
+                bucket=events_bucket,
+                key=index_key,
+                body=index_html,
+                content_type="text/html; charset=utf-8",
+                region_name=region_name,
+            )
+
+            sitemap_xml = build_sitemap_xml(
+                site_url=site_url,
+                lastmod=today_jst(),
+            )
+            upload_text_to_s3(
+                bucket=events_bucket,
+                key=sitemap_key,
+                body=sitemap_xml,
+                content_type="application/xml; charset=utf-8",
+                region_name=region_name,
+                cache_control="max-age=3600",
+            )
+
+            print(
+                json.dumps(
+                    {
+                        "message": "index.html and sitemap.xml uploaded to S3",
+                        "bucket": events_bucket,
+                        "index_key": index_key,
+                        "sitemap_key": sitemap_key,
+                        "event_count": len(events),
+                    },
+                    ensure_ascii=False,
+                )
+            )
+
+            response.update(
+                {
+                    "index_published": True,
+                    "index_key": index_key,
+                    "sitemap_published": True,
+                    "sitemap_key": sitemap_key,
+                }
+            )
 
     return response

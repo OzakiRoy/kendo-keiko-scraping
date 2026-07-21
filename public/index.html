@@ -12,6 +12,16 @@
   <meta property="og:url" content="https://kendo-keiko.com/">
   <meta property="og:site_name" content="剣道オープン稽古会一覧">
   <meta name="twitter:card" content="summary">
+  <meta property="og:locale" content="ja_JP">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "剣道オープン稽古会一覧",
+    "alternateName": "kendo-keiko.com",
+    "url": "https://kendo-keiko.com/"
+  }
+  </script>
   <style>
     :root {
       --paper: #f3f1ec;
@@ -652,7 +662,9 @@
         東京・埼玉・神奈川・千葉などの稽古会を日付順で確認できます。
         参加前には必ず各団体・連盟の公式情報をご確認ください。
       </p>
-      <div class="meta" id="meta">読み込み中...</div>
+      <!-- EVENT_META_START -->
+      <div class="meta" id="meta">稽古会情報を読み込んでいます...</div>
+      <!-- EVENT_META_END -->
     </div>
   </header>
 
@@ -684,10 +696,16 @@
           <span class="section-heading__en">SCHEDULE</span>
           <h2 id="events-heading">開催予定の稽古会</h2>
         </div>
-        <div class="count" id="count"></div>
+        <!-- EVENT_COUNT_START -->
+        <div class="count" id="count">0件掲載中</div>
+        <!-- EVENT_COUNT_END -->
       </div>
 
-      <div class="cards" id="cards"></div>
+      <div class="cards" id="cards">
+        <!-- EVENT_CARDS_START -->
+        <div class="empty">稽古会情報を読み込んでいます...</div>
+        <!-- EVENT_CARDS_END -->
+      </div>
     </section>
 
     <!-- ORGANIZATION_SECTION_START -->
@@ -897,9 +915,14 @@
         document.getElementById("keyword").addEventListener("input", render);
         document.getElementById("organization").addEventListener("change", render);
       } catch (error) {
-        document.getElementById("meta").textContent = "読み込み失敗";
-        document.getElementById("cards").innerHTML =
-          `<div class="error">${escapeHtml(error.message)}</div>`;
+        document.getElementById("meta").textContent =
+          "最新データの読み込みに失敗しました。掲載済み情報を表示しています。";
+
+        const cards = document.getElementById("cards");
+        if (!cards.querySelector(".card")) {
+          cards.innerHTML =
+            `<div class="error">${escapeHtml(error.message)}</div>`;
+        }
       }
     }
 

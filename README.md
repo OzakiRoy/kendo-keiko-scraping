@@ -275,3 +275,9 @@ updated_at
 
 事業的には、剣道団体と参加者をつなぐ小さなサービスとして始め、将来的に団体登録・地域展開・AWS運用事例として活用する。
 
+
+## 基本SEOの静的生成
+
+開催予定はブラウザのJavaScript表示に加え、定期Lambda実行時に `index.html` へ静的生成する。`events.json`、`index.html`、`sitemap.xml` を同じデータ更新サイクルでS3へ発行し、HTMLと表示データの鮮度を揃える。
+
+実装・デプロイ手順は `docs/basic-seo-setup.md` を参照する。
