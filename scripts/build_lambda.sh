@@ -13,13 +13,20 @@ ZIP_PATH="${ROOT_DIR}/lambda_function.zip"
 echo "[INFO] clean build directory"
 rm -rf "${BUILD_DIR}" "${ZIP_PATH}"
 
-mkdir -p "${BUILD_DIR}/data"
+mkdir -p "${BUILD_DIR}/data" "${BUILD_DIR}/public"
 
 echo "[INFO] install dependencies"
 python -m pip install \
   --requirement "${ROOT_DIR}/requirements.txt" \
   --target "${BUILD_DIR}" \
   --quiet
+
+# charset-normalizer の mypyc 拡張はビルド時のPythonマイナーバージョンに
+# 依存する。純Python実装も同梱されているため、Lambda Python 3.12との
+# 互換性を保つ目的で任意の高速化バイナリだけを除去する。
+find "${BUILD_DIR}" -type f \
+  \( -path '*/charset_normalizer/*.so' -o -name '*__mypyc*.so' \) \
+  -delete
 
 echo "[INFO] copy application files"
 cp \
@@ -35,6 +42,10 @@ cp -R \
 cp \
   "${ROOT_DIR}/data/organizations.json" \
   "${BUILD_DIR}/data/organizations.json"
+
+cp \
+  "${ROOT_DIR}/public/index.html" \
+  "${BUILD_DIR}/public/index.html"
 
 echo "[INFO] remove Python cache files"
 find "${BUILD_DIR}" \
@@ -61,6 +72,18 @@ print("[INFO] Lambda package imports: OK")
 PY
 )
 
+echo "[INFO] remove cache files created by import test"
+find "${BUILD_DIR}" \
+  -type d \
+  -name '__pycache__' \
+  -prune \
+  -exec rm -rf {} +
+
+find "${BUILD_DIR}" \
+  -type f \
+  \( -name '*.pyc' -o -name '*.pyo' \) \
+  -delete
+
 echo "[INFO] create ZIP package"
 (
   cd "${BUILD_DIR}"
@@ -75,6 +98,7 @@ required_files=(
   "kendo_keiko/__init__.py"
   "kendo_keiko/models.py"
   "kendo_keiko/pipeline.py"
+  "kendo_keiko/static_site.py"
   "kendo_keiko/scrapers/__init__.py"
   "kendo_keiko/scrapers/ajkf.py"
   "kendo_keiko/scrapers/common.py"
@@ -84,6 +108,7 @@ required_files=(
   "kendo_keiko/scrapers/kenbokukai.py"
   "kendo_keiko/scrapers/tokyo.py"
   "data/organizations.json"
+  "public/index.html"
 )
 
 ZIP_CONTENTS_FILE="$(mktemp)"
@@ -97,6 +122,12 @@ for required_file in "${required_files[@]}"; do
     exit 1
   fi
 done
+
+if grep -Eq '\.(pyc|pyo)$' "${ZIP_CONTENTS_FILE}"; then
+  echo "[ERROR] Python cache file found in ZIP" >&2
+  grep -E '\.(pyc|pyo)$' "${ZIP_CONTENTS_FILE}" >&2
+  exit 1
+fi
 
 echo "[INFO] created: ${ZIP_PATH}"
 ls -lh "${ZIP_PATH}"
