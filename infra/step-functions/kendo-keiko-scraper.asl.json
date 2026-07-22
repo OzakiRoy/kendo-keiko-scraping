@@ -1,0 +1,127 @@
+{
+  "Comment": "Run each kendo scraper independently and publish the combined public site.",
+  "StartAt": "ListEnabledSources",
+  "States": {
+    "ListEnabledSources": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${ListSourcesFunctionArn}",
+        "Payload.$": "$"
+      },
+      "OutputPath": "$.Payload",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "BackoffRate": 2.0,
+          "MaxAttempts": 3
+        }
+      ],
+      "Next": "ScrapeSources"
+    },
+    "ScrapeSources": {
+      "Type": "Map",
+      "ItemsPath": "$.sources",
+      "MaxConcurrency": 2,
+      "ItemSelector": {
+        "run_id.$": "$.run_id",
+        "organization_id.$": "$$.Map.Item.Value.organization_id",
+        "table_name.$": "$.table_name",
+        "region.$": "$.region",
+        "from_date.$": "$.from_date",
+        "debug.$": "$.debug"
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "InvokeScraperWorker",
+        "States": {
+          "InvokeScraperWorker": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "${ScraperWorkerFunctionArn}",
+              "Payload.$": "$"
+            },
+            "OutputPath": "$.Payload",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 2,
+                "BackoffRate": 2.0,
+                "MaxAttempts": 3
+              },
+              {
+                "ErrorEquals": ["ScraperTransientError"],
+                "IntervalSeconds": 10,
+                "BackoffRate": 2.0,
+                "MaxAttempts": 2
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.error",
+                "Next": "BuildFailureResult"
+              }
+            ],
+            "End": true
+          },
+          "BuildFailureResult": {
+            "Type": "Pass",
+            "Parameters": {
+              "run_id.$": "$.run_id",
+              "organization_id.$": "$.organization_id",
+              "scraper_type": null,
+              "status": "failure",
+              "event_count": 0,
+              "duration_ms": 0,
+              "checked_at.$": "$$.State.EnteredTime",
+              "from_date.$": "$.from_date",
+              "error_type.$": "$.error.Error",
+              "error_message.$": "$.error.Cause"
+            },
+            "End": true
+          }
+        }
+      },
+      "ResultPath": "$.scrape_results",
+      "Next": "PublishPublicSite"
+    },
+    "PublishPublicSite": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${PublisherFunctionArn}",
+        "Payload.$": "$"
+      },
+      "OutputPath": "$.Payload",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "BackoffRate": 2.0,
+          "MaxAttempts": 3
+        }
+      ],
+      "End": true
+    }
+  }
+}
