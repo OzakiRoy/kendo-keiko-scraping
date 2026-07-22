@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Literal, Optional
 
 
 @dataclass(frozen=True)
@@ -16,6 +16,22 @@ class Organization:
     event_type: str
     notes: Optional[str] = None
     public_description: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class ScrapeResult:
+    """One scraper worker execution summary passed through Step Functions."""
+
+    run_id: str
+    organization_id: str
+    scraper_type: str
+    status: Literal["success", "warning", "failure"]
+    event_count: int
+    duration_ms: int
+    checked_at: str
+    from_date: str
+    error_type: Optional[str] = None
+    error_message: Optional[str] = None
 
 
 @dataclass(frozen=True)

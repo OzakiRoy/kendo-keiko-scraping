@@ -33,6 +33,9 @@ cp \
   "${ROOT_DIR}/export_events.py" \
   "${ROOT_DIR}/scrape_kendo_schedule.py" \
   "${ROOT_DIR}/lambda_function.py" \
+  "${ROOT_DIR}/list_sources_handler.py" \
+  "${ROOT_DIR}/scraper_worker_handler.py" \
+  "${ROOT_DIR}/publisher_handler.py" \
   "${BUILD_DIR}/"
 
 cp -R \
@@ -65,7 +68,10 @@ echo "[INFO] test imports from build directory"
 
   PYTHONPATH="${BUILD_DIR}" python - <<'PY'
 import lambda_function
-from kendo_keiko.models import RawScrapedEvent
+import list_sources_handler
+import publisher_handler
+import scraper_worker_handler
+from kendo_keiko.models import RawScrapedEvent, ScrapeResult
 from kendo_keiko.scrapers.ajkf import scrape
 
 print("[INFO] Lambda package imports: OK")
@@ -93,12 +99,18 @@ echo "[INFO] create ZIP package"
 echo "[INFO] verify ZIP contents"
 required_files=(
   "lambda_function.py"
+  "list_sources_handler.py"
+  "scraper_worker_handler.py"
+  "publisher_handler.py"
   "export_events.py"
   "scrape_kendo_schedule.py"
   "kendo_keiko/__init__.py"
   "kendo_keiko/models.py"
   "kendo_keiko/pipeline.py"
+  "kendo_keiko/publication.py"
+  "kendo_keiko/repository.py"
   "kendo_keiko/static_site.py"
+  "kendo_keiko/worker.py"
   "kendo_keiko/scrapers/__init__.py"
   "kendo_keiko/scrapers/ajkf.py"
   "kendo_keiko/scrapers/common.py"

@@ -56,3 +56,6 @@ cf-config-output.json
 cf-updated-config.json
 cf-update-output.json
 route53-cloudfront-alias-records.json
+
+# Step Functions definitions are source files
+!infra/step-functions/*.asl.json

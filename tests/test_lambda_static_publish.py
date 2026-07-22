@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch
 
 import lambda_function
+import kendo_keiko.publication as publication
 
 
 class FakeS3Client:
@@ -40,12 +41,12 @@ class LambdaStaticPublishTests(unittest.TestCase):
                 return_value={"exit_code": 0, "stdout": "", "stderr": ""},
             ),
             patch.object(
-                lambda_function,
+                publication,
                 "query_events_from_dynamodb",
                 return_value=events,
             ),
             patch.object(
-                lambda_function.boto3,
+                publication.boto3,
                 "client",
                 return_value=fake_s3,
             ),

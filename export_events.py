@@ -37,10 +37,9 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
 
-import boto3
-
 from kendo_keiko.models import Organization, ServiceEvent
 from kendo_keiko.pipeline import JST, parse_from_date, run_pipeline
+from kendo_keiko.repository import load_organizations, save_dynamodb
 
 DEFAULT_ORGANIZATIONS_PATH = Path("data/organizations.json")
 DEFAULT_EVENTS_OUTPUT_PATH = Path("data/events.json")
@@ -52,13 +51,6 @@ DEFAULT_REGION = "ap-northeast-1"
 def debug_print(enabled: bool, message: str) -> None:
     if enabled:
         print(f"[DEBUG] {message}", file=sys.stderr)
-
-
-def load_organizations(path: Path) -> list[Organization]:
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    return [Organization(**item) for item in raw]
-
-
 
 
 def build_payload(
@@ -99,28 +91,6 @@ def save_json(
         include_past=include_past,
     )
     output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-
-def remove_none_values(item: dict) -> dict:
-    """
-    DynamoDBに保存する前に None の属性を除去する。
-    MVPでは NULL として保存するより、属性自体を省略する方が扱いやすい。
-    """
-    return {k: v for k, v in item.items() if v is not None}
-
-
-def save_dynamodb(*, events: list[ServiceEvent], table_name: str, region: str) -> None:
-    """
-    DynamoDBへイベント情報を保存する。
-    同じ event_id のItemは上書きされる。
-    """
-    dynamodb = boto3.resource("dynamodb", region_name=region)
-    table = dynamodb.Table(table_name)
-
-    with table.batch_writer() as batch:
-        for event in events:
-            item = remove_none_values(asdict(event))
-            batch.put_item(Item=item)
 
 
 def format_text(events: list[ServiceEvent]) -> str:

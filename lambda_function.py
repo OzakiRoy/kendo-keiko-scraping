@@ -34,20 +34,19 @@ import json
 import os
 import sys
 from contextlib import redirect_stderr, redirect_stdout
-from decimal import Decimal
 from io import StringIO
-from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-import boto3
-from boto3.dynamodb.conditions import Key
-
 import export_events
-from kendo_keiko.static_site import build_sitemap_xml, render_static_index
+from kendo_keiko.publication import publish_public_site
 
 
 JST = ZoneInfo("Asia/Tokyo")
+
+
+def today_jst() -> dt.date:
+    return dt.datetime.now(JST).date()
 
 
 def str_to_bool(value: Any, default: bool = False) -> bool:
@@ -58,126 +57,6 @@ def str_to_bool(value: Any, default: bool = False) -> bool:
         return value
 
     return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
-
-
-def json_default(value: Any) -> Any:
-    if isinstance(value, Decimal):
-        if value % 1 == 0:
-            return int(value)
-        return float(value)
-
-    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
-
-
-def today_jst() -> dt.date:
-    return dt.datetime.now(JST).date()
-
-
-def query_events_from_dynamodb(
-    *,
-    table_name: str,
-    region_name: str,
-    from_date: str,
-) -> list[dict[str, Any]]:
-    dynamodb = boto3.resource("dynamodb", region_name=region_name)
-    table = dynamodb.Table(table_name)
-
-    events: list[dict[str, Any]] = []
-    last_evaluated_key = None
-
-    while True:
-        kwargs: dict[str, Any] = {
-            "IndexName": "DateIndex",
-            "KeyConditionExpression": Key("gsi1_pk").eq("EVENT")
-            & Key("gsi1_sk").gte(from_date),
-        }
-
-        if last_evaluated_key:
-            kwargs["ExclusiveStartKey"] = last_evaluated_key
-
-        response = table.query(**kwargs)
-        events.extend(response.get("Items", []))
-
-        last_evaluated_key = response.get("LastEvaluatedKey")
-        if not last_evaluated_key:
-            break
-
-    return sorted(
-        events,
-        key=lambda e: (
-            e.get("event_date", ""),
-            e.get("start_time", ""),
-            e.get("organization_id", ""),
-            e.get("event_id", ""),
-        ),
-    )
-
-
-def build_public_events_payload(
-    *,
-    events: list[dict[str, Any]],
-    table_name: str,
-    region_name: str,
-    from_date: str,
-) -> dict[str, Any]:
-    return {
-        "schema_version": "public-events-0.1",
-        "generated_at": dt.datetime.now(JST).isoformat(timespec="seconds"),
-        "timezone": "Asia/Tokyo",
-        "source": "dynamodb",
-        "table_name": table_name,
-        "region": region_name,
-        "from_date": from_date,
-        "event_count": len(events),
-        "events": events,
-    }
-
-
-def upload_text_to_s3(
-    *,
-    bucket: str,
-    key: str,
-    body: str,
-    content_type: str,
-    region_name: str,
-    cache_control: str = "max-age=300",
-) -> None:
-    s3 = boto3.client("s3", region_name=region_name)
-    s3.put_object(
-        Bucket=bucket,
-        Key=key,
-        Body=body.encode("utf-8"),
-        ContentType=content_type,
-        CacheControl=cache_control,
-    )
-
-
-def upload_events_json_to_s3(
-    *,
-    bucket: str,
-    key: str,
-    payload: dict[str, Any],
-    region_name: str,
-) -> None:
-    body = json.dumps(
-        payload,
-        ensure_ascii=False,
-        indent=2,
-        default=json_default,
-    )
-    upload_text_to_s3(
-        bucket=bucket,
-        key=key,
-        body=body,
-        content_type="application/json; charset=utf-8",
-        region_name=region_name,
-    )
-
-
-def build_public_index_html(payload: dict[str, Any]) -> str:
-    template_path = Path(__file__).resolve().parent / "public" / "index.html"
-    template_html = template_path.read_text(encoding="utf-8")
-    return render_static_index(template_html, payload)
 
 
 def run_export_events_main(
@@ -296,90 +175,26 @@ def lambda_handler(event: dict[str, Any] | None, context: Any) -> dict[str, Any]
         if not events_bucket:
             raise ValueError("PUBLISH_TO_S3 is true, but EVENTS_BUCKET is not set.")
 
-        events = query_events_from_dynamodb(
+        publish_result = publish_public_site(
             table_name=table_name,
             region_name=region_name,
             from_date=from_date,
+            events_bucket=events_bucket,
+            events_key=events_key,
+            publish_index_html=publish_index_html,
+            index_key=index_key,
+            sitemap_key=sitemap_key,
+            site_url=site_url,
         )
-        payload = build_public_events_payload(
-            events=events,
-            table_name=table_name,
-            region_name=region_name,
-            from_date=from_date,
-        )
-        upload_events_json_to_s3(
-            bucket=events_bucket,
-            key=events_key,
-            payload=payload,
-            region_name=region_name,
-        )
-
+        response.update(publish_result)
         print(
             json.dumps(
                 {
-                    "message": "events.json uploaded to S3",
-                    "bucket": events_bucket,
-                    "key": events_key,
-                    "event_count": len(events),
+                    "message": "public site files uploaded to S3",
+                    **publish_result,
                 },
                 ensure_ascii=False,
             )
         )
-
-        response.update(
-            {
-                "s3_published": True,
-                "events_bucket": events_bucket,
-                "events_key": events_key,
-                "event_count": len(events),
-                "index_published": False,
-                "sitemap_published": False,
-            }
-        )
-
-        if publish_index_html:
-            index_html = build_public_index_html(payload)
-            upload_text_to_s3(
-                bucket=events_bucket,
-                key=index_key,
-                body=index_html,
-                content_type="text/html; charset=utf-8",
-                region_name=region_name,
-            )
-
-            sitemap_xml = build_sitemap_xml(
-                site_url=site_url,
-                lastmod=today_jst(),
-            )
-            upload_text_to_s3(
-                bucket=events_bucket,
-                key=sitemap_key,
-                body=sitemap_xml,
-                content_type="application/xml; charset=utf-8",
-                region_name=region_name,
-                cache_control="max-age=3600",
-            )
-
-            print(
-                json.dumps(
-                    {
-                        "message": "index.html and sitemap.xml uploaded to S3",
-                        "bucket": events_bucket,
-                        "index_key": index_key,
-                        "sitemap_key": sitemap_key,
-                        "event_count": len(events),
-                    },
-                    ensure_ascii=False,
-                )
-            )
-
-            response.update(
-                {
-                    "index_published": True,
-                    "index_key": index_key,
-                    "sitemap_published": True,
-                    "sitemap_key": sitemap_key,
-                }
-            )
 
     return response
