@@ -231,41 +231,29 @@ created_at
 updated_at
 ```
 
-## MVPで作るもの
+## 開発状況とロードマップ
 
-### Phase 1: スクレイピングMVP
+現在は、スクレイピング基盤を作る段階から、自動取得と手動登録を組み合わせて掲載情報を増やし、利用者が稽古先を探しやすくする段階へ移行している。
 
-* kent / 剣究会 / 剣睦会の稽古予定取得
-* JSON出力
-* 今日以降の稽古だけ表示
-* 取得元URL保持
+本番環境では、次の仕組みが稼働している。
 
-### Phase 2: API化
+* S3 + CloudFrontによる静的サイト配信
+* EventBridge Scheduler + Step Functionsによる定期取得
+* 6情報源からの自動取得
+* `data/manual_events.json` と管理者CLIによる手動登録
+* DynamoDBの自動イベントと手動イベントの公開時統合
+* 参加条件・取得方式・確認日のイベント単位管理
+* CloudWatch Alarm + SNSによる失敗通知
 
-* DynamoDB保存
-* API Gateway + Lambdaでイベント一覧API提供
-* 団体別・日付別の絞り込み
+直近は次の順序を基本とする。
 
-### Phase 3: フロントエンド
+1. イベント差分と掲載状態を安全に管理する
+2. サイト名・favicon・OGPを整備する
+3. 日付・地域・参加条件で探しやすくする
+4. 地域団体・剣道連盟の掲載情報を継続的に増やす
+5. カレンダー追加、詳細ページ、掲載依頼導線を段階的に追加する
 
-* S3 + CloudFrontで静的フロントエンド配信
-* 今日以降の稽古一覧
-* 団体別表示
-* 地域別表示
-* 公式URLへの導線
-
-### Phase 4: 運用強化
-
-* WAF導入
-* CloudWatch Logs整備
-* Security Hub CSPM / AWS Config / GuardDuty / IAM Access Analyzer導入
-* Prowlerによる定期チェック
-
-### Phase 5: 登録フォーム
-
-* 団体側が予定を登録できるフォーム
-* SNS依存団体の手動・半自動登録
-* 管理者承認フロー
+詳細な優先順位、運用原則、完了済み項目は [`docs/roadmap.md`](docs/roadmap.md) を参照する。
 
 ## 開発メモ
 
