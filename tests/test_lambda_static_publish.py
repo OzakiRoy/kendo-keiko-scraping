@@ -74,7 +74,7 @@ class LambdaStaticPublishTests(unittest.TestCase):
         events_payload = json.loads(
             objects["events.json"]["Body"].decode("utf-8")
         )
-        self.assertEqual("public-events-0.2", events_payload["schema_version"])
+        self.assertEqual("public-events-0.3", events_payload["schema_version"])
         self.assertEqual(
             "automatic",
             events_payload["events"][0]["update_mode"],

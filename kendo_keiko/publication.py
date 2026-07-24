@@ -10,6 +10,11 @@ from zoneinfo import ZoneInfo
 import boto3
 from boto3.dynamodb.conditions import Key
 
+from kendo_keiko.manual_events import (
+    DEFAULT_MANUAL_EVENTS_PATH,
+    load_manual_events,
+    merge_public_events,
+)
 from kendo_keiko.models import normalize_event_metadata
 from kendo_keiko.static_site import build_sitemap_xml, render_static_index
 
@@ -77,10 +82,10 @@ def build_public_events_payload(
 ) -> dict[str, Any]:
     normalized_events = [normalize_event_metadata(event) for event in events]
     return {
-        "schema_version": "public-events-0.2",
+        "schema_version": "public-events-0.3",
         "generated_at": dt.datetime.now(JST).isoformat(timespec="seconds"),
         "timezone": "Asia/Tokyo",
-        "source": "dynamodb",
+        "source": "dynamodb+manual_json",
         "table_name": table_name,
         "region": region_name,
         "from_date": from_date,
@@ -149,10 +154,17 @@ def publish_public_site(
     index_key: str = "index.html",
     sitemap_key: str = "sitemap.xml",
     site_url: str = "https://kendo-keiko.com/",
+    manual_events_path: Path = DEFAULT_MANUAL_EVENTS_PATH,
 ) -> dict[str, Any]:
-    events = query_events_from_dynamodb(
+    automatic_events = query_events_from_dynamodb(
         table_name=table_name,
         region_name=region_name,
+        from_date=from_date,
+    )
+    manual_events = load_manual_events(manual_events_path)
+    events = merge_public_events(
+        automatic_events=automatic_events,
+        manual_events=manual_events,
         from_date=from_date,
     )
     payload = build_public_events_payload(

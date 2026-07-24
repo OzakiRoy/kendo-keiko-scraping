@@ -44,3 +44,17 @@ DynamoDB
 - 画面/APIはDBを見る
 - 公式URLと最終取得日時を必ず表示する
 - WAF / CSPM / Prowler の実験台として運用する
+
+## 手動イベントの公開
+
+```text
+data/manual_events.json（Git管理）
+  ↓ Lambda ZIPへ同梱
+Publisher Lambda
+  ├─ DynamoDBの自動取得イベント
+  └─ 手動イベント
+  ↓ 重複排除・公開対象の絞り込み
+S3 events.json / index.html / sitemap.xml
+```
+
+手動イベントはMVPではDynamoDBへ複製せず、Git管理JSONを正本とする。

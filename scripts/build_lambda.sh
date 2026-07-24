@@ -44,7 +44,8 @@ cp -R \
 
 cp \
   "${ROOT_DIR}/data/organizations.json" \
-  "${BUILD_DIR}/data/organizations.json"
+  "${ROOT_DIR}/data/manual_events.json" \
+  "${BUILD_DIR}/data/"
 
 cp \
   "${ROOT_DIR}/public/index.html" \
@@ -71,6 +72,7 @@ import lambda_function
 import list_sources_handler
 import publisher_handler
 import scraper_worker_handler
+from kendo_keiko.manual_events import load_manual_events
 from kendo_keiko.models import RawScrapedEvent, ScrapeResult
 from kendo_keiko.scrapers.ajkf import scrape
 
@@ -106,6 +108,7 @@ required_files=(
   "scrape_kendo_schedule.py"
   "kendo_keiko/__init__.py"
   "kendo_keiko/models.py"
+  "kendo_keiko/manual_events.py"
   "kendo_keiko/pipeline.py"
   "kendo_keiko/publication.py"
   "kendo_keiko/repository.py"
@@ -120,6 +123,7 @@ required_files=(
   "kendo_keiko/scrapers/kenbokukai.py"
   "kendo_keiko/scrapers/tokyo.py"
   "data/organizations.json"
+  "data/manual_events.json"
   "public/index.html"
 )
 

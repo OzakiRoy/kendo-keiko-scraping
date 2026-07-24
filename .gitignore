@@ -24,6 +24,7 @@ data/events.json
 
 # master data
 !data/organizations.json
+!data/manual_events.json
 public/events.json
 
 # lambda build and deploy

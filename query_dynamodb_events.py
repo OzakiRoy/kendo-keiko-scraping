@@ -31,6 +31,11 @@ from zoneinfo import ZoneInfo
 import boto3
 from boto3.dynamodb.conditions import Key
 
+from kendo_keiko.manual_events import (
+    DEFAULT_MANUAL_EVENTS_PATH,
+    load_manual_events,
+    merge_public_events,
+)
 from kendo_keiko.models import normalize_event_metadata
 
 
@@ -114,10 +119,10 @@ def save_json(
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     payload = {
-        "schema_version": "viewer-0.2",
+        "schema_version": "viewer-0.3",
         "generated_at": dt.datetime.now(JST).isoformat(timespec="seconds"),
         "timezone": "Asia/Tokyo",
-        "source": "dynamodb",
+        "source": "dynamodb+manual_json",
         "table_name": table_name,
         "region": region_name,
         "from_date": from_date.isoformat(),
@@ -161,17 +166,30 @@ def main() -> int:
         default="public/events.json",
         help="出力JSONパス。default: public/events.json",
     )
+    parser.add_argument(
+        "--manual-events",
+        default=str(DEFAULT_MANUAL_EVENTS_PATH),
+        help="手動イベントJSON。default: data/manual_events.json",
+    )
 
     args = parser.parse_args()
 
     from_date = parse_from_date(args.from_date)
 
-    events = query_events(
+    automatic_events = query_events(
         table_name=args.table_name,
         region_name=args.region,
         from_date=from_date,
         limit=args.limit,
     )
+    manual_events = load_manual_events(Path(args.manual_events))
+    events = merge_public_events(
+        automatic_events=automatic_events,
+        manual_events=manual_events,
+        from_date=from_date.isoformat(),
+    )
+    if args.limit:
+        events = events[: args.limit]
 
     save_json(
         events=events,

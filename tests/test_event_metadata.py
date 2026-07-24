@@ -46,6 +46,7 @@ class EventMetadataTests(unittest.TestCase):
         self.assertEqual("automatic", event["update_mode"])
         self.assertEqual("unknown", event["participation_type"])
         self.assertIsNone(event["verified_at"])
+        self.assertIsNone(event["review_due_at"])
 
     def test_preserves_explicit_event_metadata(self) -> None:
         event = normalize_event_metadata(
