@@ -90,6 +90,9 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual("東京都", event.area)
         self.assertEqual("500円 / 申込必須", event.fee)
         self.assertTrue(event.application_required)
+        self.assertEqual("automatic", event.update_mode)
+        self.assertEqual("unknown", event.participation_type)
+        self.assertIsNone(event.verified_at)
         self.assertTrue(event.event_id.startswith("test-org-20260801-1300-"))
 
         scraper.assert_called_once_with(

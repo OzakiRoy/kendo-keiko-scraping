@@ -48,6 +48,9 @@ class ScraperWorkerTests(unittest.TestCase):
             last_scraped_at="2026-07-22T17:00:00+09:00",
             status="active",
             raw_note=None,
+            update_mode="automatic",
+            participation_type="unknown",
+            verified_at=None,
             gsi1_pk="EVENT",
             gsi1_sk=(
                 "2026-08-01#19:00#test-org#"

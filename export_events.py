@@ -62,7 +62,7 @@ def build_payload(
     include_past: bool,
 ) -> dict:
     return {
-        "schema_version": "0.2",
+        "schema_version": "0.3",
         "generated_at": scraped_at,
         "timezone": "Asia/Tokyo",
         "from_date": from_date,

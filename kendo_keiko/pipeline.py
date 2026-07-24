@@ -279,6 +279,9 @@ def normalize_events(
                 last_scraped_at=scraped_at,
                 status="active",
                 raw_note=raw.note,
+                update_mode="automatic",
+                participation_type="unknown",
+                verified_at=None,
                 gsi1_pk=gsi1_pk,
                 gsi1_sk=gsi1_sk,
             )

@@ -31,6 +31,8 @@ from zoneinfo import ZoneInfo
 import boto3
 from boto3.dynamodb.conditions import Key
 
+from kendo_keiko.models import normalize_event_metadata
+
 
 JST = ZoneInfo("Asia/Tokyo")
 
@@ -78,7 +80,10 @@ def query_events(
             kwargs["ExclusiveStartKey"] = last_evaluated_key
 
         response = table.query(**kwargs)
-        events.extend(response.get("Items", []))
+        events.extend(
+            normalize_event_metadata(item)
+            for item in response.get("Items", [])
+        )
 
         if limit and len(events) >= limit:
             events = events[:limit]
@@ -109,7 +114,7 @@ def save_json(
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     payload = {
-        "schema_version": "viewer-0.1",
+        "schema_version": "viewer-0.2",
         "generated_at": dt.datetime.now(JST).isoformat(timespec="seconds"),
         "timezone": "Asia/Tokyo",
         "source": "dynamodb",

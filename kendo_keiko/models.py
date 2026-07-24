@@ -1,7 +1,90 @@
 from __future__ import annotations
 
+import datetime as dt
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
+
+
+UpdateMode = Literal["automatic", "assisted", "manual"]
+ParticipationType = Literal[
+    "anyone",
+    "contact_required",
+    "registration_required",
+    "invitation_required",
+    "members_only",
+    "unknown",
+]
+
+VALID_UPDATE_MODES = frozenset({"automatic", "assisted", "manual"})
+VALID_PARTICIPATION_TYPES = frozenset(
+    {
+        "anyone",
+        "contact_required",
+        "registration_required",
+        "invitation_required",
+        "members_only",
+        "unknown",
+    }
+)
+
+LEGACY_UPDATE_MODE: UpdateMode = "automatic"
+LEGACY_PARTICIPATION_TYPE: ParticipationType = "unknown"
+
+
+def validate_event_metadata(
+    *,
+    update_mode: str,
+    participation_type: str,
+    verified_at: Optional[str],
+) -> None:
+    if update_mode not in VALID_UPDATE_MODES:
+        raise ValueError(f"invalid update_mode: {update_mode}")
+
+    if participation_type not in VALID_PARTICIPATION_TYPES:
+        raise ValueError(
+            f"invalid participation_type: {participation_type}"
+        )
+
+    if verified_at is None:
+        return
+
+    try:
+        parsed = dt.datetime.fromisoformat(verified_at)
+    except ValueError as exc:
+        raise ValueError(
+            "verified_at must be an ISO 8601 datetime with timezone"
+        ) from exc
+
+    if parsed.tzinfo is None:
+        raise ValueError(
+            "verified_at must be an ISO 8601 datetime with timezone"
+        )
+
+
+def normalize_event_metadata(
+    event: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Legacy DynamoDB items do not have Issue #22 metadata.
+
+    Missing fields are supplemented only while loading/publishing old data.
+    Explicit invalid values are rejected instead of silently overwritten.
+    """
+    normalized = dict(event)
+
+    if "update_mode" not in normalized:
+        normalized["update_mode"] = LEGACY_UPDATE_MODE
+    if "participation_type" not in normalized:
+        normalized["participation_type"] = LEGACY_PARTICIPATION_TYPE
+    if "verified_at" not in normalized:
+        normalized["verified_at"] = None
+
+    validate_event_metadata(
+        update_mode=normalized["update_mode"],
+        participation_type=normalized["participation_type"],
+        verified_at=normalized["verified_at"],
+    )
+    return normalized
 
 
 @dataclass(frozen=True)
@@ -81,6 +164,18 @@ class ServiceEvent:
     status: str
     raw_note: Optional[str]
 
+    # Issue #22: イベント単位の取得・参加・確認メタデータ
+    update_mode: UpdateMode
+    participation_type: ParticipationType
+    verified_at: Optional[str]
+
     # DynamoDB DateIndex用
     gsi1_pk: str
     gsi1_sk: str
+
+    def __post_init__(self) -> None:
+        validate_event_metadata(
+            update_mode=self.update_mode,
+            participation_type=self.participation_type,
+            verified_at=self.verified_at,
+        )
