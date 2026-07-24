@@ -47,6 +47,11 @@ class LambdaStaticPublishTests(unittest.TestCase):
                 return_value=events,
             ),
             patch.object(
+                publication,
+                "load_manual_events",
+                return_value=[],
+            ),
+            patch.object(
                 publication.boto3,
                 "client",
                 return_value=fake_s3,
