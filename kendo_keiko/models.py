@@ -36,6 +36,7 @@ def validate_event_metadata(
     update_mode: str,
     participation_type: str,
     verified_at: Optional[str],
+    review_due_at: Optional[str] = None,
 ) -> None:
     if update_mode not in VALID_UPDATE_MODES:
         raise ValueError(f"invalid update_mode: {update_mode}")
@@ -45,20 +46,26 @@ def validate_event_metadata(
             f"invalid participation_type: {participation_type}"
         )
 
-    if verified_at is None:
-        return
+    if verified_at is not None:
+        try:
+            parsed = dt.datetime.fromisoformat(verified_at)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "verified_at must be an ISO 8601 datetime with timezone"
+            ) from exc
 
-    try:
-        parsed = dt.datetime.fromisoformat(verified_at)
-    except ValueError as exc:
-        raise ValueError(
-            "verified_at must be an ISO 8601 datetime with timezone"
-        ) from exc
+        if parsed.tzinfo is None:
+            raise ValueError(
+                "verified_at must be an ISO 8601 datetime with timezone"
+            )
 
-    if parsed.tzinfo is None:
-        raise ValueError(
-            "verified_at must be an ISO 8601 datetime with timezone"
-        )
+    if review_due_at is not None:
+        try:
+            dt.date.fromisoformat(review_due_at)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "review_due_at must be a YYYY-MM-DD date"
+            ) from exc
 
 
 def normalize_event_metadata(
@@ -78,11 +85,14 @@ def normalize_event_metadata(
         normalized["participation_type"] = LEGACY_PARTICIPATION_TYPE
     if "verified_at" not in normalized:
         normalized["verified_at"] = None
+    if "review_due_at" not in normalized:
+        normalized["review_due_at"] = None
 
     validate_event_metadata(
         update_mode=normalized["update_mode"],
         participation_type=normalized["participation_type"],
         verified_at=normalized["verified_at"],
+        review_due_at=normalized["review_due_at"],
     )
     return normalized
 
@@ -173,9 +183,13 @@ class ServiceEvent:
     gsi1_pk: str
     gsi1_sk: str
 
+    # 手動情報の次回確認期限。自動取得イベントではNone。
+    review_due_at: Optional[str] = None
+
     def __post_init__(self) -> None:
         validate_event_metadata(
             update_mode=self.update_mode,
             participation_type=self.participation_type,
             verified_at=self.verified_at,
+            review_due_at=self.review_due_at,
         )

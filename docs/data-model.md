@@ -103,3 +103,23 @@ EventBridge Scheduler
   -> Lambda または Fargate Scheduled Task
   -> DynamoDB
 ```
+
+## 手動イベント
+
+管理者が確認して登録するイベントは `data/manual_events.json` でGit管理する。
+
+追加項目:
+
+- `review_due_at`: 次回確認期限。`YYYY-MM-DD`
+- `status`: 手動イベントでは `active` / `cancelled` / `archived`
+
+手動イベントでは次を必須とする。
+
+- `update_mode: manual`
+- 公式の `source_url`
+- タイムゾーン付きの `verified_at`
+- `review_due_at`
+
+Publisher LambdaはDynamoDBの自動イベントと手動JSONを統合する。同じ団体・イベント種別・開催日・開始時刻・終了時刻のイベントは重複とみなし、手動イベントを優先する。手動イベントが `cancelled` または `archived` の場合は、対応する自動イベントも公開しない。
+
+詳細は `docs/manual-events.md` を参照する。

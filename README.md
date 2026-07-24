@@ -281,3 +281,15 @@ updated_at
 開催予定はブラウザのJavaScript表示に加え、定期Lambda実行時に `index.html` へ静的生成する。`events.json`、`index.html`、`sitemap.xml` を同じデータ更新サイクルでS3へ発行し、HTMLと表示データの鮮度を揃える。
 
 実装・デプロイ手順は `docs/basic-seo-setup.md` を参照する。
+
+## 手動イベント管理
+
+自動取得しない団体のイベントは `data/manual_events.json` で管理する。
+
+```bash
+python manage_manual_events.py --help
+python manage_manual_events.py list
+python manage_manual_events.py list-review-due
+```
+
+登録・一括登録・更新・中止・アーカイブ・再確認と `--dry-run` に対応している。詳しい操作方法は [`docs/manual-events.md`](docs/manual-events.md) を参照する。
