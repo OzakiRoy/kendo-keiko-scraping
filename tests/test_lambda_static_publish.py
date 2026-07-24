@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unittest
 from unittest.mock import patch
 
@@ -70,6 +71,19 @@ class LambdaStaticPublishTests(unittest.TestCase):
             "application/json; charset=utf-8",
             objects["events.json"]["ContentType"],
         )
+        events_payload = json.loads(
+            objects["events.json"]["Body"].decode("utf-8")
+        )
+        self.assertEqual("public-events-0.2", events_payload["schema_version"])
+        self.assertEqual(
+            "automatic",
+            events_payload["events"][0]["update_mode"],
+        )
+        self.assertEqual(
+            "unknown",
+            events_payload["events"][0]["participation_type"],
+        )
+        self.assertIsNone(events_payload["events"][0]["verified_at"])
         self.assertEqual(
             "text/html; charset=utf-8",
             objects["index.html"]["ContentType"],

@@ -37,6 +37,15 @@ def remove_none_values(item: dict) -> dict:
     return {key: value for key, value in item.items() if value is not None}
 
 
+def service_event_to_dynamodb_item(event: ServiceEvent) -> dict:
+    item = remove_none_values(asdict(event))
+
+    # verified_at=None means "not yet verified" and must be distinguishable
+    # from legacy items where the Issue #22 field itself does not exist.
+    item["verified_at"] = event.verified_at
+    return item
+
+
 def save_dynamodb(
     *,
     events: list[ServiceEvent],
@@ -52,4 +61,4 @@ def save_dynamodb(
 
     with table.batch_writer() as batch:
         for event in events:
-            batch.put_item(Item=remove_none_values(asdict(event)))
+            batch.put_item(Item=service_event_to_dynamodb_item(event))

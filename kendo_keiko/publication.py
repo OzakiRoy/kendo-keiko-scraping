@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 import boto3
 from boto3.dynamodb.conditions import Key
 
+from kendo_keiko.models import normalize_event_metadata
 from kendo_keiko.static_site import build_sitemap_xml, render_static_index
 
 
@@ -48,7 +49,10 @@ def query_events_from_dynamodb(
             kwargs["ExclusiveStartKey"] = last_evaluated_key
 
         response = table.query(**kwargs)
-        events.extend(response.get("Items", []))
+        events.extend(
+            normalize_event_metadata(item)
+            for item in response.get("Items", [])
+        )
         last_evaluated_key = response.get("LastEvaluatedKey")
         if not last_evaluated_key:
             break
@@ -71,16 +75,17 @@ def build_public_events_payload(
     region_name: str,
     from_date: str,
 ) -> dict[str, Any]:
+    normalized_events = [normalize_event_metadata(event) for event in events]
     return {
-        "schema_version": "public-events-0.1",
+        "schema_version": "public-events-0.2",
         "generated_at": dt.datetime.now(JST).isoformat(timespec="seconds"),
         "timezone": "Asia/Tokyo",
         "source": "dynamodb",
         "table_name": table_name,
         "region": region_name,
         "from_date": from_date,
-        "event_count": len(events),
-        "events": events,
+        "event_count": len(normalized_events),
+        "events": normalized_events,
     }
 
 
