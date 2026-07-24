@@ -292,4 +292,4 @@ python manage_manual_events.py list
 python manage_manual_events.py list-review-due
 ```
 
-登録・一括登録・更新・中止・アーカイブ・再確認と `--dry-run` に対応している。詳しい操作方法は [`docs/manual-events.md`](docs/manual-events.md) を参照する。
+登録・一括登録・更新・中止・アーカイブ・再確認と `--dry-run` に対応している。新規団体の追加からLambdaデプロイ、Step Functions実行、本番確認までの標準手順も [`docs/manual-events.md`](docs/manual-events.md) にまとめている。
