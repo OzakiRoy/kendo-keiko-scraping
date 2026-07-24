@@ -34,7 +34,11 @@ def build_organization_section(
     items: list[str] = []
 
     for organization in organizations:
-        if not organization.get("scraper_enabled", False):
+        is_publicly_listed = (
+            organization.get("scraper_enabled", False)
+            or organization.get("scraper_type") == "manual"
+        )
+        if not is_publicly_listed:
             continue
 
         description = str(

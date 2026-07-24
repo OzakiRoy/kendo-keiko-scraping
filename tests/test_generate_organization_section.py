@@ -31,6 +31,15 @@ class GenerateOrganizationSectionTests(unittest.TestCase):
                 "scraper_enabled": False,
                 "public_description": "表示されない説明",
             },
+            {
+                "organization_id": "manual",
+                "name": "手動掲載団体",
+                "area": "埼玉県",
+                "website_url": "https://manual.example.com/",
+                "scraper_type": "manual",
+                "scraper_enabled": False,
+                "public_description": "手動登録の団体です。",
+            },
         ]
 
         section = build_organization_section(
@@ -56,6 +65,10 @@ class GenerateOrganizationSectionTests(unittest.TestCase):
         )
         self.assertNotIn(
             "無効団体",
+            section,
+        )
+        self.assertIn(
+            "手動掲載団体",
             section,
         )
 
