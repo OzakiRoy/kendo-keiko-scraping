@@ -67,6 +67,9 @@ class StaticSiteTests(unittest.TestCase):
             rendered,
         )
         self.assertNotIn("javascript:alert(1)", rendered)
+        self.assertIn("剣道稽古ナビ", rendered)
+        self.assertIn("https://kendo-keiko.com/ogp.png", rendered)
+        self.assertIn('href="/favicon.svg"', rendered)
 
     def test_rendering_is_idempotent(self) -> None:
         once = render_static_index(self.template, self.payload)
