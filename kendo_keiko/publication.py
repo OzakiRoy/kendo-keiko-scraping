@@ -21,6 +21,17 @@ from kendo_keiko.static_site import build_sitemap_xml, render_static_index
 
 JST = ZoneInfo("Asia/Tokyo")
 
+PUBLIC_ASSETS: tuple[tuple[str, str], ...] = (
+    ("favicon.svg", "image/svg+xml"),
+    ("favicon.ico", "image/x-icon"),
+    ("favicon-32x32.png", "image/png"),
+    ("apple-touch-icon.png", "image/png"),
+    ("icon-192.png", "image/png"),
+    ("icon-512.png", "image/png"),
+    ("ogp.png", "image/png"),
+    ("site.webmanifest", "application/manifest+json; charset=utf-8"),
+)
+
 
 def json_default(value: Any) -> Any:
     if isinstance(value, Decimal):
@@ -94,6 +105,25 @@ def build_public_events_payload(
     }
 
 
+def upload_bytes_to_s3(
+    *,
+    bucket: str,
+    key: str,
+    body: bytes,
+    content_type: str,
+    region_name: str,
+    cache_control: str = "max-age=300",
+) -> None:
+    s3 = boto3.client("s3", region_name=region_name)
+    s3.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=body,
+        ContentType=content_type,
+        CacheControl=cache_control,
+    )
+
+
 def upload_text_to_s3(
     *,
     bucket: str,
@@ -103,13 +133,13 @@ def upload_text_to_s3(
     region_name: str,
     cache_control: str = "max-age=300",
 ) -> None:
-    s3 = boto3.client("s3", region_name=region_name)
-    s3.put_object(
-        Bucket=bucket,
-        Key=key,
-        Body=body.encode("utf-8"),
-        ContentType=content_type,
-        CacheControl=cache_control,
+    upload_bytes_to_s3(
+        bucket=bucket,
+        key=key,
+        body=body.encode("utf-8"),
+        content_type=content_type,
+        region_name=region_name,
+        cache_control=cache_control,
     )
 
 
@@ -141,6 +171,31 @@ def build_public_index_html(payload: dict[str, Any]) -> str:
     )
     template_html = template_path.read_text(encoding="utf-8")
     return render_static_index(template_html, payload)
+
+
+def publish_public_assets(
+    *,
+    bucket: str,
+    region_name: str,
+) -> list[str]:
+    public_dir = Path(__file__).resolve().parent.parent / "public"
+    published_keys: list[str] = []
+    s3 = boto3.client("s3", region_name=region_name)
+
+    for key, content_type in PUBLIC_ASSETS:
+        asset_path = public_dir / key
+        if not asset_path.is_file():
+            raise FileNotFoundError(f"public asset not found: {asset_path}")
+        s3.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=asset_path.read_bytes(),
+            ContentType=content_type,
+            CacheControl="max-age=86400",
+        )
+        published_keys.append(key)
+
+    return published_keys
 
 
 def publish_public_site(
@@ -187,6 +242,8 @@ def publish_public_site(
         "event_count": len(events),
         "index_published": False,
         "sitemap_published": False,
+        "assets_published": False,
+        "asset_keys": [],
     }
 
     if publish_index_html:
@@ -208,12 +265,18 @@ def publish_public_site(
             region_name=region_name,
             cache_control="max-age=3600",
         )
+        asset_keys = publish_public_assets(
+            bucket=events_bucket,
+            region_name=region_name,
+        )
         result.update(
             {
                 "index_published": True,
                 "index_key": index_key,
                 "sitemap_published": True,
                 "sitemap_key": sitemap_key,
+                "assets_published": True,
+                "asset_keys": asset_keys,
             }
         )
 

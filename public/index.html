@@ -3,22 +3,41 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>剣道オープン稽古会一覧｜関東の合同稽古会情報</title>
-  <meta name="description" content="関東を中心に、一般参加できる剣道のオープン稽古会・合同稽古会情報を日付順で掲載。東京・埼玉・神奈川・千葉などの稽古先探しにご活用ください。">
+  <title>剣道稽古ナビ｜オープン稽古会・合同稽古会を地域と日付から検索</title>
+  <meta name="description" content="参加できる剣道のオープン稽古会・合同稽古会を、日付・地域・団体から探せる情報サイト。東京・埼玉・神奈川など関東を中心に、参加条件や公式情報へのリンクを掲載しています。">
+  <meta name="theme-color" content="#8c1d24">
   <link rel="canonical" href="https://kendo-keiko.com/">
-  <meta property="og:title" content="剣道オープン稽古会一覧｜関東の合同稽古会情報">
-  <meta property="og:description" content="関東を中心に、一般参加できる剣道のオープン稽古会・合同稽古会情報を日付順で掲載。東京・埼玉・神奈川・千葉などの稽古先探しにご活用ください。">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:title" content="剣道稽古ナビ｜オープン稽古会・合同稽古会を地域と日付から検索">
+  <meta property="og:description" content="参加できる剣道の稽古会を、日付・地域・団体から探せる情報サイト。関東を中心に、参加条件と公式情報へのリンクを掲載しています。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://kendo-keiko.com/">
-  <meta property="og:site_name" content="剣道オープン稽古会一覧">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:site_name" content="剣道稽古ナビ">
   <meta property="og:locale" content="ja_JP">
+  <meta property="og:image" content="https://kendo-keiko.com/ogp.png">
+  <meta property="og:image:secure_url" content="https://kendo-keiko.com/ogp.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="剣道稽古ナビ。参加できる稽古会を、日付・地域・参加条件から探す。">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="剣道稽古ナビ｜オープン稽古会・合同稽古会を検索">
+  <meta name="twitter:description" content="参加できる剣道の稽古会を、日付・地域・団体から探せる情報サイトです。">
+  <meta name="twitter:image" content="https://kendo-keiko.com/ogp.png">
+  <meta name="twitter:image:alt" content="剣道稽古ナビ。参加できる稽古会を、日付・地域・参加条件から探す。">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "剣道オープン稽古会一覧",
-    "alternateName": "kendo-keiko.com",
+    "name": "剣道稽古ナビ",
+    "alternateName": [
+      "剣道オープン稽古会一覧",
+      "kendo-keiko.com"
+    ],
     "url": "https://kendo-keiko.com/"
   }
   </script>
@@ -99,8 +118,24 @@
       padding: 50px 24px 42px;
     }
 
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brand-mark {
+      width: 74px;
+      height: 74px;
+      flex: 0 0 auto;
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
     .site-kicker {
-      margin: 0 0 12px;
+      margin: 0 0 6px;
       color: var(--accent);
       font-family: Georgia, "Times New Roman", serif;
       font-size: 0.72rem;
@@ -116,17 +151,26 @@
 
     h1 {
       margin: 0;
-      padding-left: 18px;
-      border-left: 5px solid var(--accent);
       font-size: clamp(1.9rem, 4vw, 2.8rem);
       font-weight: 600;
-      line-height: 1.35;
-      letter-spacing: 0.05em;
+      line-height: 1.25;
+      letter-spacing: 0.06em;
+    }
+
+    .site-tagline {
+      max-width: 870px;
+      margin: 23px 0 5px;
+      color: var(--ink);
+      font-family: var(--serif);
+      font-size: clamp(1.05rem, 2vw, 1.22rem);
+      font-weight: 600;
+      line-height: 1.75;
+      letter-spacing: 0.035em;
     }
 
     .lead {
       max-width: 870px;
-      margin: 24px 0 18px;
+      margin: 8px 0 18px;
       color: var(--ink-soft);
       font-size: 0.98rem;
       line-height: 2;
@@ -503,13 +547,20 @@
         padding: 38px 20px 34px;
       }
 
-      h1 {
-        padding-left: 14px;
-        border-left-width: 4px;
+      .brand-lockup {
+        gap: 16px;
+      }
+
+      .brand-mark {
+        width: 64px;
+        height: 64px;
+      }
+
+      .site-tagline {
+        margin-top: 20px;
       }
 
       .lead {
-        margin-top: 20px;
         line-height: 1.9;
       }
 
@@ -579,20 +630,34 @@
         padding: 30px 16px 28px;
       }
 
+      .brand-lockup {
+        gap: 12px;
+      }
+
+      .brand-mark {
+        width: 54px;
+        height: 54px;
+      }
+
       .site-kicker {
-        margin-bottom: 9px;
-        font-size: 0.62rem;
-        letter-spacing: 0.13em;
+        margin-bottom: 4px;
+        font-size: 0.58rem;
+        letter-spacing: 0.11em;
       }
 
       h1 {
-        padding-left: 12px;
         font-size: 1.65rem;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.035em;
+      }
+
+      .site-tagline {
+        margin: 18px 0 6px;
+        font-size: 1rem;
+        line-height: 1.7;
       }
 
       .lead {
-        margin: 18px 0 15px;
+        margin: 6px 0 15px;
         font-size: 0.9rem;
         line-height: 1.85;
       }
@@ -655,12 +720,17 @@
 <body>
   <header class="site-header">
     <div class="site-header__inner">
-      <p class="site-kicker">KENDO OPEN KEIKO INFORMATION</p>
-      <h1>剣道オープン稽古会一覧</h1>
+      <div class="brand-lockup">
+        <img class="brand-mark" src="/icon-192.png" width="74" height="74" alt="">
+        <div class="brand-copy">
+          <p class="site-kicker">KENDO KEIKO NAVI</p>
+          <h1>剣道稽古ナビ</h1>
+        </div>
+      </div>
+      <p class="site-tagline">参加できる稽古会を、日付・地域・参加条件から探す</p>
       <p class="lead">
-        関東を中心に、参加できる剣道のオープン稽古会・合同稽古会情報を掲載しています。
-        東京・埼玉・神奈川・千葉などの稽古会を日付順で確認できます。
-        参加前には必ず各団体・連盟の公式情報をご確認ください。
+        関東を中心に、一般参加できるオープン稽古会・合同稽古会の予定を掲載しています。
+        開催日、地域、団体を確認し、参加前には必ず主催者の公式情報をご確認ください。
       </p>
       <!-- EVENT_META_START -->
       <div class="meta" id="meta">稽古会情報を読み込んでいます...</div>
@@ -769,7 +839,7 @@
     <section class="notice">
       <h2>ご利用にあたって</h2>
       <p>
-        本サイトは、関東周辺で開催される剣道の稽古会情報を探しやすくすることを目的とした個人運営の情報サイトです。
+        剣道稽古ナビは、関東周辺で開催される剣道の稽古会情報を探しやすくすることを目的とした個人運営の情報サイトです。
       </p>
       <p>
         掲載している日程・時間・場所・参加費等の情報は、各団体の公式サイト等で公開されている情報をもとに、自動取得または管理者による確認を行い整理しています。

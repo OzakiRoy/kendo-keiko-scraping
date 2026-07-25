@@ -49,7 +49,15 @@ cp \
 
 cp \
   "${ROOT_DIR}/public/index.html" \
-  "${BUILD_DIR}/public/index.html"
+  "${ROOT_DIR}/public/favicon.svg" \
+  "${ROOT_DIR}/public/favicon.ico" \
+  "${ROOT_DIR}/public/favicon-32x32.png" \
+  "${ROOT_DIR}/public/apple-touch-icon.png" \
+  "${ROOT_DIR}/public/icon-192.png" \
+  "${ROOT_DIR}/public/icon-512.png" \
+  "${ROOT_DIR}/public/ogp.png" \
+  "${ROOT_DIR}/public/site.webmanifest" \
+  "${BUILD_DIR}/public/"
 
 echo "[INFO] remove Python cache files"
 find "${BUILD_DIR}" \
@@ -125,6 +133,14 @@ required_files=(
   "data/organizations.json"
   "data/manual_events.json"
   "public/index.html"
+  "public/favicon.svg"
+  "public/favicon.ico"
+  "public/favicon-32x32.png"
+  "public/apple-touch-icon.png"
+  "public/icon-192.png"
+  "public/icon-512.png"
+  "public/ogp.png"
+  "public/site.webmanifest"
 )
 
 ZIP_CONTENTS_FILE="$(mktemp)"

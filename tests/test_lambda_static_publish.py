@@ -68,8 +68,18 @@ class LambdaStaticPublishTests(unittest.TestCase):
             )
 
         objects = {item["Key"]: item for item in fake_s3.objects}
+        expected_assets = {
+            "favicon.svg",
+            "favicon.ico",
+            "favicon-32x32.png",
+            "apple-touch-icon.png",
+            "icon-192.png",
+            "icon-512.png",
+            "ogp.png",
+            "site.webmanifest",
+        }
         self.assertEqual(
-            {"events.json", "index.html", "sitemap.xml"},
+            {"events.json", "index.html", "sitemap.xml", *expected_assets},
             set(objects),
         )
         self.assertEqual(
@@ -96,11 +106,26 @@ class LambdaStaticPublishTests(unittest.TestCase):
         index_html = objects["index.html"]["Body"].decode("utf-8")
         self.assertIn("2026-08-03(月)", index_html)
         self.assertIn('"@type": "WebSite"', index_html)
+        self.assertIn("剣道稽古ナビ", index_html)
+        self.assertIn(
+            'content="https://kendo-keiko.com/ogp.png"',
+            index_html,
+        )
+        self.assertIn('content="summary_large_image"', index_html)
+        self.assertEqual("image/svg+xml", objects["favicon.svg"]["ContentType"])
+        self.assertEqual("image/png", objects["ogp.png"]["ContentType"])
+        self.assertEqual(
+            "application/manifest+json; charset=utf-8",
+            objects["site.webmanifest"]["ContentType"],
+        )
+        self.assertEqual("max-age=86400", objects["ogp.png"]["CacheControl"])
         sitemap = objects["sitemap.xml"]["Body"].decode("utf-8")
         self.assertIn("https://kendo-keiko.com/", sitemap)
         self.assertTrue(response["s3_published"])
         self.assertTrue(response["index_published"])
         self.assertTrue(response["sitemap_published"])
+        self.assertTrue(response["assets_published"])
+        self.assertEqual(expected_assets, set(response["asset_keys"]))
 
 
 if __name__ == "__main__":
