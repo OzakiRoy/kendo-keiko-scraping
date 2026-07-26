@@ -196,6 +196,34 @@
       "review_due_at": "2026-08-24",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-08-27#19:30#magokorokai#magokorokai-20260827-1930-68817322"
+    },
+    {
+      "event_id": "kenen-20260830-0930-fcace356",
+      "organization_id": "kenen",
+      "organization_name": "剣縁",
+      "event_type": "open_keiko",
+      "title": "剣縁の集い",
+      "event_date": "2026-08-30",
+      "weekday": "日",
+      "start_time": "09:30",
+      "end_time": "10:30",
+      "venue": "渋谷区スポーツセンター 第1武道場",
+      "area": "東京都",
+      "address": "東京都渋谷区西原1-40-18",
+      "access": "京王新線「幡ヶ谷駅」南口から徒歩約6分、小田急線「代々木上原駅」から徒歩約15分",
+      "fee": "1,000円（税込）／名、剣縁法人・個人会員は無料",
+      "application_required": true,
+      "source_url": "https://kenen.jp/event/ken-en-no-tsudoi-1st",
+      "source_type": "official_site",
+      "last_scraped_at": "2026-07-26T19:26:00+09:00",
+      "status": "active",
+      "raw_note": "エントリー締切は2026年8月19日。最少催行人数5名。申込み: https://forms.gle/WCAsBBiikFLFsqQr8。子どもの参加は保護者が剣縁会員に入会し、当日同伴することが必要。",
+      "update_mode": "manual",
+      "participation_type": "registration_required",
+      "verified_at": "2026-07-26T19:26:00+09:00",
+      "review_due_at": "2026-08-20",
+      "gsi1_pk": "EVENT",
+      "gsi1_sk": "2026-08-30#09:30#kenen#kenen-20260830-0930-fcace356"
     }
   ]
 }
