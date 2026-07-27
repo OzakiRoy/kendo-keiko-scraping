@@ -20,9 +20,7 @@ def str_to_bool(value: Any, default: bool = False) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
-def lambda_handler(event: dict[str, Any] | None, context: Any) -> dict[str, Any]:
-    event = event or {}
-    results = event.get("scrape_results")
+def validate_scrape_results(results: Any) -> Counter[str]:
     if not isinstance(results, list) or not results:
         raise ValueError("scrape_results must be a non-empty array")
 
@@ -36,15 +34,29 @@ def lambda_handler(event: dict[str, Any] | None, context: Any) -> dict[str, Any]
     counts = Counter(statuses)
     if counts["failure"] == len(results):
         raise AllSourcesFailedError("All scraper sources failed; publishing skipped.")
+    return counts
 
-    response: dict[str, Any] = {
-        "run_id": event.get("run_id"),
-        "source_count": len(results),
-        "success_count": counts["success"],
-        "warning_count": counts["warning"],
-        "failure_count": counts["failure"],
-        "s3_published": False,
-    }
+
+def lambda_handler(event: dict[str, Any] | None, context: Any) -> dict[str, Any]:
+    event = event or {}
+    publish_only = str_to_bool(event.get("publish_only"), False)
+
+    if publish_only:
+        response: dict[str, Any] = {
+            "mode": "publish_only",
+            "s3_published": False,
+        }
+    else:
+        results = event.get("scrape_results")
+        counts = validate_scrape_results(results)
+        response = {
+            "run_id": event.get("run_id"),
+            "source_count": len(results),
+            "success_count": counts["success"],
+            "warning_count": counts["warning"],
+            "failure_count": counts["failure"],
+            "s3_published": False,
+        }
 
     publish_to_s3 = str_to_bool(
         event.get("publish_to_s3"),
@@ -80,10 +92,10 @@ def lambda_handler(event: dict[str, Any] | None, context: Any) -> dict[str, Any]
             )
         )
 
-    print(
-        json.dumps(
-            {"message": "scraper workflow completed", **response},
-            ensure_ascii=False,
-        )
+    message = (
+        "manual event publishing completed"
+        if publish_only
+        else "scraper workflow completed"
     )
+    print(json.dumps({"message": message, **response}, ensure_ascii=False))
     return response

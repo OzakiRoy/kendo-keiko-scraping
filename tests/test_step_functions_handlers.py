@@ -57,6 +57,54 @@ class ListSourcesHandlerTests(unittest.TestCase):
 
 
 class PublisherHandlerTests(unittest.TestCase):
+    def test_rejects_missing_scrape_results_in_workflow_mode(self) -> None:
+        with self.assertRaisesRegex(
+            ValueError,
+            "scrape_results must be a non-empty array",
+        ):
+            publisher_handler.lambda_handler({}, None)
+
+    def test_publish_only_publishes_without_scrape_results(self) -> None:
+        publish_result = {
+            "s3_published": True,
+            "event_count": 8,
+            "index_published": True,
+            "sitemap_published": True,
+        }
+        with patch.object(
+            publisher_handler,
+            "publish_public_site",
+            return_value=publish_result,
+        ) as publish:
+            result = publisher_handler.lambda_handler(
+                {
+                    "publish_only": True,
+                    "table_name": "KendoKeikoEvents",
+                    "region": "ap-northeast-1",
+                    "from_date": "2026-07-27",
+                    "events_bucket": "example-bucket",
+                    "publish_to_s3": True,
+                    "publish_index_html": True,
+                },
+                None,
+            )
+
+        self.assertEqual("publish_only", result["mode"])
+        self.assertTrue(result["s3_published"])
+        self.assertTrue(result["index_published"])
+        self.assertTrue(result["sitemap_published"])
+        publish.assert_called_once_with(
+            table_name="KendoKeikoEvents",
+            region_name="ap-northeast-1",
+            from_date="2026-07-27",
+            events_bucket="example-bucket",
+            events_key="events.json",
+            publish_index_html=True,
+            index_key="index.html",
+            sitemap_key="sitemap.xml",
+            site_url="https://kendo-keiko.com/",
+        )
+
     def test_skips_publish_when_all_sources_failed(self) -> None:
         with self.assertRaises(publisher_handler.AllSourcesFailedError):
             publisher_handler.lambda_handler(
