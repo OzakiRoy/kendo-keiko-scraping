@@ -94,5 +94,17 @@
     "event_type": "open_keiko",
     "notes": "公式サイトのイベント情報を管理者が確認し、手動登録",
     "public_description": "剣道家の交流サイト「剣縁」が開催する稽古会の予定を掲載しています。"
+  },
+  {
+    "organization_id": "musya",
+    "name": "MUSYA",
+    "area": "千葉県",
+    "website_url": "https://www.instagram.com/musya_kendo/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "公式Instagramの告知を管理者が確認し、手動登録",
+    "public_description": "MUSYAが千葉市で開催する自由参加型稽古会「だれでも道場」の予定を掲載しています。"
   }
 ]
