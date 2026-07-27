@@ -163,14 +163,18 @@ python manage_manual_events.py list-review-due \
 git diff -- data/manual_events.json
 ```
 
-### 8. テストとLambdaビルドを実行する
+### 8. 公開前dry-runを実行する
+
+団体・イベントの検証、掲載団体セクション、全テスト、Lambda ZIP、ZIP内データを1コマンドで確認する。
 
 ```bash
-python -m unittest discover -s tests -v
-bash scripts/build_lambda.sh
+scripts/publish_manual_events.sh \
+  --organization-id example \
+  --expected-count 3 \
+  --dry-run
 ```
 
-`lambda_function.zip` に `data/manual_events.json` が含まれていることは、ビルドスクリプト内で検査される。
+`--expected-count` は追加件数ではなく、JST当日以降に公開対象となる、その団体の `active` な手動イベント総数である。
 
 ### 9. コミット、PR、マージを行う
 
@@ -182,127 +186,25 @@ git commit -m "feat: add example manual events"
 git push -u origin HEAD
 ```
 
-実際の変更ファイルがほかにもある場合は、`git status` を確認して追加する。PRには登録元、確認日時、登録日程、テスト結果を記載する。
+実際の変更ファイルがほかにもある場合は、`git status` を確認して追加する。PRには登録元、確認日時、登録日程、dry-run結果を記載する。
 
-マージ後は `main` を更新し、マージ後のソースからZIPを作り直す。
+### 10. mainから1コマンドで本番公開する
 
 ```bash
 git switch main
 git pull --ff-only
-python -m unittest discover -s tests -v
-bash scripts/build_lambda.sh
+git status --short --branch
+
+scripts/publish_manual_events.sh \
+  --organization-id example \
+  --expected-count 3
 ```
 
-### 10. Lambdaへデプロイする
+更新するLambdaは `KendoKeikoPublisher` だけである。ListSourcesとScraperWorkerは更新せず、Step Functionsの全体実行も行わない。
 
-```bash
-export AWS_REGION=ap-northeast-1
+Publisherは `publish_only=true` で直接実行され、DynamoDBの自動イベントとZIP内の手動イベントを統合して、S3の `events.json`、`index.html`、`sitemap.xml` と公開アセットを更新する。
 
-for FUNCTION_NAME in \
-  KendoKeikoListSources \
-  KendoKeikoScraperWorker \
-  KendoKeikoPublisher
-do
-  aws lambda update-function-code \
-    --function-name "${FUNCTION_NAME}" \
-    --zip-file fileb://lambda_function.zip \
-    --region "${AWS_REGION}"
-
-  aws lambda wait function-updated \
-    --function-name "${FUNCTION_NAME}" \
-    --region "${AWS_REGION}"
-done
-```
-
-手動イベントの公開処理で直接使用するのはPublisherだが、3つのLambdaで同じZIPを使用しているため、運用上は3関数を同時に更新する。
-
-### 11. Step Functionsを手動実行する
-
-```bash
-STATE_MACHINE_ARN=$(
-  aws stepfunctions list-state-machines \
-    --region "${AWS_REGION}" \
-    --query "stateMachines[?name=='KendoKeikoScraperWorkflow'].stateMachineArn | [0]" \
-    --output text
-)
-
-EXECUTION_ARN=$(
-  aws stepfunctions start-execution \
-    --state-machine-arn "${STATE_MACHINE_ARN}" \
-    --name "manual-events-$(date +%Y%m%d-%H%M%S)" \
-    --input '{"publish_to_s3":true,"debug":false}' \
-    --region "${AWS_REGION}" \
-    --query executionArn \
-    --output text
-)
-
-echo "${EXECUTION_ARN}"
-```
-
-実行結果を確認する。
-
-```bash
-aws stepfunctions describe-execution \
-  --execution-arn "${EXECUTION_ARN}" \
-  --region "${AWS_REGION}" \
-  --query '{status:status,output:output}' \
-  --output json
-```
-
-`status` が `SUCCEEDED` であることを確認する。
-
-### 12. 公開データを確認する
-
-団体別の公開件数を確認する。
-
-```bash
-curl -fsS https://kendo-keiko.com/events.json \
-  | jq '
-      .events
-      | group_by(.organization_id)
-      | map({
-          organization_id: .[0].organization_id,
-          organization_name: .[0].organization_name,
-          count: length
-        })
-    '
-```
-
-追加した団体のイベント内容を確認する。
-
-```bash
-curl -fsS https://kendo-keiko.com/events.json \
-  | jq '[
-      .events[]
-      | select(.organization_id == "example")
-      | {
-          event_date,
-          start_time,
-          end_time,
-          participation_type,
-          update_mode,
-          verified_at,
-          review_due_at
-        }
-    ]'
-```
-
-公開イベントのメタデータ欠損がないことを確認する。
-
-```bash
-curl -fsS https://kendo-keiko.com/events.json \
-  | jq '[
-      .events[]
-      | select(
-          has("update_mode") == false
-          or has("participation_type") == false
-          or has("verified_at") == false
-          or has("review_due_at") == false
-        )
-    ] | length'
-```
-
-結果が `0` なら正常。自動取得イベント数は取得日によって変動するため、公開イベントの合計件数を固定値で判定しない。
+スクリプトの詳細、検査項目、失敗時の対応は [`docs/manual-events-runbook.md`](manual-events-runbook.md) を参照する。
 
 ## 必須項目
 

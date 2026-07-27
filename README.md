@@ -241,19 +241,19 @@ updated_at
 * EventBridge Scheduler + Step Functionsによる定期取得
 * 6情報源からの自動取得
 * `data/manual_events.json` と管理者CLIによる手動登録
+* Publisherだけを更新する手動イベントの1コマンド公開
 * DynamoDBの自動イベントと手動イベントの公開時統合
 * 参加条件・取得方式・確認日のイベント単位管理
 * CloudWatch Alarm + SNSによる失敗通知
 
 直近は次の順序を基本とする。
 
-1. サイト名・favicon・OGPを整備する
-2. 日付・地域・参加条件で探しやすくする
-3. 地域団体・剣道連盟の掲載情報を継続的に増やす
-4. イベント差分と掲載状態を安全に管理する
-5. カレンダー追加、詳細ページ、掲載依頼導線を段階的に追加する
+1. 日付・地域・参加条件で探しやすくする
+2. 地域団体・剣道連盟の掲載情報を継続的に増やす
+3. イベント差分と掲載状態を安全に管理する
+4. カレンダー追加、詳細ページ、掲載依頼導線を段階的に追加する
 
-現在は未検出イベントを即削除する実装ではなく、古い未来イベントが残る側に倒している。そのため、差分管理は重要だが、現時点ではブランドと検索UXの改善を先に進める。
+ブランド整備と、Publisherだけを更新する手動イベントの1コマンド公開は完了済み。現在は未検出イベントを即削除する実装ではなく、古い未来イベントが残る側に倒している。そのため、差分管理は重要だが、現時点では検索UXの改善を先に進める。
 
 詳細な優先順位、運用原則、完了済み項目は [`docs/roadmap.md`](docs/roadmap.md) を参照する。
 
@@ -282,4 +282,4 @@ python manage_manual_events.py list
 python manage_manual_events.py list-review-due
 ```
 
-登録・一括登録・更新・中止・アーカイブ・再確認と `--dry-run` に対応している。新規団体の追加からLambdaデプロイ、Step Functions実行、本番確認までの標準手順も [`docs/manual-events.md`](docs/manual-events.md) にまとめている。
+登録・一括登録・更新・中止・アーカイブ・再確認と `--dry-run` に対応している。新規団体の追加手順は [`docs/manual-events.md`](docs/manual-events.md)、Publisherだけを更新する1コマンド公開は [`docs/manual-events-runbook.md`](docs/manual-events-runbook.md) にまとめている。
