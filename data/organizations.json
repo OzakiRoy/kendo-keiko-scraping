@@ -106,5 +106,17 @@
     "event_type": "open_keiko",
     "notes": "公式Instagramの告知を管理者が確認し、手動登録",
     "public_description": "MUSYAが千葉市で開催する自由参加型稽古会「だれでも道場」の予定を掲載しています。"
+  },
+  {
+    "organization_id": "ruroken",
+    "name": "流浪剣",
+    "area": "東京都",
+    "website_url": "https://www.instagram.com/ruroken_/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "公式Instagramの告知を管理者が確認し、手動登録",
+    "public_description": "流浪剣が東京都内を中心に開催する、参加・見学可能な剣道稽古会の予定を掲載しています。"
   }
 ]
