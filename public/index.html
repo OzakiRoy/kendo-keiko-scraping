@@ -335,6 +335,7 @@
 
     .card .org,
     .card .title,
+    .card .event-status,
     .card .row {
       grid-column: 2;
       min-width: 0;
@@ -357,6 +358,65 @@
       font-weight: 600;
       line-height: 1.6;
       overflow-wrap: anywhere;
+    }
+
+    .card .event-status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px 10px;
+      margin: 0 0 14px;
+    }
+
+    .status-badge,
+    .status-warning {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 3px 9px;
+      border: 1px solid var(--line-strong);
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1.35;
+      letter-spacing: 0.02em;
+    }
+
+    .status-badge--anyone {
+      color: #28563f;
+      background: rgba(40, 86, 63, 0.08);
+      border-color: rgba(40, 86, 63, 0.42);
+    }
+
+    .status-badge--contact_required,
+    .status-badge--registration_required {
+      color: var(--accent);
+      background: rgba(140, 29, 36, 0.07);
+      border-color: rgba(140, 29, 36, 0.42);
+    }
+
+    .status-badge--invitation_required,
+    .status-badge--members_only {
+      color: var(--ink);
+      background: rgba(31, 30, 28, 0.06);
+      border-color: rgba(31, 30, 28, 0.34);
+    }
+
+    .status-badge--unknown {
+      color: var(--muted);
+      background: rgba(108, 104, 98, 0.06);
+      border-color: rgba(108, 104, 98, 0.34);
+    }
+
+    .verification-status {
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.5;
+    }
+
+    .status-warning {
+      color: var(--accent);
+      background: rgba(140, 29, 36, 0.07);
+      border-color: rgba(140, 29, 36, 0.48);
     }
 
     .card .row {
@@ -878,7 +938,17 @@
   </footer>
 
   <script>
+    const PARTICIPATION_LABELS = Object.freeze({
+      anyone: "一般参加可",
+      contact_required: "事前連絡",
+      registration_required: "申込必須",
+      invitation_required: "招待制",
+      members_only: "会員限定",
+      unknown: "公式情報を確認",
+    });
+
     let allEvents = [];
+    let generatedDate = "";
 
     function escapeHtml(value) {
       if (value === null || value === undefined) return "";
@@ -901,6 +971,83 @@
       }
       if (event.start_time) return event.start_time;
       return "時間未定";
+    }
+
+    function isoDate(value) {
+      const text = value === null || value === undefined
+        ? ""
+        : String(value).trim();
+      const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(text);
+      if (!match) return "";
+
+      const [, year, month, day] = match;
+      const parsed = new Date(`${year}-${month}-${day}T00:00:00Z`);
+      if (
+        parsed.getUTCFullYear() !== Number(year)
+        || parsed.getUTCMonth() + 1 !== Number(month)
+        || parsed.getUTCDate() !== Number(day)
+      ) {
+        return "";
+      }
+      return `${year}-${month}-${day}`;
+    }
+
+    function participationTypeForDisplay(event) {
+      const participationType = Object.prototype.hasOwnProperty.call(
+        PARTICIPATION_LABELS,
+        event.participation_type
+      )
+        ? event.participation_type
+        : "unknown";
+
+      if (
+        event.application_required === false
+        && participationType === "registration_required"
+      ) {
+        return "unknown";
+      }
+      return participationType;
+    }
+
+    function eventStatusHtml(event) {
+      const participationType = participationTypeForDisplay(event);
+      const participationLabel = PARTICIPATION_LABELS[participationType];
+      const applicationBadge = (
+        event.application_required === true
+        && participationType !== "registration_required"
+      )
+        ? '<span class="status-badge status-badge--registration_required">申込必須</span>'
+        : "";
+
+      const verifiedDate = isoDate(event.verified_at);
+      let verificationText;
+      if (verifiedDate) {
+        verificationText = `最終確認: ${verifiedDate}`;
+      } else if ((event.update_mode || "automatic") === "automatic") {
+        verificationText = "自動取得（未確認）";
+      } else {
+        verificationText = "最終確認日なし";
+      }
+
+      const reviewDueAt = isoDate(event.review_due_at);
+      const warning = (
+        reviewDueAt
+        && generatedDate
+        && reviewDueAt < generatedDate
+      )
+        ? '<span class="status-warning">確認期限超過</span>'
+        : "";
+
+      return `
+        <div class="event-status" aria-label="参加条件と情報確認状況">
+          <span class="status-badge status-badge--${participationType}">
+            ${escapeHtml(participationLabel)}
+          </span>
+          ${applicationBadge}
+          <span class="verification-status">${escapeHtml(verificationText)}</span>
+          ${warning}
+        </div>
+      `;
     }
 
     function renderOrganizations(events) {
@@ -978,6 +1125,7 @@
           <div class="date">${escapeHtml(formatDate(event))}</div>
           <div class="org">${escapeHtml(event.organization_name || "")}</div>
           ${title}
+          ${eventStatusHtml(event)}
           <div class="row"><span class="label">時間</span>${escapeHtml(formatTime(event))}</div>
           <div class="row"><span class="label">会場</span>${escapeHtml(event.venue || "未取得")}</div>
           <div class="row"><span class="label">エリア</span>${escapeHtml(event.area || "未設定")}</div>
@@ -999,6 +1147,7 @@
 
         const payload = await response.json();
         allEvents = payload.events || [];
+        generatedDate = isoDate(payload.generated_at);
 
         document.getElementById("meta").textContent =
           `生成日時: ${payload.generated_at || "-"} / 件数: ${payload.event_count ?? allEvents.length}`;

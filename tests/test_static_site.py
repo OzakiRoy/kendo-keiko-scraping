@@ -5,7 +5,9 @@ import unittest
 from pathlib import Path
 
 from kendo_keiko.static_site import (
+    PARTICIPATION_LABELS,
     build_sitemap_xml,
+    render_event_card,
     render_static_index,
 )
 
@@ -70,6 +72,106 @@ class StaticSiteTests(unittest.TestCase):
         self.assertIn("剣道稽古ナビ", rendered)
         self.assertIn("https://kendo-keiko.com/ogp.png", rendered)
         self.assertIn('href="/favicon.svg"', rendered)
+
+    def test_renders_all_participation_labels(self) -> None:
+        base_event = {
+            "event_date": "2026-08-01",
+            "organization_name": "テスト団体",
+            "application_required": None,
+            "update_mode": "automatic",
+        }
+
+        for participation_type, label in PARTICIPATION_LABELS.items():
+            with self.subTest(participation_type=participation_type):
+                card = render_event_card(
+                    {
+                        **base_event,
+                        "participation_type": participation_type,
+                    }
+                )
+                self.assertIn(label, card)
+                self.assertIn(
+                    f"status-badge--{participation_type}",
+                    card,
+                )
+
+    def test_reconciles_application_required_with_participation(self) -> None:
+        application_required = render_event_card(
+            {
+                "event_date": "2026-08-01",
+                "organization_name": "テスト団体",
+                "participation_type": "contact_required",
+                "application_required": True,
+                "update_mode": "manual",
+                "verified_at": "2026-07-20T09:30:00+09:00",
+            }
+        )
+        self.assertIn("事前連絡", application_required)
+        self.assertIn("申込必須", application_required)
+
+        conflicting_not_required = render_event_card(
+            {
+                "event_date": "2026-08-01",
+                "organization_name": "テスト団体",
+                "participation_type": "registration_required",
+                "application_required": False,
+                "update_mode": "manual",
+                "verified_at": "2026-07-20T09:30:00+09:00",
+            }
+        )
+        self.assertIn("公式情報を確認", conflicting_not_required)
+        self.assertNotIn("申込必須", conflicting_not_required)
+
+    def test_renders_verification_and_review_status(self) -> None:
+        card = render_event_card(
+            {
+                "event_date": "2026-08-01",
+                "organization_name": "テスト団体",
+                "participation_type": "contact_required",
+                "application_required": False,
+                "update_mode": "manual",
+                "verified_at": "2026-07-20T09:30:00+09:00",
+                "review_due_at": "2026-07-20",
+            },
+            reference_date=dt.date(2026, 7, 21),
+        )
+
+        self.assertIn("事前連絡", card)
+        self.assertIn("最終確認: 2026-07-20", card)
+        self.assertIn("確認期限超過", card)
+
+    def test_automatic_event_without_verified_at_is_marked_unverified(
+        self,
+    ) -> None:
+        card = render_event_card(
+            {
+                "event_date": "2026-08-01",
+                "organization_name": "テスト団体",
+                "participation_type": "anyone",
+                "application_required": False,
+                "update_mode": "automatic",
+                "verified_at": None,
+                "review_due_at": None,
+            }
+        )
+
+        self.assertIn("自動取得（未確認）", card)
+        self.assertNotIn("最終確認:", card)
+
+    def test_client_renderer_contains_same_status_labels(self) -> None:
+        for participation_type, label in PARTICIPATION_LABELS.items():
+            with self.subTest(participation_type=participation_type):
+                self.assertIn(
+                    f'{participation_type}: "{label}"',
+                    self.template,
+                )
+        self.assertIn("${eventStatusHtml(event)}", self.template)
+        self.assertIn("自動取得（未確認）", self.template)
+        self.assertIn("確認期限超過", self.template)
+        self.assertIn(
+            "参加前には必ず主催者の公式情報をご確認ください",
+            self.template,
+        )
 
     def test_rendering_is_idempotent(self) -> None:
         once = render_static_index(self.template, self.payload)

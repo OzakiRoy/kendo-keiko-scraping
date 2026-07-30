@@ -14,6 +14,15 @@ EVENT_COUNT_END = "<!-- EVENT_COUNT_END -->"
 EVENT_CARDS_START = "<!-- EVENT_CARDS_START -->"
 EVENT_CARDS_END = "<!-- EVENT_CARDS_END -->"
 
+PARTICIPATION_LABELS = {
+    "anyone": "一般参加可",
+    "contact_required": "事前連絡",
+    "registration_required": "申込必須",
+    "invitation_required": "招待制",
+    "members_only": "会員限定",
+    "unknown": "公式情報を確認",
+}
+
 
 def safe_http_url(value: object) -> str:
     if not value:
@@ -54,6 +63,88 @@ def format_event_time(event: dict[str, Any]) -> str:
     return "時間未定"
 
 
+def _iso_date(value: object) -> dt.date | None:
+    text = _text(value)
+    if len(text) < 10:
+        return None
+
+    try:
+        return dt.date.fromisoformat(text[:10])
+    except ValueError:
+        return None
+
+
+def participation_type_for_display(event: dict[str, Any]) -> str:
+    participation_type = _text(
+        event.get("participation_type"),
+        "unknown",
+    )
+    if participation_type not in PARTICIPATION_LABELS:
+        return "unknown"
+    if (
+        event.get("application_required") is False
+        and participation_type == "registration_required"
+    ):
+        return "unknown"
+    return participation_type
+
+
+def render_event_status(
+    event: dict[str, Any],
+    *,
+    reference_date: dt.date | None = None,
+) -> list[str]:
+    participation_type = participation_type_for_display(event)
+    participation_label = PARTICIPATION_LABELS[participation_type]
+
+    lines = [
+        (
+            '          <div class="event-status" '
+            'aria-label="参加条件と情報確認状況">'
+        ),
+        (
+            '            <span class="status-badge '
+            f'status-badge--{participation_type}">'
+            f'{escape(participation_label, quote=True)}</span>'
+        ),
+    ]
+
+    if (
+        event.get("application_required") is True
+        and participation_type != "registration_required"
+    ):
+        lines.append(
+            '            <span class="status-badge '
+            'status-badge--registration_required">申込必須</span>'
+        )
+
+    verified_date = _iso_date(event.get("verified_at"))
+    if verified_date is not None:
+        verification_text = f"最終確認: {verified_date.isoformat()}"
+    elif _text(event.get("update_mode"), "automatic") == "automatic":
+        verification_text = "自動取得（未確認）"
+    else:
+        verification_text = "最終確認日なし"
+
+    lines.append(
+        '            <span class="verification-status">'
+        f'{escape(verification_text, quote=True)}</span>'
+    )
+
+    review_due_at = _iso_date(event.get("review_due_at"))
+    if (
+        reference_date is not None
+        and review_due_at is not None
+        and review_due_at < reference_date
+    ):
+        lines.append(
+            '            <span class="status-warning">確認期限超過</span>'
+        )
+
+    lines.append("          </div>")
+    return lines
+
+
 def sort_events(events: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(
         events,
@@ -66,7 +157,11 @@ def sort_events(events: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
     )
 
 
-def render_event_card(event: dict[str, Any]) -> str:
+def render_event_card(
+    event: dict[str, Any],
+    *,
+    reference_date: dt.date | None = None,
+) -> str:
     lines = [
         '        <article class="card">',
         f'          <div class="date">{escape(format_event_date(event), quote=True)}</div>',
@@ -83,6 +178,12 @@ def render_event_card(event: dict[str, Any]) -> str:
             f'          <div class="title">{escape(title, quote=True)}</div>'
         )
 
+    lines.extend(
+        render_event_status(
+            event,
+            reference_date=reference_date,
+        )
+    )
     lines.extend(
         [
             (
@@ -133,11 +234,18 @@ def render_event_card(event: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def render_event_cards(events: list[dict[str, Any]]) -> str:
+def render_event_cards(
+    events: list[dict[str, Any]],
+    *,
+    reference_date: dt.date | None = None,
+) -> str:
     if not events:
         return '        <div class="empty">現在掲載中の稽古会はありません。</div>'
 
-    return "\n".join(render_event_card(event) for event in events)
+    return "\n".join(
+        render_event_card(event, reference_date=reference_date)
+        for event in events
+    )
 
 
 def _replace_marked_content(
@@ -185,6 +293,7 @@ def render_static_index(
 
     events = sort_events(events)
     generated_at = _text(payload.get("generated_at"), "-")
+    reference_date = _iso_date(generated_at)
     event_count = len(events)
 
     html = _replace_marked_content(
@@ -209,7 +318,10 @@ def render_static_index(
         html,
         start_marker=EVENT_CARDS_START,
         end_marker=EVENT_CARDS_END,
-        content=render_event_cards(events),
+        content=render_event_cards(
+            events,
+            reference_date=reference_date,
+        ),
         indent="        ",
     )
     return html
