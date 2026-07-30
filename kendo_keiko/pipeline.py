@@ -8,6 +8,7 @@ from typing import Iterable, Optional
 
 from kendo_keiko.models import (
     Organization,
+    ParticipationType,
     RawScrapedEvent,
     ServiceEvent,
 )
@@ -221,6 +222,33 @@ def infer_application_required(
     return None
 
 
+
+def resolve_participation_metadata(
+    *,
+    org: Organization,
+    note: Optional[str],
+    title: Optional[str],
+) -> tuple[Optional[bool], ParticipationType]:
+    """Resolve event metadata, preferring event text over org defaults."""
+    application_required = infer_application_required(note, title)
+    if application_required is None:
+        application_required = org.default_application_required
+
+    participation_type = org.default_participation_type
+    if (
+        application_required is True
+        and participation_type
+        in {"anyone", "contact_required", "unknown"}
+    ):
+        participation_type = "registration_required"
+    elif (
+        application_required is False
+        and participation_type == "registration_required"
+    ):
+        participation_type = "unknown"
+
+    return application_required, participation_type
+
 def normalize_events(
     raw_events: Iterable[RawScrapedEvent],
     organizations: list[Organization],
@@ -253,6 +281,14 @@ def normalize_events(
             organization_id=org.organization_id,
             event_id=event_id,
         )
+        (
+            application_required,
+            participation_type,
+        ) = resolve_participation_metadata(
+            org=org,
+            note=raw.note,
+            title=raw.title,
+        )
 
         service_events.append(
             ServiceEvent(
@@ -270,17 +306,14 @@ def normalize_events(
                 address=None,
                 access=raw.access,
                 fee=extract_fee(raw.note),
-                application_required=infer_application_required(
-                    raw.note,
-                    raw.title,
-                ),
+                application_required=application_required,
                 source_url=raw.source_url,
                 source_type=org.source_type,
                 last_scraped_at=scraped_at,
                 status="active",
                 raw_note=raw.note,
                 update_mode="automatic",
-                participation_type="unknown",
+                participation_type=participation_type,
                 verified_at=None,
                 gsi1_pk=gsi1_pk,
                 gsi1_sk=gsi1_sk,

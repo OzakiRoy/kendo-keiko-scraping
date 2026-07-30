@@ -3,7 +3,8 @@ import unittest
 from unittest.mock import Mock, patch
 
 from kendo_keiko.models import Organization, RawScrapedEvent
-from kendo_keiko.pipeline import run_pipeline
+from kendo_keiko.pipeline import normalize_events, run_pipeline
+from kendo_keiko.repository import load_organizations
 from kendo_keiko.scrapers import SCRAPER_REGISTRY
 
 
@@ -91,7 +92,10 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual("500円 / 申込必須", event.fee)
         self.assertTrue(event.application_required)
         self.assertEqual("automatic", event.update_mode)
-        self.assertEqual("unknown", event.participation_type)
+        self.assertEqual(
+            "registration_required",
+            event.participation_type,
+        )
         self.assertIsNone(event.verified_at)
         self.assertTrue(event.event_id.startswith("test-org-20260801-1300-"))
 
@@ -100,6 +104,104 @@ class PipelineTests(unittest.TestCase):
             debug=False,
         )
 
+
+
+    def test_uses_organization_participation_defaults(self) -> None:
+        organization = Organization(
+            organization_id="default-org",
+            name="既定値団体",
+            area="東京都",
+            website_url="https://example.com/",
+            source_type="official_site",
+            scraper_type="test-scraper",
+            scraper_enabled=True,
+            event_type="open_keiko",
+            default_participation_type="anyone",
+            default_application_required=False,
+        )
+        raw_event = RawScrapedEvent(
+            group="既定値団体",
+            title="通常稽古",
+            date="2026-08-01",
+            weekday="土",
+            start_time="13:00",
+            end_time="15:00",
+            venue="テスト武道館",
+            area=None,
+            access=None,
+            note=None,
+            source_url="https://example.com/event",
+            event_type="open_keiko",
+        )
+
+        event = normalize_events(
+            [raw_event],
+            [organization],
+            "2026-07-30T09:00:00+09:00",
+        )[0]
+
+        self.assertEqual("anyone", event.participation_type)
+        self.assertFalse(event.application_required)
+        self.assertIsNone(event.verified_at)
+
+    def test_event_application_text_overrides_organization_default(
+        self,
+    ) -> None:
+        organization = Organization(
+            organization_id="default-org",
+            name="既定値団体",
+            area="東京都",
+            website_url="https://example.com/",
+            source_type="official_site",
+            scraper_type="test-scraper",
+            scraper_enabled=True,
+            event_type="open_keiko",
+            default_participation_type="anyone",
+            default_application_required=False,
+        )
+        raw_event = RawScrapedEvent(
+            group="既定値団体",
+            title="特別稽古",
+            date="2026-08-01",
+            weekday="土",
+            start_time="13:00",
+            end_time="15:00",
+            venue="テスト武道館",
+            area=None,
+            access=None,
+            note="申込必須",
+            source_url="https://example.com/event",
+            event_type="open_keiko",
+        )
+
+        event = normalize_events(
+            [raw_event],
+            [organization],
+            "2026-07-30T09:00:00+09:00",
+        )[0]
+
+        self.assertEqual(
+            "registration_required",
+            event.participation_type,
+        )
+        self.assertTrue(event.application_required)
+
+    def test_kent_and_kenkyukai_default_to_anyone(self) -> None:
+        organizations = {
+            organization.organization_id: organization
+            for organization in load_organizations()
+        }
+
+        for organization_id in ("kent", "kenkyukai"):
+            with self.subTest(organization_id=organization_id):
+                organization = organizations[organization_id]
+                self.assertEqual(
+                    "anyone",
+                    organization.default_participation_type,
+                )
+                self.assertFalse(
+                    organization.default_application_required
+                )
 
 if __name__ == "__main__":
     unittest.main()

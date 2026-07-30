@@ -109,6 +109,22 @@ class Organization:
     event_type: str
     notes: Optional[str] = None
     public_description: Optional[str] = None
+    default_participation_type: ParticipationType = "unknown"
+    default_application_required: Optional[bool] = None
+
+    def __post_init__(self) -> None:
+        if self.default_participation_type not in VALID_PARTICIPATION_TYPES:
+            raise ValueError(
+                "invalid default_participation_type: "
+                f"{self.default_participation_type}"
+            )
+        if (
+            self.default_application_required is not None
+            and not isinstance(self.default_application_required, bool)
+        ):
+            raise ValueError(
+                "default_application_required must be bool or None"
+            )
 
 
 @dataclass(frozen=True)

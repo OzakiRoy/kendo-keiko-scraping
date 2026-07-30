@@ -9,7 +9,9 @@
     "scraper_enabled": true,
     "event_type": "open_keiko",
     "notes": "公式サイトのSCHEDULEから取得",
-    "public_description": "東京都内で活動する社会人剣道サークルkentの稽古予定を掲載しています。"
+    "public_description": "東京都内で活動する社会人剣道サークルkentの稽古予定を掲載しています。",
+    "default_participation_type": "anyone",
+    "default_application_required": false
   },
   {
     "organization_id": "kenkyukai",
@@ -21,7 +23,9 @@
     "scraper_enabled": true,
     "event_type": "open_keiko",
     "notes": "公式サイトの新着情報から取得",
-    "public_description": "剣究会が東京都内で開催する剣道稽古会の予定を掲載しています。"
+    "public_description": "剣究会が東京都内で開催する剣道稽古会の予定を掲載しています。",
+    "default_participation_type": "anyone",
+    "default_application_required": false
   },
   {
     "organization_id": "kenbokukai",
