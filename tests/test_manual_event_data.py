@@ -19,7 +19,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("眞心会", organization.name)
         self.assertEqual("manual", organization.scraper_type)
         self.assertFalse(organization.scraper_enabled)
-        self.assertEqual(7, len(events))
+        self.assertEqual(14, len(events))
         self.assertEqual(
             [
                 "2026-07-28",
@@ -29,6 +29,13 @@ class ManualEventDataTests(unittest.TestCase):
                 "2026-08-20",
                 "2026-08-25",
                 "2026-08-27",
+            "2026-09-01",
+            "2026-09-08",
+            "2026-09-10",
+            "2026-09-15",
+            "2026-09-17",
+            "2026-09-24",
+            "2026-09-29",
             ],
             [event["event_date"] for event in events],
         )
@@ -38,7 +45,15 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertEqual("active", event["status"])
             self.assertEqual("19:30", event["start_time"])
             self.assertEqual("20:30", event["end_time"])
-            self.assertEqual("2026-08-24", event["review_due_at"])
+            expected_review_due_at = (
+                "2026-09-01"
+                if event["event_date"] >= "2026-09-01"
+                else "2026-08-24"
+            )
+            self.assertEqual(
+                expected_review_due_at,
+                event["review_due_at"],
+            )
 
 
 if __name__ == "__main__":
