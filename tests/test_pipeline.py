@@ -144,6 +144,45 @@ class PipelineTests(unittest.TestCase):
         self.assertFalse(event.application_required)
         self.assertIsNone(event.verified_at)
 
+    def test_event_participation_type_overrides_organization_default(
+        self,
+    ) -> None:
+        organization = Organization(
+            organization_id="event-override-org",
+            name="イベント個別条件団体",
+            area="埼玉県",
+            website_url="https://example.com/",
+            source_type="official_site",
+            scraper_type="test-scraper",
+            scraper_enabled=True,
+            event_type="federation_keiko",
+            default_participation_type="unknown",
+        )
+        raw_event = RawScrapedEvent(
+            group=organization.name,
+            title="月例稽古",
+            date="2026-08-06",
+            weekday="木",
+            start_time="19:00",
+            end_time="20:00",
+            venue="テスト武道館",
+            area=None,
+            access=None,
+            note="参加費: 無料",
+            source_url="https://example.com/event",
+            event_type="federation_keiko",
+            participation_type="anyone",
+        )
+
+        event = normalize_events(
+            [raw_event],
+            [organization],
+            "2026-08-06T06:00:00+09:00",
+        )[0]
+
+        self.assertEqual("anyone", event.participation_type)
+        self.assertIsNone(event.application_required)
+
     def test_event_application_text_overrides_organization_default(
         self,
     ) -> None:

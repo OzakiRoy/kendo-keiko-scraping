@@ -59,6 +59,7 @@ def event_score(event: RawScrapedEvent) -> int:
         event.access,
         event.note,
         event.source_url,
+        event.participation_type,
     ):
         if value:
             score += 1
@@ -228,13 +229,18 @@ def resolve_participation_metadata(
     org: Organization,
     note: Optional[str],
     title: Optional[str],
+    event_participation_type: Optional[ParticipationType] = None,
 ) -> tuple[Optional[bool], ParticipationType]:
-    """Resolve event metadata, preferring event text over org defaults."""
+    """Resolve event metadata, preferring event values over org defaults."""
     application_required = infer_application_required(note, title)
     if application_required is None:
         application_required = org.default_application_required
 
-    participation_type = org.default_participation_type
+    participation_type = (
+        event_participation_type
+        if event_participation_type is not None
+        else org.default_participation_type
+    )
     if (
         application_required is True
         and participation_type
@@ -288,6 +294,7 @@ def normalize_events(
             org=org,
             note=raw.note,
             title=raw.title,
+            event_participation_type=raw.participation_type,
         )
 
         service_events.append(

@@ -76,6 +76,18 @@
     "public_description": "神奈川県剣道連盟が神奈川県立武道館で開催する一般合同稽古会・女子合同稽古会の予定を掲載しています。"
   },
   {
+    "organization_id": "saitama",
+    "name": "埼玉県剣道連盟",
+    "area": "埼玉県",
+    "website_url": "https://www.saitama-kendo.or.jp/plugin/calendars/index/11/229",
+    "source_type": "official_site",
+    "scraper_type": "saitama",
+    "scraper_enabled": true,
+    "event_type": "federation_keiko",
+    "notes": "公式の年間行事予定カレンダーから月例稽古会を取得",
+    "public_description": "埼玉県剣道連盟が埼玉県内で開催する月例稽古会の予定を掲載しています。"
+  },
+  {
     "organization_id": "magokorokai",
     "name": "眞心会",
     "area": "埼玉県",
