@@ -161,6 +161,7 @@ class RawScrapedEvent:
     note: Optional[str]
     source_url: str
     event_type: str
+    participation_type: Optional[ParticipationType] = None
 
 
 @dataclass(frozen=True)

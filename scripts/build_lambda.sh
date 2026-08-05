@@ -83,6 +83,7 @@ import scraper_worker_handler
 from kendo_keiko.manual_events import load_manual_events
 from kendo_keiko.models import RawScrapedEvent, ScrapeResult
 from kendo_keiko.scrapers.ajkf import scrape
+from kendo_keiko.scrapers.saitama import scrape as scrape_saitama
 
 print("[INFO] Lambda package imports: OK")
 PY
@@ -127,6 +128,7 @@ required_files=(
   "kendo_keiko/scrapers/common.py"
   "kendo_keiko/scrapers/kent.py"
   "kendo_keiko/scrapers/kanagawa.py"
+  "kendo_keiko/scrapers/saitama.py"
   "kendo_keiko/scrapers/kenkyukai.py"
   "kendo_keiko/scrapers/kenbokukai.py"
   "kendo_keiko/scrapers/tokyo.py"
