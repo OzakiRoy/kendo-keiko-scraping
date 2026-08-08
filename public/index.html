@@ -92,6 +92,7 @@
     }
 
     a:focus-visible,
+    button:focus-visible,
     input:focus-visible,
     select:focus-visible {
       outline: 3px solid rgba(140, 29, 36, 0.24);
@@ -233,12 +234,16 @@
 
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(230px, 1fr);
-      gap: 24px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
       padding: 28px;
       background: var(--surface);
       border-top: 1px solid var(--line-strong);
       border-bottom: 1px solid var(--line-strong);
+    }
+
+    .form-field--keyword {
+      grid-column: span 2;
     }
 
     .form-field {
@@ -259,18 +264,104 @@
     select {
       width: 100%;
       min-width: 0;
-      min-height: 48px;
-      padding: 10px 13px;
+      min-height: 44px;
+      padding: 8px 12px;
       color: var(--ink);
       background: var(--surface);
       border: 1px solid var(--line-strong);
-      border-radius: 0;
+      border-radius: 4px;
       font: inherit;
       font-size: 16px;
     }
 
     input::placeholder {
       color: #928e87;
+    }
+
+    .date-shortcuts {
+      grid-column: 1 / -1;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .date-shortcut-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .date-shortcut-button {
+      min-height: 40px;
+      padding: 6px 12px;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.86rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .date-shortcut-button:hover:not([aria-pressed="true"]) {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .date-shortcut-button[aria-pressed="true"] {
+      color: #ffffff;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .filter-state {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-width: 0;
+      padding-top: 4px;
+    }
+
+    .filter-summary {
+      min-width: 0;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      overflow-wrap: anywhere;
+    }
+
+    .reset-button {
+      flex: 0 0 auto;
+      min-height: 42px;
+      padding: 7px 13px;
+      color: var(--accent);
+      background: transparent;
+      border: 1px solid var(--accent);
+      border-radius: 0;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .reset-button:hover:not(:disabled) {
+      color: #ffffff;
+      background: var(--accent);
+    }
+
+    .reset-button:disabled {
+      color: var(--muted);
+      border-color: var(--line);
+      cursor: default;
+      opacity: 0.65;
+    }
+
+    .empty .reset-button {
+      margin-top: 14px;
     }
 
     .count {
@@ -591,9 +682,13 @@
       }
 
       .toolbar {
-        grid-template-columns: minmax(0, 1.5fr) minmax(210px, 1fr);
-        gap: 20px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
         padding: 24px;
+      }
+
+      .form-field--keyword {
+        grid-column: 1 / -1;
       }
 
       .card {
@@ -634,9 +729,37 @@
       }
 
       .toolbar {
-        grid-template-columns: 1fr;
-        gap: 18px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 12px;
+        row-gap: 14px;
         padding: 22px 18px;
+      }
+
+      .form-field--keyword,
+      .form-field--organization {
+        grid-column: 1 / -1;
+      }
+
+      .form-field__label {
+        margin-bottom: 6px;
+      }
+
+      .date-shortcut-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .date-shortcut-button {
+        width: 100%;
+      }
+
+      .filter-state {
+        display: grid;
+        gap: 12px;
+      }
+
+      .reset-button {
+        width: 100%;
       }
 
       .section-heading--with-count {
@@ -682,6 +805,10 @@
     }
 
     @media (max-width: 420px) {
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
       .site-header {
         border-top-width: 5px;
       }
@@ -806,17 +933,52 @@
       </div>
 
       <div class="toolbar">
-        <label class="form-field">
+        <fieldset class="form-field date-shortcuts">
+          <legend class="form-field__label">開催時期</legend>
+          <div class="date-shortcut-list">
+            <button class="date-shortcut-button" type="button" data-date-shortcut="" aria-pressed="true">すべて</button>
+            <button class="date-shortcut-button" type="button" data-date-shortcut="weekend" aria-pressed="false">今週末</button>
+            <button class="date-shortcut-button" type="button" data-date-shortcut="7days" aria-pressed="false">7日以内</button>
+            <button class="date-shortcut-button" type="button" data-date-shortcut="month" aria-pressed="false">今月</button>
+          </div>
+        </fieldset>
+
+        <label class="form-field form-field--keyword">
           <span class="form-field__label">キーワード</span>
           <input id="keyword" type="search" placeholder="団体名・会場・タイトルで検索">
         </label>
 
-        <label class="form-field">
+        <label class="form-field form-field--organization">
           <span class="form-field__label">掲載団体</span>
           <select id="organization">
             <option value="">すべての団体</option>
           </select>
         </label>
+
+        <label class="form-field">
+          <span class="form-field__label">地域</span>
+          <select id="area">
+            <option value="">すべての地域</option>
+          </select>
+        </label>
+
+        <label class="form-field">
+          <span class="form-field__label">参加条件</span>
+          <select id="participation">
+            <option value="">すべての参加条件</option>
+            <option value="anyone">一般参加可</option>
+            <option value="contact_required">事前連絡</option>
+            <option value="registration_required">申込必須</option>
+            <option value="invitation_required">招待制</option>
+            <option value="members_only">会員限定</option>
+            <option value="unknown">公式情報を確認</option>
+          </select>
+        </label>
+
+        <div class="filter-state">
+          <p class="filter-summary" id="filter-summary" aria-live="polite">条件指定なし</p>
+          <button class="reset-button" id="clear-filters" type="button" disabled>条件をすべて解除</button>
+        </div>
       </div>
     </section>
 
@@ -959,8 +1121,15 @@
       unknown: "公式情報を確認",
     });
 
+    const DATE_FILTER_LABELS = Object.freeze({
+      weekend: "今週末",
+      "7days": "7日以内",
+      month: "今月",
+    });
+
     let allEvents = [];
     let generatedDate = "";
+    let activeDateShortcut = "";
 
     function escapeHtml(value) {
       if (value === null || value === undefined) return "";
@@ -1062,16 +1231,26 @@
       `;
     }
 
-    function renderOrganizations(events) {
-      const select = document.getElementById("organization");
-      const names = [...new Set(events.map(e => e.organization_name).filter(Boolean))].sort();
-
-      for (const name of names) {
+    function appendSelectOptions(selectId, values) {
+      const select = document.getElementById(selectId);
+      for (const value of values) {
         const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
+        option.value = value;
+        option.textContent = value;
         select.appendChild(option);
       }
+    }
+
+    function renderFilterOptions(events) {
+      const organizations = [...new Set(
+        events.map(event => event.organization_name).filter(Boolean)
+      )].sort();
+      const areas = [...new Set(
+        events.map(event => event.area).filter(Boolean)
+      )].sort();
+
+      appendSelectOptions("organization", organizations);
+      appendSelectOptions("area", areas);
     }
 
     function matchesKeyword(event, keyword) {
@@ -1090,23 +1269,149 @@
       return target.includes(keyword.toLowerCase());
     }
 
+    function currentJapanIsoDate() {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).formatToParts(new Date());
+      const values = Object.fromEntries(
+        parts.map(part => [part.type, part.value])
+      );
+      return `${values.year}-${values.month}-${values.day}`;
+    }
+
+    function shiftIsoDate(value, days) {
+      const date = new Date(`${value}T00:00:00Z`);
+      date.setUTCDate(date.getUTCDate() + days);
+      return date.toISOString().slice(0, 10);
+    }
+
+    function dateRangeForShortcut(shortcut) {
+      if (!shortcut) return null;
+
+      const today = currentJapanIsoDate();
+      const current = new Date(`${today}T00:00:00Z`);
+
+      if (shortcut === "7days") {
+        return [today, shiftIsoDate(today, 6)];
+      }
+
+      if (shortcut === "month") {
+        const year = current.getUTCFullYear();
+        const month = current.getUTCMonth();
+        const start = new Date(Date.UTC(year, month, 1))
+          .toISOString().slice(0, 10);
+        const end = new Date(Date.UTC(year, month + 1, 0))
+          .toISOString().slice(0, 10);
+        return [start, end];
+      }
+
+      if (shortcut === "weekend") {
+        const weekday = current.getUTCDay();
+        if (weekday === 0) return [today, today];
+
+        const daysUntilSaturday = (6 - weekday + 7) % 7;
+        const saturday = shiftIsoDate(today, daysUntilSaturday);
+        return [saturday, shiftIsoDate(saturday, 1)];
+      }
+
+      return null;
+    }
+
+    function matchesDateRange(event, dateRange) {
+      if (!dateRange) return true;
+      const eventDate = isoDate(event.event_date);
+      if (!eventDate) return false;
+      return eventDate >= dateRange[0] && eventDate <= dateRange[1];
+    }
+
+    function participationTypesForFilter(event) {
+      const types = new Set([participationTypeForDisplay(event)]);
+      if (event.application_required === true) {
+        types.add("registration_required");
+      }
+      return types;
+    }
+
+    function activeFilterLabels({ keyword, org, area, participation, dateShortcut }) {
+      const labels = [];
+      if (dateShortcut) labels.push(DATE_FILTER_LABELS[dateShortcut]);
+      if (area) labels.push(area);
+      if (participation) labels.push(PARTICIPATION_LABELS[participation]);
+      if (org) labels.push(org);
+      if (keyword) labels.push(`キーワード「${keyword}」`);
+      return labels;
+    }
+
+    function setDateShortcut(shortcut) {
+      activeDateShortcut = shortcut;
+      document.querySelectorAll("[data-date-shortcut]").forEach(button => {
+        const selected = button.dataset.dateShortcut === shortcut;
+        button.setAttribute("aria-pressed", String(selected));
+      });
+    }
+
+    function resetFilters({ focusKeyword = false } = {}) {
+      document.getElementById("keyword").value = "";
+      document.getElementById("organization").value = "";
+      document.getElementById("area").value = "";
+      document.getElementById("participation").value = "";
+      setDateShortcut("");
+      render();
+      if (focusKeyword) document.getElementById("keyword").focus();
+    }
+
     function render() {
       const keyword = document.getElementById("keyword").value.trim();
       const org = document.getElementById("organization").value;
+      const area = document.getElementById("area").value;
+      const participation = document.getElementById("participation").value;
+      const dateShortcut = activeDateShortcut;
+      const dateRange = dateRangeForShortcut(dateShortcut);
 
       const events = allEvents.filter(event => {
         if (org && event.organization_name !== org) return false;
+        if (area && event.area !== area) return false;
+        if (
+          participation
+          && !participationTypesForFilter(event).has(participation)
+        ) return false;
+        if (!matchesDateRange(event, dateRange)) return false;
         if (!matchesKeyword(event, keyword)) return false;
         return true;
       });
 
+      const filterLabels = activeFilterLabels({
+        keyword,
+        org,
+        area,
+        participation,
+        dateShortcut,
+      });
+      const hasFilters = filterLabels.length > 0;
+
       document.getElementById("count").textContent = `${events.length}件表示中`;
+      document.getElementById("filter-summary").textContent = hasFilters
+        ? `選択中: ${filterLabels.join(" / ")} / ${events.length}件`
+        : `条件指定なし / ${events.length}件`;
+      document.getElementById("clear-filters").disabled = !hasFilters;
 
       const cards = document.getElementById("cards");
       cards.innerHTML = "";
 
       if (events.length === 0) {
-        cards.innerHTML = '<div class="empty">該当する稽古会はありません。</div>';
+        cards.innerHTML = `
+          <div class="empty">
+            <div>条件に合う稽古会はありません。</div>
+            <button class="reset-button" type="button" data-reset-filters>条件をすべて解除</button>
+          </div>
+        `;
+        cards.querySelector("[data-reset-filters]").addEventListener(
+          "click",
+          () => resetFilters({ focusKeyword: true })
+        );
         return;
       }
 
@@ -1164,11 +1469,23 @@
         document.getElementById("meta").textContent =
           `生成日時: ${payload.generated_at || "-"} / 件数: ${payload.event_count ?? allEvents.length}`;
 
-        renderOrganizations(allEvents);
+        renderFilterOptions(allEvents);
         render();
 
         document.getElementById("keyword").addEventListener("input", render);
         document.getElementById("organization").addEventListener("change", render);
+        document.getElementById("area").addEventListener("change", render);
+        document.getElementById("participation").addEventListener("change", render);
+        document.querySelectorAll("[data-date-shortcut]").forEach(button => {
+          button.addEventListener("click", () => {
+            setDateShortcut(button.dataset.dateShortcut || "");
+            render();
+          });
+        });
+        document.getElementById("clear-filters").addEventListener(
+          "click",
+          () => resetFilters()
+        );
       } catch (error) {
         document.getElementById("meta").textContent =
           "最新データの読み込みに失敗しました。掲載済み情報を表示しています。";

@@ -173,6 +173,36 @@ class StaticSiteTests(unittest.TestCase):
             self.template,
         )
 
+    def test_filter_controls_and_shortcuts_are_present(self) -> None:
+        self.assertIn('id="area"', self.template)
+        self.assertIn('id="participation"', self.template)
+        self.assertIn('class="form-field date-shortcuts"', self.template)
+        self.assertIn('data-date-shortcut="" aria-pressed="true">すべて</button>', self.template)
+        self.assertIn('data-date-shortcut="weekend" aria-pressed="false">今週末</button>', self.template)
+        self.assertIn('data-date-shortcut="7days" aria-pressed="false">7日以内</button>', self.template)
+        self.assertIn('data-date-shortcut="month" aria-pressed="false">今月</button>', self.template)
+        self.assertIn('id="filter-summary"', self.template)
+        self.assertIn('id="clear-filters"', self.template)
+
+    def test_client_filter_logic_combines_existing_and_new_conditions(self) -> None:
+        self.assertIn('if (org && event.organization_name !== org)', self.template)
+        self.assertIn('if (area && event.area !== area)', self.template)
+        self.assertIn('participationTypesForFilter(event).has(participation)', self.template)
+        self.assertIn('matchesDateRange(event, dateRange)', self.template)
+        self.assertIn('matchesKeyword(event, keyword)', self.template)
+        self.assertIn('function setDateShortcut(shortcut)', self.template)
+        self.assertIn('button.setAttribute("aria-pressed", String(selected))', self.template)
+        self.assertIn('data-reset-filters', self.template)
+
+    def test_static_render_keeps_filter_controls_and_all_event_cards(self) -> None:
+        rendered = render_static_index(self.template, self.payload)
+
+        self.assertIn('id="area"', rendered)
+        self.assertIn('id="participation"', rendered)
+        self.assertIn('data-date-shortcut="weekend"', rendered)
+        self.assertIn('2026-08-01(土)', rendered)
+        self.assertIn('2026-08-02(日)', rendered)
+
     def test_rendering_is_idempotent(self) -> None:
         once = render_static_index(self.template, self.payload)
         twice = render_static_index(once, self.payload)
