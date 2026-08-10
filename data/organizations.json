@@ -104,6 +104,20 @@
     "default_application_required": false
   },
   {
+    "organization_id": "kizunakai",
+    "name": "絆剣会",
+    "area": "埼玉県",
+    "website_url": "https://www.instagram.com/kizunakai.kendo/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "公式Instagramの告知を管理者が確認し、手動登録",
+    "public_description": "埼玉県を中心に活動する絆剣会の、外部参加可能な剣道稽古会の予定を掲載しています。",
+    "default_participation_type": "anyone",
+    "default_application_required": false
+  },
+  {
     "organization_id": "magokorokai",
     "name": "眞心会",
     "area": "埼玉県",
