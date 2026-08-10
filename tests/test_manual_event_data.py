@@ -104,5 +104,39 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertEqual("active", event["status"])
 
 
+    def test_kent_ladies_event_is_valid(self) -> None:
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "kent_ladies"
+        ]
+
+        self.assertEqual(1, len(events))
+
+        event = events[0]
+
+        self.assertEqual("2026-08-30", event["event_date"])
+        self.assertEqual("日", event["weekday"])
+        self.assertEqual(
+            "kent女子稽古会 8月30日稽古",
+            event["title"],
+        )
+        self.assertEqual("12:30", event["start_time"])
+        self.assertEqual("15:00", event["end_time"])
+        self.assertEqual(
+            "文京スポーツセンター4階",
+            event["venue"],
+        )
+        self.assertEqual("500円", event["fee"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DaW0XADE927/",
+            event["source_url"],
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
