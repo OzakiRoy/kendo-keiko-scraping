@@ -56,5 +56,53 @@ class ManualEventDataTests(unittest.TestCase):
             )
 
 
+    def test_hagakurey_weeknight_events_are_valid(self) -> None:
+        source_url = "https://www.instagram.com/p/Dbii2xfTw5J/"
+        events = [
+            event
+            for event in load_manual_events()
+            if event["source_url"] == source_url
+        ]
+
+        self.assertEqual(11, len(events))
+        self.assertEqual(
+            [
+                "2026-08-10",
+                "2026-08-12",
+                "2026-08-13",
+                "2026-08-18",
+                "2026-08-19",
+                "2026-08-20",
+                "2026-08-24",
+                "2026-08-25",
+                "2026-08-26",
+                "2026-08-27",
+                "2026-08-28",
+            ],
+            [event["event_date"] for event in events],
+        )
+
+        for event in events:
+            self.assertEqual("hagakurey", event["organization_id"])
+            self.assertEqual(
+                "HAGAKUREY 8月平日夜稽古",
+                event["title"],
+            )
+            self.assertEqual("21:00", event["start_time"])
+            self.assertEqual("22:30", event["end_time"])
+            self.assertEqual(
+                "墨田区総合体育館",
+                event["venue"],
+            )
+            self.assertIsNone(event["fee"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual(
+                "contact_required",
+                event["participation_type"],
+            )
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("active", event["status"])
+
+
 if __name__ == "__main__":
     unittest.main()
