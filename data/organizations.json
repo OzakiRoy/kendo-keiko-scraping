@@ -166,6 +166,20 @@
     "public_description": "埼玉県剣道連盟が埼玉県内で開催する月例稽古会の予定を掲載しています。"
   },
   {
+    "organization_id": "seikenkai_inzai",
+    "name": "西剣会",
+    "area": "千葉県",
+    "website_url": "https://www.instagram.com/seikenkai_chiba_inzai/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "公式Instagramの告知を管理者が確認し、手動登録",
+    "public_description": "千葉県印西市で開催される西剣会の、小学生から大人まで参加可能なオープン稽古会の予定を掲載しています。",
+    "default_participation_type": "anyone",
+    "default_application_required": false
+  },
+  {
     "organization_id": "tokyo",
     "name": "東京都剣道連盟",
     "area": "東京都",

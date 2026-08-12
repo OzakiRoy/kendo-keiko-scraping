@@ -172,5 +172,40 @@ class ManualEventDataTests(unittest.TestCase):
         )
 
 
+    def test_seikenkai_inzai_events_are_valid(self) -> None:
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "seikenkai_inzai"
+        ]
+
+        self.assertEqual(2, len(events))
+        self.assertEqual(
+            ["2026-08-21", "2026-08-28"],
+            [event["event_date"] for event in events],
+        )
+
+        for event in events:
+            self.assertEqual(
+                "西剣会 8月オープン稽古会",
+                event["title"],
+            )
+            self.assertEqual("19:00", event["start_time"])
+            self.assertEqual("21:00", event["end_time"])
+            self.assertEqual(
+                "印西市立西の原中学校",
+                event["venue"],
+            )
+            self.assertEqual("無料", event["fee"])
+            self.assertEqual("anyone", event["participation_type"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("sns", event["source_type"])
+            self.assertEqual(
+                "https://www.instagram.com/p/DbeucGlzVHK/",
+                event["source_url"],
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
