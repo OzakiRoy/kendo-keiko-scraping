@@ -187,7 +187,7 @@ class ManualEventDataTests(unittest.TestCase):
 
         for event in events:
             self.assertEqual(
-                "西剣会 8月オープン稽古会",
+                "西劔会 8月オープン稽古会",
                 event["title"],
             )
             self.assertEqual("19:00", event["start_time"])

@@ -167,7 +167,7 @@
   },
   {
     "organization_id": "seikenkai_inzai",
-    "name": "西剣会",
+    "name": "西劔会",
     "area": "千葉県",
     "website_url": "https://www.instagram.com/seikenkai_chiba_inzai/",
     "source_type": "sns",
@@ -175,7 +175,7 @@
     "scraper_enabled": false,
     "event_type": "open_keiko",
     "notes": "公式Instagramの告知を管理者が確認し、手動登録",
-    "public_description": "千葉県印西市で開催される西剣会の、小学生から大人まで参加可能なオープン稽古会の予定を掲載しています。",
+    "public_description": "千葉県印西市で開催される西劔会の、小学生から大人まで参加可能なオープン稽古会の予定を掲載しています。",
     "default_participation_type": "anyone",
     "default_application_required": false
   },
