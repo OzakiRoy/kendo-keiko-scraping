@@ -151,7 +151,7 @@ class ManualEventDataTests(unittest.TestCase):
 
         self.assertEqual("2026-08-14", event["event_date"])
         self.assertEqual("金", event["weekday"])
-        self.assertEqual("絆剣会 ゆる稽古会", event["title"])
+        self.assertEqual("絆剱会 ゆる稽古会", event["title"])
         self.assertEqual("19:00", event["start_time"])
         self.assertEqual("21:30", event["end_time"])
         self.assertEqual(
