@@ -138,18 +138,27 @@ class ManualEventDataTests(unittest.TestCase):
         )
 
 
-    def test_kizunakai_event_is_valid(self) -> None:
+    def test_kizunakai_events_are_valid(self) -> None:
         events = [
             event
             for event in load_manual_events()
             if event["organization_id"] == "kizunakai"
         ]
 
-        self.assertEqual(1, len(events))
+        self.assertEqual(2, len(events))
 
-        event = events[0]
+        events_by_date = {
+            event["event_date"]: event
+            for event in events
+        }
 
-        self.assertEqual("2026-08-14", event["event_date"])
+        self.assertEqual(
+            {"2026-08-14", "2026-08-27"},
+            set(events_by_date),
+        )
+
+        event = events_by_date["2026-08-14"]
+
         self.assertEqual("金", event["weekday"])
         self.assertEqual("絆剱会 ゆる稽古会", event["title"])
         self.assertEqual("19:00", event["start_time"])
@@ -168,6 +177,31 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("sns", event["source_type"])
         self.assertEqual(
             "https://www.instagram.com/p/Db2tH9hhkNr/",
+            event["source_url"],
+        )
+
+        event = events_by_date["2026-08-27"]
+
+        self.assertEqual("木", event["weekday"])
+        self.assertEqual("絆剱会 ゆる稽古会", event["title"])
+        self.assertEqual("20:00", event["start_time"])
+        self.assertEqual("22:00", event["end_time"])
+        self.assertEqual(
+            "坂戸市 入西地域交流センター 多目的ホール",
+            event["venue"],
+        )
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertEqual(
+            "一般200円／大学生以下100円",
+            event["fee"],
+        )
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DcXxOuzN1ne/",
             event["source_url"],
         )
 
