@@ -1,12 +1,28 @@
 from __future__ import annotations
 
+import json
 import unittest
 
-from kendo_keiko.manual_events import load_manual_events
+from kendo_keiko.manual_events import (
+    DEFAULT_MANUAL_EVENTS_PATH,
+    load_manual_events,
+    sort_manual_events,
+)
 from kendo_keiko.repository import find_organization, load_organizations
 
 
 class ManualEventDataTests(unittest.TestCase):
+    def test_manual_events_file_uses_canonical_order(self) -> None:
+        payload = json.loads(
+            DEFAULT_MANUAL_EVENTS_PATH.read_text(encoding="utf-8")
+        )
+        events = payload["events"]
+
+        self.assertEqual(
+            [event["event_id"] for event in sort_manual_events(events)],
+            [event["event_id"] for event in events],
+        )
+
     def test_magokorokai_events_are_valid_and_linked_to_organization(self) -> None:
         organizations = load_organizations()
         organization = find_organization(organizations, "magokorokai")
