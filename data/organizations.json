@@ -12,6 +12,20 @@
     "public_description": "全日本剣道連盟が全国各地で開催する公式稽古会の予定を掲載しています。"
   },
   {
+    "organization_id": "gozen_kendo",
+    "name": "悟禅会",
+    "area": "東京都",
+    "website_url": "https://www.instagram.com/gozen_kendo/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "公式Instagramの告知を管理者が確認し、手動登録",
+    "public_description": "平日の日中を中心に開催される悟禅会の剣道稽古予定を掲載しています。参加希望者は公式Instagramへ事前にメッセージまたはコメントをご連絡ください。",
+    "default_participation_type": "contact_required",
+    "default_application_required": false
+  },
+  {
     "organization_id": "hagakurey",
     "name": "HAGAKUREY",
     "area": "東京都",

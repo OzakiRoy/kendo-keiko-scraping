@@ -222,6 +222,53 @@ class ManualEventDataTests(unittest.TestCase):
         )
 
 
+    def test_gozen_kendo_event_is_valid_and_linked_to_organization(self) -> None:
+        organizations = load_organizations()
+        organization = find_organization(organizations, "gozen_kendo")
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "gozen_kendo"
+        ]
+
+        self.assertEqual("悟禅会", organization.name)
+        self.assertEqual("manual", organization.scraper_type)
+        self.assertFalse(organization.scraper_enabled)
+        self.assertEqual(
+            "contact_required",
+            organization.default_participation_type,
+        )
+        self.assertFalse(organization.default_application_required)
+        self.assertEqual(1, len(events))
+
+        event = events[0]
+
+        self.assertEqual(
+            "gozen_kendo-20260827-0930-541f23f2",
+            event["event_id"],
+        )
+        self.assertEqual("悟禅会 稽古会", event["title"])
+        self.assertEqual("2026-08-27", event["event_date"])
+        self.assertEqual("木", event["weekday"])
+        self.assertEqual("09:30", event["start_time"])
+        self.assertEqual("11:30", event["end_time"])
+        self.assertEqual(
+            "新宿区スポーツセンター 4F",
+            event["venue"],
+        )
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertIsNone(event["fee"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual("contact_required", event["participation_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DbhdpUxPJdF/",
+            event["source_url"],
+        )
+
+
     def test_seikenkai_inzai_events_are_valid(self) -> None:
         events = [
             event
