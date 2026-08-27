@@ -2,6 +2,8 @@
 
 このファイルはリポジトリ全体に適用する。Codexは着手前に必ず読み、ここに記載した確認順序、変更単位、安全条件に従う。
 
+稽古会・掲載団体の調査、登録、PR、本番公開を扱う場合は、あわせて [`docs/runbooks/codex-keiko-registration.md`](docs/runbooks/codex-keiko-registration.md) を読み、記載された作業フェーズと停止条件に従う。
+
 ## 情報源の優先順位
 
 判断が食い違う場合は、次の順序を優先する。
