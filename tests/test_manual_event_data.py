@@ -120,6 +120,91 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertEqual("active", event["status"])
 
 
+    def test_hagakurey_september_events_are_valid(self) -> None:
+        source_url = "https://www.instagram.com/p/DcgkP0szPim/"
+        events = [
+            event
+            for event in load_manual_events()
+            if event["source_url"] == source_url
+        ]
+
+        expected_schedules = {
+            "2026-09-05": ("15:00", "18:00", "墨田区総合体育館"),
+            "2026-09-06": ("18:00", "21:00", "墨田区総合体育館"),
+            "2026-09-12": (
+                "15:00",
+                "18:00",
+                "中央区総合スポーツセンター",
+            ),
+            "2026-09-13": ("18:00", "21:00", "墨田区総合体育館"),
+            "2026-09-19": (
+                "15:00",
+                "18:00",
+                "中央区総合スポーツセンター",
+            ),
+            "2026-09-20": ("09:00", "12:00", "江東区スポーツ会館"),
+            "2026-09-22": (
+                "18:00",
+                "20:00",
+                "BumB東京スポーツ文化館",
+            ),
+            "2026-09-26": (
+                "19:00",
+                "21:00",
+                "渋谷区スポーツセンター",
+            ),
+            "2026-09-27": ("15:00", "18:00", "墨田区総合体育館"),
+        }
+
+        self.assertEqual(9, len(events))
+        self.assertEqual(
+            list(expected_schedules),
+            [event["event_date"] for event in events],
+        )
+
+        for event in events:
+            expected_start, expected_end, expected_venue = (
+                expected_schedules[event["event_date"]]
+            )
+            self.assertEqual("hagakurey", event["organization_id"])
+            self.assertEqual(expected_start, event["start_time"])
+            self.assertEqual(expected_end, event["end_time"])
+            self.assertEqual(expected_venue, event["venue"])
+            self.assertIsNone(event["address"])
+            self.assertIsNone(event["access"])
+            self.assertEqual("500円／回", event["fee"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual(
+                "contact_required",
+                event["participation_type"],
+            )
+            self.assertEqual("open_keiko", event["event_type"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("active", event["status"])
+
+        events_by_date = {
+            event["event_date"]: event
+            for event in events
+        }
+        for event_date in {"2026-09-12", "2026-09-19"}:
+            self.assertEqual(
+                "HAGAKUREY 9月土日稽古",
+                events_by_date[event_date]["title"],
+            )
+            self.assertIn(
+                "練習試合",
+                events_by_date[event_date]["raw_note"],
+            )
+
+        special_event = events_by_date["2026-09-22"]
+        self.assertEqual("HAGAKUREY 特別稽古会", special_event["title"])
+        self.assertIn("特別稽古会", special_event["raw_note"])
+        self.assertIn(
+            "HAGAKUREYオープン剣道大会のゲスト",
+            special_event["raw_note"],
+        )
+
+
     def test_kent_ladies_event_is_valid(self) -> None:
         events = [
             event
