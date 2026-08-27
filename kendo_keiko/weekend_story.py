@@ -25,6 +25,9 @@ MAX_RESPONSE_BYTES = 5 * 1024 * 1024
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_FONT_PATH = ROOT_DIR / "assets" / "fonts" / "NotoSansJP[wght].ttf"
+DEFAULT_SERIF_FONT_PATH = (
+    ROOT_DIR / "assets" / "fonts" / "NotoSerifJP[wght].ttf"
+)
 DEFAULT_ICON_PATH = ROOT_DIR / "public" / "icon-512.png"
 
 PAPER = "#f3f1ec"
@@ -36,13 +39,18 @@ ACCENT = "#8c1d24"
 ACCENT_SOFT = "#f4e5e5"
 LINE = "#d6d1c8"
 SHADOW = "#ded9d0"
+WARM_LINE = "#c5ae80"
 
 CONTENT_LEFT = 64
 CONTENT_RIGHT = STORY_WIDTH - 64
-CONTENT_TOP = 438
-CONTENT_BOTTOM = 1690
-CARD_GAP = 28
-MIN_CARD_HEIGHT = 360
+CONTENT_TOP = 505
+CONTENT_BOTTOM = 1650
+CARD_GAP = 26
+MIN_CARD_HEIGHT = 340
+CARD_DIVIDER_X = 526
+CARD_LEFT_X = CONTENT_LEFT + 38
+CARD_RIGHT_X = CARD_DIVIDER_X + 34
+CARD_VALUE_X = CARD_RIGHT_X + 92
 
 
 class StoryError(ValueError):
@@ -274,12 +282,15 @@ def wrap_text(
     return tuple(lines)
 
 
-def _font_set(font_path: Path) -> dict[str, ImageFont.FreeTypeFont]:
+def _font_set(
+    font_path: Path,
+    serif_font_path: Path,
+) -> dict[str, ImageFont.FreeTypeFont]:
     return {
-        "org": load_font(font_path, 39, weight=700),
-        "title": load_font(font_path, 31, weight=600),
+        "org": load_font(serif_font_path, 40, weight=700),
+        "title": load_font(serif_font_path, 29, weight=600),
         "body": load_font(font_path, 27, weight=400),
-        "small": load_font(font_path, 24, weight=500),
+        "small": load_font(font_path, 23, weight=500),
     }
 
 
@@ -288,33 +299,35 @@ def layout_event(
     event: StoryEvent,
     fonts: dict[str, ImageFont.FreeTypeFont],
 ) -> EventLayout:
-    text_width = CONTENT_RIGHT - CONTENT_LEFT - 64
+    left_text_width = CARD_DIVIDER_X - CARD_LEFT_X - 28
+    right_text_width = CONTENT_RIGHT - 34 - CARD_VALUE_X
     organization_lines = wrap_text(
-        draw, event.organization_name, fonts["org"], text_width
+        draw, event.organization_name, fonts["org"], left_text_width
     )
-    title_lines = wrap_text(draw, event.title, fonts["title"], text_width)
+    title_lines = wrap_text(
+        draw, event.title, fonts["title"], left_text_width
+    )
     venue_lines = wrap_text(
-        draw, event.venue, fonts["body"], text_width - 74
+        draw, event.venue, fonts["body"], right_text_width
     )
     area_lines = wrap_text(
-        draw, event.area, fonts["small"], text_width - 74
+        draw, event.area, fonts["small"], right_text_width
     )
     fee_lines = wrap_text(
-        draw, event.fee or "", fonts["small"], text_width - 74
+        draw, event.fee or "", fonts["small"], right_text_width
     )
     access_lines = wrap_text(
-        draw, event.access or "", fonts["small"], text_width - 88
+        draw, event.access or "", fonts["small"], right_text_width
     )
 
-    height = 52
-    height += max(1, len(organization_lines)) * 50
-    height += len(title_lines) * 42
-    height += 46
-    height += max(1, len(venue_lines)) * 37
-    height += max(1, len(area_lines)) * 36
-    height += len(fee_lines) * 34
-    height += len(access_lines) * 34
-    height += 32
+    left_height = max(1, len(organization_lines)) * 52
+    left_height += len(title_lines) * 42
+    left_height += 54
+    right_height = max(1, len(venue_lines)) * 38
+    right_height += max(1, len(area_lines)) * 36
+    right_height += len(fee_lines) * 35
+    right_height += len(access_lines) * 35
+    height = 78 + max(left_height, right_height) + 28
     height = max(MIN_CARD_HEIGHT, height)
 
     available = CONTENT_BOTTOM - CONTENT_TOP
@@ -428,14 +441,60 @@ def _draw_participation_badges(
 ) -> None:
     cursor = x
     for label in labels:
-        width = round(draw.textlength(label, font=font)) + 34
+        width = round(draw.textlength(label, font=font)) + 38
         draw.rounded_rectangle(
-            (cursor, y, cursor + width, y + 34),
-            radius=17,
-            fill=ACCENT_SOFT,
+            (cursor, y, cursor + width, y + 38),
+            radius=18,
+            fill=SURFACE,
+            outline=ACCENT,
+            width=2,
         )
-        draw.text((cursor + 17, y + 3), label, font=font, fill=ACCENT)
+        draw.text((cursor + 19, y + 4), label, font=font, fill=ACCENT)
         cursor += width + 12
+
+
+def _draw_centered_text(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    *,
+    y: int,
+    font: ImageFont.FreeTypeFont,
+    fill: str,
+) -> None:
+    width = draw.textlength(text, font=font)
+    draw.text(((STORY_WIDTH - width) / 2, y), text, font=font, fill=fill)
+
+
+def _draw_divider(draw: ImageDraw.ImageDraw, y: int) -> None:
+    center = STORY_WIDTH // 2
+    draw.line((92, y, center - 28, y), fill=ACCENT, width=2)
+    draw.line((center + 28, y, STORY_WIDTH - 92, y), fill=ACCENT, width=2)
+    draw.polygon(
+        ((center, y - 10), (center + 10, y), (center, y + 10), (center - 10, y)),
+        fill=ACCENT,
+    )
+
+
+def _draw_card_corners(
+    draw: ImageDraw.ImageDraw,
+    left: int,
+    top: int,
+    right: int,
+    bottom: int,
+) -> None:
+    length = 22
+    inset = 12
+    for x1, y1, x2, y2 in (
+        (left + inset, top + inset, left + inset + length, top + inset),
+        (left + inset, top + inset, left + inset, top + inset + length),
+        (right - inset - length, top + inset, right - inset, top + inset),
+        (right - inset, top + inset, right - inset, top + inset + length),
+        (left + inset, bottom - inset, left + inset + length, bottom - inset),
+        (left + inset, bottom - inset - length, left + inset, bottom - inset),
+        (right - inset - length, bottom - inset, right - inset, bottom - inset),
+        (right - inset, bottom - inset - length, right - inset, bottom - inset),
+    ):
+        draw.line((x1, y1, x2, y2), fill=WARM_LINE, width=2)
 
 
 def render_story_pages(
@@ -443,6 +502,7 @@ def render_story_pages(
     target_saturday: dt.date,
     *,
     font_path: Path = DEFAULT_FONT_PATH,
+    serif_font_path: Path = DEFAULT_SERIF_FONT_PATH,
     icon_path: Path = DEFAULT_ICON_PATH,
 ) -> list[Image.Image]:
     if not events:
@@ -450,21 +510,25 @@ def render_story_pages(
 
     measuring_image = Image.new("RGB", (STORY_WIDTH, STORY_HEIGHT), PAPER)
     measuring_draw = ImageDraw.Draw(measuring_image)
-    fonts = _font_set(font_path)
+    fonts = _font_set(font_path, serif_font_path)
     layouts = [layout_event(measuring_draw, event, fonts) for event in events]
     pages = paginate_layouts(layouts)
 
-    heading_font = load_font(font_path, 58, weight=700)
-    site_font = load_font(font_path, 31, weight=700)
+    heading_font = load_font(serif_font_path, 66, weight=700)
+    site_font = load_font(serif_font_path, 36, weight=700)
     domain_font = load_font(font_path, 22, weight=500)
-    date_font = load_font(font_path, 35, weight=600)
+    date_font = load_font(serif_font_path, 42, weight=600)
     footer_font = load_font(font_path, 24, weight=500)
-    page_font = load_font(font_path, 22, weight=500)
+    footer_site_font = load_font(serif_font_path, 32, weight=600)
+    page_font = load_font(serif_font_path, 31, weight=700)
     if not icon_path.is_file():
         raise StoryError(f"official brand icon not found: {icon_path}")
     with Image.open(icon_path) as source_icon:
         brand_icon = source_icon.convert("RGBA").resize(
-            (132, 132), Image.Resampling.LANCZOS
+            (146, 146), Image.Resampling.LANCZOS
+        )
+        footer_icon = source_icon.convert("RGBA").resize(
+            (82, 82), Image.Resampling.LANCZOS
         )
     images: list[Image.Image] = []
 
@@ -473,101 +537,93 @@ def render_story_pages(
         draw = ImageDraw.Draw(image)
         draw.rectangle((0, 0, STORY_WIDTH, 18), fill=INK)
         draw.rectangle((0, 18, STORY_WIDTH, 29), fill=ACCENT)
-        image.paste(brand_icon, (CONTENT_LEFT, 68), brand_icon)
+        image.paste(brand_icon, (CONTENT_LEFT, 54), brand_icon)
         draw.text(
-            (CONTENT_LEFT + 158, 80),
+            (CONTENT_LEFT + 174, 76),
             "剣道稽古ナビ",
             font=site_font,
             fill=INK,
         )
         draw.text(
-            (CONTENT_LEFT + 158, 129),
+            (CONTENT_LEFT + 174, 132),
             "kendo-keiko.com",
             font=domain_font,
             fill=ACCENT,
         )
-        draw.line(
-            (CONTENT_LEFT + 158, 174, CONTENT_RIGHT, 174),
-            fill=LINE,
-            width=2,
+        page_text = f"{page_number}/{len(pages)}"
+        page_width = draw.textlength(page_text, font=page_font)
+        pill_left = CONTENT_RIGHT - page_width - 46
+        draw.rounded_rectangle(
+            (pill_left, 72, CONTENT_RIGHT, 126),
+            radius=27,
+            fill=ACCENT,
         )
-        draw.text(
-            (CONTENT_LEFT, 230),
+        draw.text((pill_left + 23, 76), page_text, font=page_font, fill=SURFACE)
+        _draw_centered_text(
+            draw,
             "今週末参加できる稽古会",
+            y=226,
             font=heading_font,
             fill=INK,
         )
-        draw.text(
-            (CONTENT_LEFT, 326),
+        _draw_divider(draw, 340)
+        _draw_centered_text(
+            draw,
             _format_target_dates(target_saturday),
+            y=370,
             font=date_font,
             fill=ACCENT,
-        )
-        page_text = f"{page_number} / {len(pages)}  ・  全{len(events)}件"
-        page_width = draw.textlength(page_text, font=page_font)
-        draw.text(
-            (CONTENT_RIGHT - page_width, 390),
-            page_text,
-            font=page_font,
-            fill=MUTED,
         )
 
         y, page_gap = _page_start_and_gap(page)
         for layout in page:
             bottom = y + layout.height
             draw.rounded_rectangle(
-                (CONTENT_LEFT + 7, y + 8, CONTENT_RIGHT + 7, bottom + 8),
-                radius=22,
+                (CONTENT_LEFT + 6, y + 8, CONTENT_RIGHT + 6, bottom + 8),
+                radius=18,
                 fill=SHADOW,
             )
             draw.rounded_rectangle(
                 (CONTENT_LEFT, y, CONTENT_RIGHT, bottom),
-                radius=22,
+                radius=18,
                 fill=SURFACE,
-                outline=LINE,
+                outline=WARM_LINE,
                 width=2,
             )
-            draw.rounded_rectangle(
-                (CONTENT_LEFT, y, CONTENT_LEFT + 10, bottom),
-                radius=5,
-                fill=ACCENT,
+            _draw_card_corners(draw, CONTENT_LEFT, y, CONTENT_RIGHT, bottom)
+            datetime_text = (
+                f"{_format_event_day(layout.event.event_date)}  "
+                f"{_format_time(layout.event)}"
             )
-            x = CONTENT_LEFT + 42
-            cursor = y + 28
-            event_day = _format_event_day(layout.event.event_date)
-            day_width = round(draw.textlength(event_day, font=fonts["small"])) + 30
+            datetime_width = round(
+                draw.textlength(datetime_text, font=fonts["small"])
+            ) + 34
             draw.rounded_rectangle(
-                (x, cursor, x + day_width, cursor + 36),
-                radius=18,
+                (CARD_LEFT_X, y + 24, CARD_LEFT_X + datetime_width, y + 64),
+                radius=14,
                 fill=ACCENT,
             )
             draw.text(
-                (x + 15, cursor + 2),
-                event_day,
+                (CARD_LEFT_X + 17, y + 27),
+                datetime_text,
                 font=fonts["small"],
                 fill=SURFACE,
             )
-            draw.text(
-                (x + day_width + 20, cursor + 2),
-                _format_time(layout.event),
-                font=fonts["small"],
-                fill=INK_SOFT,
-            )
-            cursor += 46
-            cursor = _draw_lines(
+            left_cursor = y + 82
+            left_cursor = _draw_lines(
                 draw,
                 layout.organization_lines or ("",),
-                x=x,
-                y=cursor,
+                x=CARD_LEFT_X,
+                y=left_cursor,
                 font=fonts["org"],
                 fill=INK,
-                line_height=50,
+                line_height=52,
             )
-            cursor = _draw_lines(
+            left_cursor = _draw_lines(
                 draw,
                 layout.title_lines,
-                x=x,
-                y=cursor,
+                x=CARD_LEFT_X,
+                y=left_cursor,
                 font=fonts["title"],
                 fill=INK_SOFT,
                 line_height=42,
@@ -575,65 +631,93 @@ def render_story_pages(
             _draw_participation_badges(
                 draw,
                 layout.event.participation_labels,
-                x=x,
-                y=cursor + 4,
+                x=CARD_LEFT_X,
+                y=left_cursor + 9,
                 font=fonts["small"],
             )
-            cursor += 46
-            draw.text((x, cursor), "会場", font=fonts["body"], fill=MUTED)
-            cursor = _draw_lines(
+            draw.line(
+                (CARD_DIVIDER_X, y + 86, CARD_DIVIDER_X, bottom - 28),
+                fill=LINE,
+                width=2,
+            )
+            right_cursor = y + 88
+            draw.text(
+                (CARD_RIGHT_X, right_cursor),
+                "会場",
+                font=fonts["body"],
+                fill=ACCENT,
+            )
+            right_cursor = _draw_lines(
                 draw,
                 layout.venue_lines or ("未取得",),
-                x=x + 74,
-                y=cursor,
+                x=CARD_VALUE_X,
+                y=right_cursor,
                 font=fonts["body"],
                 fill=INK_SOFT,
-                line_height=37,
+                line_height=38,
             )
-            draw.text((x, cursor), "地域", font=fonts["small"], fill=MUTED)
-            cursor = _draw_lines(
+            draw.text(
+                (CARD_RIGHT_X, right_cursor),
+                "地域",
+                font=fonts["small"],
+                fill=ACCENT,
+            )
+            right_cursor = _draw_lines(
                 draw,
                 layout.area_lines or ("未設定",),
-                x=x + 74,
-                y=cursor,
+                x=CARD_VALUE_X,
+                y=right_cursor,
                 font=fonts["small"],
                 fill=INK_SOFT,
                 line_height=36,
             )
             if layout.fee_lines:
-                draw.text((x, cursor), "参加費", font=fonts["small"], fill=MUTED)
-                _draw_lines(
+                draw.text(
+                    (CARD_RIGHT_X, right_cursor),
+                    "参加費",
+                    font=fonts["small"],
+                    fill=ACCENT,
+                )
+                right_cursor = _draw_lines(
                     draw,
                     layout.fee_lines,
-                    x=x + 88,
-                    y=cursor,
+                    x=CARD_VALUE_X,
+                    y=right_cursor,
                     font=fonts["small"],
                     fill=INK_SOFT,
-                    line_height=34,
+                    line_height=35,
                 )
-                cursor += len(layout.fee_lines) * 34
             if layout.access_lines:
-                draw.text((x, cursor), "アクセス", font=fonts["small"], fill=MUTED)
+                draw.text(
+                    (CARD_RIGHT_X, right_cursor),
+                    "アクセス",
+                    font=fonts["small"],
+                    fill=ACCENT,
+                )
                 _draw_lines(
                     draw,
                     layout.access_lines,
-                    x=x + 110,
-                    y=cursor,
+                    x=CARD_VALUE_X,
+                    y=right_cursor,
                     font=fonts["small"],
                     fill=INK_SOFT,
-                    line_height=34,
+                    line_height=35,
                 )
             y = bottom + page_gap
 
-        draw.line((CONTENT_LEFT, 1748, CONTENT_RIGHT, 1748), fill=LINE, width=2)
-        draw.text((CONTENT_LEFT, 1780), "剣道稽古ナビ", font=footer_font, fill=INK)
-        site_width = round(draw.textlength("剣道稽古ナビ  ", font=footer_font))
-        draw.text((CONTENT_LEFT + site_width, 1780), "kendo-keiko.com", font=footer_font, fill=ACCENT)
+        draw.rectangle((0, 1682, STORY_WIDTH, 1820), fill=ACCENT)
+        image.paste(footer_icon, (145, 1710), footer_icon)
+        draw.text((247, 1726), "剣道稽古ナビ", font=footer_site_font, fill=SURFACE)
+        draw.line((520, 1718, 520, 1788), fill=SURFACE, width=2)
+        draw.text((552, 1730), "kendo-keiko.com", font=domain_font, fill=SURFACE)
+        draw.rectangle((0, 1820, STORY_WIDTH, STORY_HEIGHT), fill=INK)
+        warning = "参加前に必ず主催者の公式情報をご確認ください"
+        warning_width = draw.textlength(warning, font=footer_font)
         draw.text(
-            (CONTENT_LEFT, 1830),
+            ((STORY_WIDTH - warning_width) / 2, 1857),
             "参加前に必ず主催者の公式情報をご確認ください",
             font=footer_font,
-            fill=MUTED,
+            fill=SURFACE,
         )
         images.append(image)
 

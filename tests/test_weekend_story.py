@@ -13,10 +13,11 @@ from PIL import Image, ImageDraw
 
 from kendo_keiko.weekend_story import (
     DEFAULT_ICON_PATH,
+    DEFAULT_SERIF_FONT_PATH,
     DEFAULT_FONT_PATH,
     EXPECTED_SCHEMA_VERSION,
     ACCENT,
-    ACCENT_SOFT,
+    WARM_LINE,
     LayoutOverflowError,
     NoEventsError,
     StoryError,
@@ -185,11 +186,16 @@ class WeekendStoryTests(unittest.TestCase):
         response.raise_for_status.assert_called_once_with()
 
     def test_bundled_font_contains_required_variant_characters(self) -> None:
-        font = load_font(DEFAULT_FONT_PATH, 64)
-        masks = [bytes(font.getmask(character)) for character in ("劔", "剱", "�")]
-        self.assertTrue(all(masks))
-        self.assertNotEqual(masks[0], masks[2])
-        self.assertNotEqual(masks[1], masks[2])
+        for font_path in (DEFAULT_FONT_PATH, DEFAULT_SERIF_FONT_PATH):
+            with self.subTest(font=font_path.name):
+                font = load_font(font_path, 64)
+                masks = [
+                    bytes(font.getmask(character))
+                    for character in ("劔", "剱", "�")
+                ]
+                self.assertTrue(all(masks))
+                self.assertNotEqual(masks[0], masks[2])
+                self.assertNotEqual(masks[1], masks[2])
 
     def test_one_event_renders_one_1080_by_1920_png(self) -> None:
         event = select_weekend_events(self.payload, self.saturday)[0]
@@ -211,13 +217,13 @@ class WeekendStoryTests(unittest.TestCase):
             with self.assertRaisesRegex(StoryError, "official brand icon"):
                 render_story_pages([event], self.saturday, icon_path=missing)
 
-    def test_rendered_template_uses_brand_accent_and_badge_colors(self) -> None:
+    def test_rendered_template_uses_brand_and_card_colors(self) -> None:
         event = select_weekend_events(self.payload, self.saturday)[0]
         image = render_story_pages([event], self.saturday)[0]
         colors = {color for _, color in image.getcolors(maxcolors=1_000_000) or []}
         self.assertIn(tuple(Image.new("RGB", (1, 1), ACCENT).getpixel((0, 0))), colors)
         self.assertIn(
-            tuple(Image.new("RGB", (1, 1), ACCENT_SOFT).getpixel((0, 0))),
+            tuple(Image.new("RGB", (1, 1), WARM_LINE).getpixel((0, 0))),
             colors,
         )
 
@@ -228,10 +234,10 @@ class WeekendStoryTests(unittest.TestCase):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
         fonts = {
-            "org": load_font(DEFAULT_FONT_PATH, 39, weight=700),
-            "title": load_font(DEFAULT_FONT_PATH, 31, weight=600),
+            "org": load_font(DEFAULT_SERIF_FONT_PATH, 40, weight=700),
+            "title": load_font(DEFAULT_SERIF_FONT_PATH, 29, weight=600),
             "body": load_font(DEFAULT_FONT_PATH, 27),
-            "small": load_font(DEFAULT_FONT_PATH, 24, weight=500),
+            "small": load_font(DEFAULT_FONT_PATH, 23, weight=500),
         }
         pages = paginate_layouts(
             layout_event(draw, event, fonts) for event in events
@@ -262,10 +268,10 @@ class WeekendStoryTests(unittest.TestCase):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
         fonts = {
-            "org": load_font(DEFAULT_FONT_PATH, 39, weight=700),
-            "title": load_font(DEFAULT_FONT_PATH, 31, weight=600),
+            "org": load_font(DEFAULT_SERIF_FONT_PATH, 40, weight=700),
+            "title": load_font(DEFAULT_SERIF_FONT_PATH, 29, weight=600),
             "body": load_font(DEFAULT_FONT_PATH, 27),
-            "small": load_font(DEFAULT_FONT_PATH, 24, weight=500),
+            "small": load_font(DEFAULT_FONT_PATH, 23, weight=500),
         }
         layout = layout_event(draw, event, fonts)
         self.assertEqual(event.organization_name, "".join(layout.organization_lines))
