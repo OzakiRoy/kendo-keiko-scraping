@@ -32,7 +32,9 @@ INK = "#1b1b1b"
 INK_SOFT = "#42403c"
 MUTED = "#706d67"
 ACCENT = "#8c1d24"
+ACCENT_SOFT = "#f4e5e5"
 LINE = "#d6d1c8"
+SHADOW = "#ded9d0"
 
 CONTENT_LEFT = 64
 CONTENT_RIGHT = STORY_WIDTH - 64
@@ -379,6 +381,38 @@ def _format_target_dates(target: dt.date) -> str:
     return f"{target.month}月{target.day}日（土）・{sunday.month}月{sunday.day}日（日）"
 
 
+def _page_start_and_gap(page: list[EventLayout]) -> tuple[int, int]:
+    content_height = CONTENT_BOTTOM - CONTENT_TOP
+    cards_height = sum(layout.height for layout in page)
+    base_gaps = CARD_GAP * max(0, len(page) - 1)
+    unused = max(0, content_height - cards_height - base_gaps)
+    top_offset = min(96, unused // 3)
+    if len(page) <= 1:
+        return CONTENT_TOP + top_offset, CARD_GAP
+    extra_gap = min(48, max(0, unused - top_offset) // (len(page) - 1))
+    return CONTENT_TOP + top_offset, CARD_GAP + extra_gap
+
+
+def _draw_participation_badges(
+    draw: ImageDraw.ImageDraw,
+    labels: tuple[str, ...],
+    *,
+    x: int,
+    y: int,
+    font: ImageFont.FreeTypeFont,
+) -> None:
+    cursor = x
+    for label in labels:
+        width = round(draw.textlength(label, font=font)) + 34
+        draw.rounded_rectangle(
+            (cursor, y, cursor + width, y + 34),
+            radius=17,
+            fill=ACCENT_SOFT,
+        )
+        draw.text((cursor + 17, y + 3), label, font=font, fill=ACCENT)
+        cursor += width + 12
+
+
 def render_story_pages(
     events: list[StoryEvent],
     target_saturday: dt.date,
@@ -395,6 +429,7 @@ def render_story_pages(
     pages = paginate_layouts(layouts)
 
     heading_font = load_font(font_path, 54, weight=700)
+    kicker_font = load_font(font_path, 20, weight=700)
     date_font = load_font(font_path, 31, weight=500)
     footer_font = load_font(font_path, 24, weight=500)
     page_font = load_font(font_path, 22, weight=500)
@@ -405,28 +440,42 @@ def render_story_pages(
         draw = ImageDraw.Draw(image)
         draw.rectangle((0, 0, STORY_WIDTH, 18), fill=INK)
         draw.rectangle((0, 18, STORY_WIDTH, 29), fill=ACCENT)
+        draw.rectangle((CONTENT_LEFT, 72, CONTENT_LEFT + 7, 233), fill=ACCENT)
         draw.text(
-            (CONTENT_LEFT, 82),
+            (CONTENT_LEFT + 30, 69),
+            "KENDO KEIKO NAVI",
+            font=kicker_font,
+            fill=ACCENT,
+        )
+        draw.text(
+            (CONTENT_LEFT + 30, 105),
             "今週末参加できる稽古会",
             font=heading_font,
             fill=INK,
         )
         draw.text(
-            (CONTENT_LEFT, 165),
+            (CONTENT_LEFT + 30, 188),
             _format_target_dates(target_saturday),
             font=date_font,
             fill=ACCENT,
         )
+        page_text = f"{page_number} / {len(pages)}  ・  全{len(events)}件"
+        page_width = draw.textlength(page_text, font=page_font)
         draw.text(
-            (CONTENT_LEFT, 222),
-            f"{page_number} / {len(pages)}",
+            (CONTENT_RIGHT - page_width, 244),
+            page_text,
             font=page_font,
             fill=MUTED,
         )
 
-        y = CONTENT_TOP
+        y, page_gap = _page_start_and_gap(page)
         for layout in page:
             bottom = y + layout.height
+            draw.rounded_rectangle(
+                (CONTENT_LEFT + 7, y + 8, CONTENT_RIGHT + 7, bottom + 8),
+                radius=22,
+                fill=SHADOW,
+            )
             draw.rounded_rectangle(
                 (CONTENT_LEFT, y, CONTENT_RIGHT, bottom),
                 radius=22,
@@ -434,7 +483,12 @@ def render_story_pages(
                 outline=LINE,
                 width=2,
             )
-            x = CONTENT_LEFT + 32
+            draw.rounded_rectangle(
+                (CONTENT_LEFT, y, CONTENT_LEFT + 10, bottom),
+                radius=5,
+                fill=ACCENT,
+            )
+            x = CONTENT_LEFT + 38
             cursor = y + 24
             date_and_time = f"{layout.event.event_date}  {_format_time(layout.event)}"
             draw.text((x, cursor), date_and_time, font=fonts["small"], fill=ACCENT)
@@ -457,8 +511,13 @@ def render_story_pages(
                 fill=INK_SOFT,
                 line_height=39,
             )
-            labels = "  /  ".join(layout.event.participation_labels)
-            draw.text((x, cursor + 5), labels, font=fonts["small"], fill=ACCENT)
+            _draw_participation_badges(
+                draw,
+                layout.event.participation_labels,
+                x=x,
+                y=cursor + 4,
+                font=fonts["small"],
+            )
             cursor += 42
             draw.text((x, cursor), "会場", font=fonts["body"], fill=MUTED)
             cursor = _draw_lines(
@@ -491,10 +550,12 @@ def render_story_pages(
                     fill=INK_SOFT,
                     line_height=32,
                 )
-            y = bottom + CARD_GAP
+            y = bottom + page_gap
 
         draw.line((CONTENT_LEFT, 1790, CONTENT_RIGHT, 1790), fill=LINE, width=2)
-        draw.text((CONTENT_LEFT, 1818), "詳しくは kendo-keiko.com", font=footer_font, fill=INK)
+        draw.text((CONTENT_LEFT, 1818), "詳しくは", font=footer_font, fill=MUTED)
+        domain_x = CONTENT_LEFT + round(draw.textlength("詳しくは  ", font=footer_font))
+        draw.text((domain_x, 1818), "kendo-keiko.com", font=footer_font, fill=ACCENT)
         draw.text(
             (CONTENT_LEFT, 1860),
             "参加前に必ず主催者の公式情報をご確認ください",

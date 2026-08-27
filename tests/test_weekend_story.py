@@ -14,6 +14,8 @@ from PIL import Image, ImageDraw
 from kendo_keiko.weekend_story import (
     DEFAULT_FONT_PATH,
     EXPECTED_SCHEMA_VERSION,
+    ACCENT,
+    ACCENT_SOFT,
     LayoutOverflowError,
     NoEventsError,
     StoryError,
@@ -198,6 +200,16 @@ class WeekendStoryTests(unittest.TestCase):
             )
             self.assertEqual(1, len(paths))
             self.assertEqual((1080, 1920), png_dimensions(paths[0]))
+
+    def test_rendered_template_uses_brand_accent_and_badge_colors(self) -> None:
+        event = select_weekend_events(self.payload, self.saturday)[0]
+        image = render_story_pages([event], self.saturday)[0]
+        colors = {color for _, color in image.getcolors(maxcolors=1_000_000) or []}
+        self.assertIn(tuple(Image.new("RGB", (1, 1), ACCENT).getpixel((0, 0))), colors)
+        self.assertIn(
+            tuple(Image.new("RGB", (1, 1), ACCENT_SOFT).getpixel((0, 0))),
+            colors,
+        )
 
     def test_multiple_and_more_than_five_events_paginate(self) -> None:
         events = select_weekend_events(self.payload, self.saturday)
