@@ -25,6 +25,7 @@ MAX_RESPONSE_BYTES = 5 * 1024 * 1024
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_FONT_PATH = ROOT_DIR / "assets" / "fonts" / "NotoSansJP[wght].ttf"
+DEFAULT_ICON_PATH = ROOT_DIR / "public" / "icon-512.png"
 
 PAPER = "#f3f1ec"
 SURFACE = "#fffdfa"
@@ -38,9 +39,10 @@ SHADOW = "#ded9d0"
 
 CONTENT_LEFT = 64
 CONTENT_RIGHT = STORY_WIDTH - 64
-CONTENT_TOP = 300
-CONTENT_BOTTOM = 1740
-CARD_GAP = 22
+CONTENT_TOP = 438
+CONTENT_BOTTOM = 1690
+CARD_GAP = 28
+MIN_CARD_HEIGHT = 360
 
 
 class StoryError(ValueError):
@@ -82,6 +84,7 @@ class EventLayout:
     venue_lines: tuple[str, ...]
     area_lines: tuple[str, ...]
     fee_lines: tuple[str, ...]
+    access_lines: tuple[str, ...]
 
 
 def parse_target_saturday(value: str) -> dt.date:
@@ -273,10 +276,10 @@ def wrap_text(
 
 def _font_set(font_path: Path) -> dict[str, ImageFont.FreeTypeFont]:
     return {
-        "org": load_font(font_path, 35, weight=700),
-        "title": load_font(font_path, 29, weight=600),
-        "body": load_font(font_path, 26, weight=400),
-        "small": load_font(font_path, 23, weight=500),
+        "org": load_font(font_path, 39, weight=700),
+        "title": load_font(font_path, 31, weight=600),
+        "body": load_font(font_path, 27, weight=400),
+        "small": load_font(font_path, 24, weight=500),
     }
 
 
@@ -299,15 +302,20 @@ def layout_event(
     fee_lines = wrap_text(
         draw, event.fee or "", fonts["small"], text_width - 74
     )
+    access_lines = wrap_text(
+        draw, event.access or "", fonts["small"], text_width - 88
+    )
 
     height = 52
-    height += max(1, len(organization_lines)) * 46
-    height += len(title_lines) * 39
-    height += 42
-    height += max(1, len(venue_lines)) * 35
-    height += max(1, len(area_lines)) * 34
-    height += len(fee_lines) * 32
-    height += 28
+    height += max(1, len(organization_lines)) * 50
+    height += len(title_lines) * 42
+    height += 46
+    height += max(1, len(venue_lines)) * 37
+    height += max(1, len(area_lines)) * 36
+    height += len(fee_lines) * 34
+    height += len(access_lines) * 34
+    height += 32
+    height = max(MIN_CARD_HEIGHT, height)
 
     available = CONTENT_BOTTOM - CONTENT_TOP
     if height > available:
@@ -322,6 +330,7 @@ def layout_event(
         venue_lines=venue_lines,
         area_lines=area_lines,
         fee_lines=fee_lines,
+        access_lines=access_lines,
     )
 
 
@@ -349,6 +358,16 @@ def paginate_layouts(layouts: Iterable[EventLayout]) -> list[list[EventLayout]]:
 
     if current:
         pages.append(current)
+
+    # Avoid a visually weak single-card final page when two balanced pages fit.
+    if len(pages) >= 2 and len(pages[-1]) == 1 and len(pages[-2]) >= 3:
+        moved = pages[-2][-1]
+        candidate = [moved, *pages[-1]]
+        candidate_height = sum(layout.height for layout in candidate)
+        candidate_height += CARD_GAP * (len(candidate) - 1)
+        if candidate_height <= available:
+            pages[-2].pop()
+            pages[-1] = candidate
     return pages
 
 
@@ -376,6 +395,12 @@ def _format_time(event: StoryEvent) -> str:
     return "時間未定"
 
 
+def _format_event_day(event_date: str) -> str:
+    parsed = dt.date.fromisoformat(event_date)
+    weekday = "月火水木金土日"[parsed.weekday()]
+    return f"{parsed.month}/{parsed.day}（{weekday}）"
+
+
 def _format_target_dates(target: dt.date) -> str:
     sunday = target + dt.timedelta(days=1)
     return f"{target.month}月{target.day}日（土）・{sunday.month}月{sunday.day}日（日）"
@@ -386,10 +411,10 @@ def _page_start_and_gap(page: list[EventLayout]) -> tuple[int, int]:
     cards_height = sum(layout.height for layout in page)
     base_gaps = CARD_GAP * max(0, len(page) - 1)
     unused = max(0, content_height - cards_height - base_gaps)
-    top_offset = min(96, unused // 3)
+    top_offset = min(180, unused // 2)
     if len(page) <= 1:
         return CONTENT_TOP + top_offset, CARD_GAP
-    extra_gap = min(48, max(0, unused - top_offset) // (len(page) - 1))
+    extra_gap = min(72, max(0, unused - top_offset) // (len(page) - 1))
     return CONTENT_TOP + top_offset, CARD_GAP + extra_gap
 
 
@@ -418,6 +443,7 @@ def render_story_pages(
     target_saturday: dt.date,
     *,
     font_path: Path = DEFAULT_FONT_PATH,
+    icon_path: Path = DEFAULT_ICON_PATH,
 ) -> list[Image.Image]:
     if not events:
         raise NoEventsError("no published events for the target weekend")
@@ -428,11 +454,18 @@ def render_story_pages(
     layouts = [layout_event(measuring_draw, event, fonts) for event in events]
     pages = paginate_layouts(layouts)
 
-    heading_font = load_font(font_path, 54, weight=700)
-    kicker_font = load_font(font_path, 20, weight=700)
-    date_font = load_font(font_path, 31, weight=500)
+    heading_font = load_font(font_path, 58, weight=700)
+    site_font = load_font(font_path, 31, weight=700)
+    domain_font = load_font(font_path, 22, weight=500)
+    date_font = load_font(font_path, 35, weight=600)
     footer_font = load_font(font_path, 24, weight=500)
     page_font = load_font(font_path, 22, weight=500)
+    if not icon_path.is_file():
+        raise StoryError(f"official brand icon not found: {icon_path}")
+    with Image.open(icon_path) as source_icon:
+        brand_icon = source_icon.convert("RGBA").resize(
+            (132, 132), Image.Resampling.LANCZOS
+        )
     images: list[Image.Image] = []
 
     for page_number, page in enumerate(pages, start=1):
@@ -440,21 +473,32 @@ def render_story_pages(
         draw = ImageDraw.Draw(image)
         draw.rectangle((0, 0, STORY_WIDTH, 18), fill=INK)
         draw.rectangle((0, 18, STORY_WIDTH, 29), fill=ACCENT)
-        draw.rectangle((CONTENT_LEFT, 72, CONTENT_LEFT + 7, 233), fill=ACCENT)
+        image.paste(brand_icon, (CONTENT_LEFT, 68), brand_icon)
         draw.text(
-            (CONTENT_LEFT + 30, 69),
-            "KENDO KEIKO NAVI",
-            font=kicker_font,
-            fill=ACCENT,
+            (CONTENT_LEFT + 158, 80),
+            "剣道稽古ナビ",
+            font=site_font,
+            fill=INK,
         )
         draw.text(
-            (CONTENT_LEFT + 30, 105),
+            (CONTENT_LEFT + 158, 129),
+            "kendo-keiko.com",
+            font=domain_font,
+            fill=ACCENT,
+        )
+        draw.line(
+            (CONTENT_LEFT + 158, 174, CONTENT_RIGHT, 174),
+            fill=LINE,
+            width=2,
+        )
+        draw.text(
+            (CONTENT_LEFT, 230),
             "今週末参加できる稽古会",
             font=heading_font,
             fill=INK,
         )
         draw.text(
-            (CONTENT_LEFT + 30, 188),
+            (CONTENT_LEFT, 326),
             _format_target_dates(target_saturday),
             font=date_font,
             fill=ACCENT,
@@ -462,7 +506,7 @@ def render_story_pages(
         page_text = f"{page_number} / {len(pages)}  ・  全{len(events)}件"
         page_width = draw.textlength(page_text, font=page_font)
         draw.text(
-            (CONTENT_RIGHT - page_width, 244),
+            (CONTENT_RIGHT - page_width, 390),
             page_text,
             font=page_font,
             fill=MUTED,
@@ -488,11 +532,28 @@ def render_story_pages(
                 radius=5,
                 fill=ACCENT,
             )
-            x = CONTENT_LEFT + 38
-            cursor = y + 24
-            date_and_time = f"{layout.event.event_date}  {_format_time(layout.event)}"
-            draw.text((x, cursor), date_and_time, font=fonts["small"], fill=ACCENT)
-            cursor += 42
+            x = CONTENT_LEFT + 42
+            cursor = y + 28
+            event_day = _format_event_day(layout.event.event_date)
+            day_width = round(draw.textlength(event_day, font=fonts["small"])) + 30
+            draw.rounded_rectangle(
+                (x, cursor, x + day_width, cursor + 36),
+                radius=18,
+                fill=ACCENT,
+            )
+            draw.text(
+                (x + 15, cursor + 2),
+                event_day,
+                font=fonts["small"],
+                fill=SURFACE,
+            )
+            draw.text(
+                (x + day_width + 20, cursor + 2),
+                _format_time(layout.event),
+                font=fonts["small"],
+                fill=INK_SOFT,
+            )
+            cursor += 46
             cursor = _draw_lines(
                 draw,
                 layout.organization_lines or ("",),
@@ -500,7 +561,7 @@ def render_story_pages(
                 y=cursor,
                 font=fonts["org"],
                 fill=INK,
-                line_height=46,
+                line_height=50,
             )
             cursor = _draw_lines(
                 draw,
@@ -509,7 +570,7 @@ def render_story_pages(
                 y=cursor,
                 font=fonts["title"],
                 fill=INK_SOFT,
-                line_height=39,
+                line_height=42,
             )
             _draw_participation_badges(
                 draw,
@@ -518,7 +579,7 @@ def render_story_pages(
                 y=cursor + 4,
                 font=fonts["small"],
             )
-            cursor += 42
+            cursor += 46
             draw.text((x, cursor), "会場", font=fonts["body"], fill=MUTED)
             cursor = _draw_lines(
                 draw,
@@ -527,7 +588,7 @@ def render_story_pages(
                 y=cursor,
                 font=fonts["body"],
                 fill=INK_SOFT,
-                line_height=35,
+                line_height=37,
             )
             draw.text((x, cursor), "地域", font=fonts["small"], fill=MUTED)
             cursor = _draw_lines(
@@ -537,7 +598,7 @@ def render_story_pages(
                 y=cursor,
                 font=fonts["small"],
                 fill=INK_SOFT,
-                line_height=34,
+                line_height=36,
             )
             if layout.fee_lines:
                 draw.text((x, cursor), "参加費", font=fonts["small"], fill=MUTED)
@@ -548,16 +609,28 @@ def render_story_pages(
                     y=cursor,
                     font=fonts["small"],
                     fill=INK_SOFT,
-                    line_height=32,
+                    line_height=34,
+                )
+                cursor += len(layout.fee_lines) * 34
+            if layout.access_lines:
+                draw.text((x, cursor), "アクセス", font=fonts["small"], fill=MUTED)
+                _draw_lines(
+                    draw,
+                    layout.access_lines,
+                    x=x + 110,
+                    y=cursor,
+                    font=fonts["small"],
+                    fill=INK_SOFT,
+                    line_height=34,
                 )
             y = bottom + page_gap
 
-        draw.line((CONTENT_LEFT, 1790, CONTENT_RIGHT, 1790), fill=LINE, width=2)
-        draw.text((CONTENT_LEFT, 1818), "詳しくは", font=footer_font, fill=MUTED)
-        domain_x = CONTENT_LEFT + round(draw.textlength("詳しくは  ", font=footer_font))
-        draw.text((domain_x, 1818), "kendo-keiko.com", font=footer_font, fill=ACCENT)
+        draw.line((CONTENT_LEFT, 1748, CONTENT_RIGHT, 1748), fill=LINE, width=2)
+        draw.text((CONTENT_LEFT, 1780), "剣道稽古ナビ", font=footer_font, fill=INK)
+        site_width = round(draw.textlength("剣道稽古ナビ  ", font=footer_font))
+        draw.text((CONTENT_LEFT + site_width, 1780), "kendo-keiko.com", font=footer_font, fill=ACCENT)
         draw.text(
-            (CONTENT_LEFT, 1860),
+            (CONTENT_LEFT, 1830),
             "参加前に必ず主催者の公式情報をご確認ください",
             font=footer_font,
             fill=MUTED,

@@ -12,6 +12,7 @@ from unittest.mock import Mock, patch
 from PIL import Image, ImageDraw
 
 from kendo_keiko.weekend_story import (
+    DEFAULT_ICON_PATH,
     DEFAULT_FONT_PATH,
     EXPECTED_SCHEMA_VERSION,
     ACCENT,
@@ -201,6 +202,15 @@ class WeekendStoryTests(unittest.TestCase):
             self.assertEqual(1, len(paths))
             self.assertEqual((1080, 1920), png_dimensions(paths[0]))
 
+    def test_renderer_uses_the_committed_official_brand_icon(self) -> None:
+        self.assertEqual(ROOT_DIR / "public" / "icon-512.png", DEFAULT_ICON_PATH)
+        self.assertTrue(DEFAULT_ICON_PATH.is_file())
+        event = select_weekend_events(self.payload, self.saturday)[0]
+        with tempfile.TemporaryDirectory() as directory:
+            missing = Path(directory) / "missing-icon.png"
+            with self.assertRaisesRegex(StoryError, "official brand icon"):
+                render_story_pages([event], self.saturday, icon_path=missing)
+
     def test_rendered_template_uses_brand_accent_and_badge_colors(self) -> None:
         event = select_weekend_events(self.payload, self.saturday)[0]
         image = render_story_pages([event], self.saturday)[0]
@@ -218,15 +228,15 @@ class WeekendStoryTests(unittest.TestCase):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
         fonts = {
-            "org": load_font(DEFAULT_FONT_PATH, 35, weight=700),
-            "title": load_font(DEFAULT_FONT_PATH, 29, weight=600),
-            "body": load_font(DEFAULT_FONT_PATH, 26),
-            "small": load_font(DEFAULT_FONT_PATH, 23, weight=500),
+            "org": load_font(DEFAULT_FONT_PATH, 39, weight=700),
+            "title": load_font(DEFAULT_FONT_PATH, 31, weight=600),
+            "body": load_font(DEFAULT_FONT_PATH, 27),
+            "small": load_font(DEFAULT_FONT_PATH, 24, weight=500),
         }
         pages = paginate_layouts(
             layout_event(draw, event, fonts) for event in events
         )
-        self.assertEqual([4, 3], [len(page) for page in pages])
+        self.assertEqual([3, 2, 2], [len(page) for page in pages])
         self.assertTrue(all(len(page) <= 5 for page in pages))
         self.assertEqual(
             [
@@ -245,21 +255,23 @@ class WeekendStoryTests(unittest.TestCase):
                 "organization_name": "非常に長い団体名" * 8,
                 "venue": "非常に長い会場名" * 10,
                 "area": "非常に長い地域名" * 4,
+                "access": "非常に長いアクセス案内" * 6,
             }
         )
         event = event_for_story(raw)
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
         fonts = {
-            "org": load_font(DEFAULT_FONT_PATH, 35, weight=700),
-            "title": load_font(DEFAULT_FONT_PATH, 29, weight=600),
-            "body": load_font(DEFAULT_FONT_PATH, 26),
-            "small": load_font(DEFAULT_FONT_PATH, 23, weight=500),
+            "org": load_font(DEFAULT_FONT_PATH, 39, weight=700),
+            "title": load_font(DEFAULT_FONT_PATH, 31, weight=600),
+            "body": load_font(DEFAULT_FONT_PATH, 27),
+            "small": load_font(DEFAULT_FONT_PATH, 24, weight=500),
         }
         layout = layout_event(draw, event, fonts)
         self.assertEqual(event.organization_name, "".join(layout.organization_lines))
         self.assertEqual(event.venue, "".join(layout.venue_lines))
         self.assertEqual(event.area, "".join(layout.area_lines))
+        self.assertEqual(event.access, "".join(layout.access_lines))
 
     def test_overflow_raises_instead_of_dropping_text(self) -> None:
         raw = copy.deepcopy(self.payload["events"][0])
