@@ -284,3 +284,7 @@ python manage_manual_events.py list-review-due
 ```
 
 登録・一括登録・更新・中止・アーカイブ・再確認と `--dry-run` に対応している。新規団体の追加手順は [`docs/manual-events.md`](docs/manual-events.md)、Publisherだけを更新する1コマンド公開は [`docs/manual-events-runbook.md`](docs/manual-events-runbook.md) にまとめている。
+
+## Instagram Story画像生成
+
+本番公開済みの `events.json` から、指定した土曜日と翌日曜日の稽古会をInstagram Story向けPNGへ生成できる。Story専用依存、実行方法、出力規則は [`docs/weekend-story.md`](docs/weekend-story.md) を参照する。
