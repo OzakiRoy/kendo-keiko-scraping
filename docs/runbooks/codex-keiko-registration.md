@@ -214,6 +214,10 @@ git fetch origin
 git ls-remote origin refs/heads/main
 gh pr view PR_NUMBER --json state,mergedAt,mergeCommit
 
+# main worktreeの有無とパスを確認する
+git worktree list
+
+# main worktreeが存在しない場合だけ新規作成する
 git worktree add /tmp/kendo-keiko-main-publish main
 cd /tmp/kendo-keiko-main-publish
 git merge --ff-only origin/main
@@ -224,7 +228,7 @@ git rev-parse HEAD
 git rev-parse '@{upstream}'
 ```
 
-既に別worktreeでmainを使用している場合は、そのmain worktreeが最新、upstream一致、tracked files cleanであることを確認して再利用する。次の条件が1つでも満たされなければpublishしない。
+最初に `git worktree list` でmain worktreeの有無とパスを確認する。既存のmain worktreeがあれば、そのworktreeが最新、upstream一致、tracked files cleanであることを確認して再利用する。存在しない場合だけ新規作成する。次の条件が1つでも満たされなければpublishしない。
 
 - 対象PRがmerge済み
 - branchが `main`
@@ -244,10 +248,11 @@ env -u FROM_DATE \
   PATH="/home/ozaki/project/kendo-keiko-scraping/.venv/bin:$PATH" \
   scripts/publish_manual_events.sh \
     --organization-id ORGANIZATION_ID \
-    --expected-count EXPECTED_COUNT
+    --expected-count EXPECTED_COUNT \
+    --from-date "$(TZ=Asia/Tokyo date +%F)"
 ```
 
-このコマンドは `KendoKeikoPublisher` だけを更新し、`publish_only` で直接実行する。MFAを求められた場合は対話TTYでユーザーからその時点のコードを受け取り、入力する。MFAコードをログ、commit、Issue、PR、最終報告へ記載しない。
+このコマンドは `KendoKeikoPublisher` だけを更新し、`publish_only` で直接実行する。MFAを求められた場合は、CodexへMFAコードを渡さず、ユーザー自身が対話TTYへ直接入力する。CodexはMFAコードを読み取り、転記、保存しない。MFAコードをログ、commit、Issue、PR、最終報告へ記載しない。
 
 ## フェーズ8: 本番確認
 
