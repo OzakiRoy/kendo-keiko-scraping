@@ -40,6 +40,20 @@
     "default_application_required": false
   },
   {
+    "organization_id": "iwaki_kamomekai",
+    "name": "磐城鷗会",
+    "area": "福島県",
+    "website_url": "https://www.instagram.com/kendo_kamomekai/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "主催者本人のInstagram DMとStoryを管理者が確認し、手動登録。サークルInstagramは現在投稿等の使用を停止中。",
+    "public_description": "磐城鷗会が月1〜2回程度、主に土曜日の夕方にいわき市内で開催する剣道稽古予定を掲載しています。どなたでも参加でき、事前連絡が推奨されています。",
+    "default_participation_type": "anyone",
+    "default_application_required": false
+  },
+  {
     "organization_id": "kanagawa",
     "name": "神奈川県剣道連盟",
     "area": "神奈川県",
