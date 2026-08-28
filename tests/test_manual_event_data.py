@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import unittest
 
 from kendo_keiko.manual_events import (
@@ -352,6 +353,74 @@ class ManualEventDataTests(unittest.TestCase):
             "https://www.instagram.com/p/DbhdpUxPJdF/",
             event["source_url"],
         )
+
+
+    def test_iwaki_kamomekai_event_is_valid_and_linked_to_organization(
+        self,
+    ) -> None:
+        organizations = load_organizations()
+        organization = find_organization(
+            organizations,
+            "iwaki_kamomekai",
+        )
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "iwaki_kamomekai"
+        ]
+
+        self.assertEqual("磐城鷗会", organization.name)
+        self.assertEqual("福島県", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/kendo_kamomekai/",
+            organization.website_url,
+        )
+        self.assertEqual("sns", organization.source_type)
+        self.assertEqual("manual", organization.scraper_type)
+        self.assertFalse(organization.scraper_enabled)
+        self.assertEqual("open_keiko", organization.event_type)
+        self.assertEqual(
+            "anyone",
+            organization.default_participation_type,
+        )
+        self.assertFalse(organization.default_application_required)
+        self.assertEqual(1, len(events))
+
+        event = events[0]
+
+        self.assertEqual(
+            "iwaki_kamomekai-20260829-1700-a2701080",
+            event["event_id"],
+        )
+        self.assertEqual("磐城鷗会", event["organization_name"])
+        self.assertEqual("磐城鷗会 稽古", event["title"])
+        self.assertEqual("2026-08-29", event["event_date"])
+        self.assertEqual("土", event["weekday"])
+        self.assertEqual("17:00", event["start_time"])
+        self.assertEqual("19:00", event["end_time"])
+        self.assertEqual("いわき市役所総合体育館", event["venue"])
+        self.assertEqual("福島県", event["area"])
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertEqual(
+            "体育館の場所代等を人数で均等割り（300円前後）",
+            event["fee"],
+        )
+        self.assertFalse(event["application_required"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual(
+            "https://www.instagram.com/hitachi657/",
+            event["source_url"],
+        )
+        self.assertEqual("2026-08-28", event["review_due_at"])
+
+        index_html = (
+            Path(__file__).resolve().parents[1] / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("<h3>磐城鷗会</h3>", index_html)
+        self.assertIn("磐城鷗会が月1〜2回程度", index_html)
 
 
     def test_seikenkai_inzai_events_are_valid(self) -> None:
