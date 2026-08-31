@@ -25,6 +25,70 @@ class ManualEventDataTests(unittest.TestCase):
             [event["event_id"] for event in events],
         )
 
+    def test_kenen_events_are_valid_and_linked_to_organization(self) -> None:
+        organizations = load_organizations()
+        organization = find_organization(organizations, "kenen")
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "kenen"
+        ]
+
+        self.assertEqual("剣縁", organization.name)
+        self.assertEqual("manual", organization.scraper_type)
+        self.assertFalse(organization.scraper_enabled)
+        self.assertEqual(2, len(events))
+        self.assertEqual(
+            [
+                "kenen-20260830-0930-fcace356",
+                "kenen-20260922-1330-4099ce0f",
+            ],
+            [event["event_id"] for event in events],
+        )
+
+        event = events[1]
+        self.assertEqual("剣縁", event["organization_name"])
+        self.assertEqual("剣縁の集い 第2回", event["title"])
+        self.assertEqual("2026-09-22", event["event_date"])
+        self.assertEqual("火", event["weekday"])
+        self.assertEqual("13:30", event["start_time"])
+        self.assertEqual("14:30", event["end_time"])
+        self.assertEqual(
+            "渋谷区スポーツセンター 第1武道場",
+            event["venue"],
+        )
+        self.assertEqual("東京都", event["area"])
+        self.assertEqual("東京都渋谷区西原1-40-18", event["address"])
+        self.assertEqual(
+            "京王新線「幡ヶ谷駅」南口から徒歩約6分、"
+            "小田急線「代々木上原駅」から徒歩約15分",
+            event["access"],
+        )
+        self.assertEqual(
+            "1,000円（税込）／名、剣縁法人・個人会員は無料",
+            event["fee"],
+        )
+        self.assertTrue(event["application_required"])
+        self.assertEqual(
+            "registration_required",
+            event["participation_type"],
+        )
+        self.assertEqual(
+            "https://kenen.jp/event/ken-en-no-tsudoi-2",
+            event["source_url"],
+        )
+        self.assertEqual("official_site", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual("2026-09-15", event["review_due_at"])
+        self.assertIn("終了時刻は予定", event["raw_note"])
+        self.assertIn("エントリー締切は2026年9月14日", event["raw_note"])
+        self.assertIn("最少催行人数5名", event["raw_note"])
+        self.assertIn(
+            "https://forms.gle/5McZ8QVgjh961haJ6",
+            event["raw_note"],
+        )
+
     def test_magokorokai_events_are_valid_and_linked_to_organization(self) -> None:
         organizations = load_organizations()
         organization = find_organization(organizations, "magokorokai")
