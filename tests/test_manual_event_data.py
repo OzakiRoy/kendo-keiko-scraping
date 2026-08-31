@@ -206,6 +206,75 @@ class ManualEventDataTests(unittest.TestCase):
         )
 
 
+    def test_hagakurey_september_weeknight_events_are_valid(self) -> None:
+        source_url = "https://www.instagram.com/p/DcnN8Glzbmq/"
+        events = [
+            event
+            for event in load_manual_events()
+            if event["source_url"] == source_url
+        ]
+        expected_dates = [
+            "2026-09-01",
+            "2026-09-02",
+            "2026-09-03",
+            "2026-09-04",
+            "2026-09-07",
+            "2026-09-08",
+            "2026-09-09",
+            "2026-09-10",
+            "2026-09-11",
+            "2026-09-15",
+            "2026-09-16",
+            "2026-09-17",
+            "2026-09-18",
+            "2026-09-24",
+            "2026-09-25",
+            "2026-09-28",
+            "2026-09-29",
+            "2026-09-30",
+        ]
+
+        self.assertEqual(18, len(events))
+        self.assertEqual(
+            expected_dates,
+            [event["event_date"] for event in events],
+        )
+
+        for event in events:
+            expected_times = (
+                ("18:00", "21:00")
+                if event["event_date"] == "2026-09-25"
+                else ("21:00", "22:30")
+            )
+            self.assertEqual("hagakurey", event["organization_id"])
+            self.assertEqual("HAGAKUREY 9月平日夜練", event["title"])
+            self.assertEqual(expected_times[0], event["start_time"])
+            self.assertEqual(expected_times[1], event["end_time"])
+            self.assertEqual("墨田区総合体育館", event["venue"])
+            self.assertEqual("東京都", event["area"])
+            self.assertEqual(
+                "東京都墨田区錦糸4-15-1",
+                event["address"],
+            )
+            self.assertEqual(
+                "JR錦糸町駅北口から徒歩約5分／"
+                "東京メトロ半蔵門線錦糸町駅3・4番出口から徒歩約5分",
+                event["access"],
+            )
+            self.assertIsNone(event["fee"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual(
+                "contact_required",
+                event["participation_type"],
+            )
+            self.assertEqual("open_keiko", event["event_type"])
+            self.assertEqual("sns", event["source_type"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("active", event["status"])
+            self.assertEqual("2026-09-01", event["review_due_at"])
+            self.assertIn("アテンド", event["raw_note"])
+
+
     def test_kent_ladies_event_is_valid(self) -> None:
         events = [
             event
