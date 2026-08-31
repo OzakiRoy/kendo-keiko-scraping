@@ -1145,7 +1145,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-08-31",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-01#21:00#hagakurey#hagakurey-20260901-2100-e86e218c"
     },
@@ -1201,7 +1201,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-02",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-03#21:00#hagakurey#hagakurey-20260903-2100-fdef1e20"
     },
@@ -1229,7 +1229,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-03",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-04#21:00#hagakurey#hagakurey-20260904-2100-334119e7"
     },
@@ -1341,7 +1341,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-06",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-07#21:00#hagakurey#hagakurey-20260907-2100-584a3900"
     },
@@ -1397,7 +1397,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-07",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-08#21:00#hagakurey#hagakurey-20260908-2100-241506de"
     },
@@ -1425,7 +1425,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-08",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-09#21:00#hagakurey#hagakurey-20260909-2100-912c909a"
     },
@@ -1481,7 +1481,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-09",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-10#21:00#hagakurey#hagakurey-20260910-2100-b5677e1c"
     },
@@ -1509,7 +1509,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-10",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-11#21:00#hagakurey#hagakurey-20260911-2100-a3c17675"
     },
@@ -1621,7 +1621,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-14",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-15#21:00#hagakurey#hagakurey-20260915-2100-0d4c7895"
     },
@@ -1649,7 +1649,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-15",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-16#21:00#hagakurey#hagakurey-20260916-2100-3da78169"
     },
@@ -1705,7 +1705,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-16",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-17#21:00#hagakurey#hagakurey-20260917-2100-d5ee8d1c"
     },
@@ -1733,7 +1733,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-17",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-18#21:00#hagakurey#hagakurey-20260918-2100-e0376466"
     },
@@ -1873,7 +1873,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-23",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-24#21:00#hagakurey#hagakurey-20260924-2100-915d673f"
     },
@@ -1901,7 +1901,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-24",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-25#18:00#hagakurey#hagakurey-20260925-1800-8eb7c92d"
     },
@@ -1985,7 +1985,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-27",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-28#21:00#hagakurey#hagakurey-20260928-2100-9aff9a37"
     },
@@ -2041,7 +2041,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-28",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-29#21:00#hagakurey#hagakurey-20260929-2100-8ee9977b"
     },
@@ -2069,7 +2069,7 @@
       "update_mode": "manual",
       "participation_type": "contact_required",
       "verified_at": "2026-08-31T13:42:46+09:00",
-      "review_due_at": "2026-09-01",
+      "review_due_at": "2026-09-29",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-30#21:00#hagakurey#hagakurey-20260930-2100-923b27bc"
     }

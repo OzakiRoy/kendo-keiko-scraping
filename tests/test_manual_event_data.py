@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date, timedelta
 from pathlib import Path
 import unittest
 
@@ -271,7 +272,10 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertEqual("sns", event["source_type"])
             self.assertEqual("manual", event["update_mode"])
             self.assertEqual("active", event["status"])
-            self.assertEqual("2026-09-01", event["review_due_at"])
+            expected_review_due_at = (
+                date.fromisoformat(event["event_date"]) - timedelta(days=1)
+            ).isoformat()
+            self.assertEqual(expected_review_due_at, event["review_due_at"])
             self.assertIn("アテンド", event["raw_note"])
 
 
