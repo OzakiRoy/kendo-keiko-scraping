@@ -463,9 +463,13 @@ class ManualEventDataTests(unittest.TestCase):
             organization.default_participation_type,
         )
         self.assertFalse(organization.default_application_required)
-        self.assertEqual(1, len(events))
+        self.assertEqual(7, len(events))
+        events_by_date = {
+            event["event_date"]: event
+            for event in events
+        }
 
-        event = events[0]
+        event = events_by_date["2026-08-27"]
 
         self.assertEqual(
             "gozen_kendo-20260827-0930-541f23f2",
@@ -491,6 +495,92 @@ class ManualEventDataTests(unittest.TestCase):
             "https://www.instagram.com/p/DbhdpUxPJdF/",
             event["source_url"],
         )
+
+        expected_schedules = {
+            "2026-09-02": (
+                "10:00",
+                "12:00",
+                "神奈川県立武道館",
+                "神奈川県",
+                "当日の人数次第",
+                "2026-09-01",
+                "貸切利用",
+            ),
+            "2026-09-03": (
+                "09:30",
+                "11:30",
+                "新宿区スポーツセンター 4F",
+                "東京都",
+                "400円",
+                "2026-09-02",
+                "個人利用枠",
+            ),
+            "2026-09-10": (
+                "09:30",
+                "11:30",
+                "新宿区スポーツセンター 4F",
+                "東京都",
+                "400円",
+                "2026-09-09",
+                "個人利用枠",
+            ),
+            "2026-09-17": (
+                "09:30",
+                "11:30",
+                "新宿区スポーツセンター 4F",
+                "東京都",
+                "400円",
+                "2026-09-16",
+                "個人利用枠",
+            ),
+            "2026-09-24": (
+                "09:30",
+                "11:30",
+                "新宿区スポーツセンター 4F",
+                "東京都",
+                "400円",
+                "2026-09-23",
+                "個人利用枠",
+            ),
+            "2026-09-30": (
+                "10:00",
+                "12:00",
+                "神奈川県立武道館",
+                "神奈川県",
+                "当日の人数次第",
+                "2026-09-29",
+                "貸切利用",
+            ),
+        }
+
+        for event_date, expected in expected_schedules.items():
+            start, end, venue, area, fee, review_due, usage = expected
+            event = events_by_date[event_date]
+            self.assertEqual("悟禅会", event["organization_name"])
+            self.assertEqual("悟禅会 稽古会", event["title"])
+            self.assertEqual(start, event["start_time"])
+            self.assertEqual(end, event["end_time"])
+            self.assertEqual(venue, event["venue"])
+            self.assertEqual(area, event["area"])
+            self.assertIsNone(event["address"])
+            self.assertIsNone(event["access"])
+            self.assertEqual(fee, event["fee"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual(
+                "contact_required",
+                event["participation_type"],
+            )
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("sns", event["source_type"])
+            self.assertEqual(
+                "https://www.instagram.com/p/Dcpr13AvgrP/",
+                event["source_url"],
+            )
+            self.assertEqual(review_due, event["review_due_at"])
+            self.assertIn("訂正版", event["raw_note"])
+            self.assertIn(usage, event["raw_note"])
+            self.assertIn("荒天時", event["raw_note"])
+            self.assertIn("追加・変更", event["raw_note"])
 
 
     def test_iwaki_kamomekai_event_is_valid_and_linked_to_organization(
