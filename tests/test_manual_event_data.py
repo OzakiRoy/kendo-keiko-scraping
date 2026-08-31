@@ -522,9 +522,13 @@ class ManualEventDataTests(unittest.TestCase):
             organization.default_participation_type,
         )
         self.assertFalse(organization.default_application_required)
-        self.assertEqual(1, len(events))
+        self.assertEqual(2, len(events))
+        events_by_date = {
+            event["event_date"]: event
+            for event in events
+        }
 
-        event = events[0]
+        event = events_by_date["2026-08-29"]
 
         self.assertEqual(
             "iwaki_kamomekai-20260829-1700-a2701080",
@@ -553,6 +557,36 @@ class ManualEventDataTests(unittest.TestCase):
             event["source_url"],
         )
         self.assertEqual("2026-08-28", event["review_due_at"])
+
+        event = events_by_date["2026-09-05"]
+
+        self.assertEqual(
+            "iwaki_kamomekai-20260905-1700-62f35cc7",
+            event["event_id"],
+        )
+        self.assertEqual("磐城鷗会", event["organization_name"])
+        self.assertEqual("磐城鷗会 稽古", event["title"])
+        self.assertEqual("土", event["weekday"])
+        self.assertEqual("17:00", event["start_time"])
+        self.assertIsNone(event["end_time"])
+        self.assertEqual("いわき市総合体育館", event["venue"])
+        self.assertEqual("福島県", event["area"])
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertEqual(
+            "体育館の場所代等を人数で均等割り（300円前後）",
+            event["fee"],
+        )
+        self.assertFalse(event["application_required"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual(
+            "https://www.instagram.com/hitachi657/",
+            event["source_url"],
+        )
+        self.assertEqual("2026-09-04", event["review_due_at"])
+        self.assertIn("主催者本人のInstagram DM", event["raw_note"])
 
         index_html = (
             Path(__file__).resolve().parents[1] / "public" / "index.html"
