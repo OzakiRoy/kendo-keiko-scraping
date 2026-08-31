@@ -313,6 +313,71 @@ class ManualEventDataTests(unittest.TestCase):
         )
 
 
+    def test_kendo_jo_tateyo_event_is_valid_and_linked_to_organization(
+        self,
+    ) -> None:
+        organizations = load_organizations()
+        organization = find_organization(
+            organizations,
+            "kendo_jo_tateyo",
+        )
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "kendo_jo_tateyo"
+        ]
+
+        self.assertEqual("ケンドウジョウタテヨ", organization.name)
+        self.assertEqual("千葉県", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/kendo_jo_tateyo/",
+            organization.website_url,
+        )
+        self.assertEqual("sns", organization.source_type)
+        self.assertEqual("manual", organization.scraper_type)
+        self.assertFalse(organization.scraper_enabled)
+        self.assertEqual("open_keiko", organization.event_type)
+        self.assertEqual(1, len(events))
+
+        event = events[0]
+        self.assertEqual(
+            "kendo_jo_tateyo-20260923-1300-d41ad868",
+            event["event_id"],
+        )
+        self.assertEqual("ケンドウジョウタテヨ", event["organization_name"])
+        self.assertEqual("リバ剣女子稽古会", event["title"])
+        self.assertEqual("2026-09-23", event["event_date"])
+        self.assertEqual("水", event["weekday"])
+        self.assertEqual("13:00", event["start_time"])
+        self.assertEqual("15:00", event["end_time"])
+        self.assertEqual("YohaSアリーナ1F剣道場", event["venue"])
+        self.assertEqual("千葉県", event["area"])
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertEqual("500円", event["fee"])
+        self.assertTrue(event["application_required"])
+        self.assertEqual(
+            "registration_required",
+            event["participation_type"],
+        )
+        self.assertEqual("open_keiko", event["event_type"])
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual(
+            "https://www.instagram.com/kendo_jo_tateyo/p/DcpPKvKywS4/",
+            event["source_url"],
+        )
+        self.assertEqual("2026-09-22", event["review_due_at"])
+        self.assertIn("成人女性限定", event["raw_note"])
+        self.assertIn("申込は公式投稿のQRから", event["raw_note"])
+
+        index_html = (
+            Path(__file__).resolve().parents[1] / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("<h3>ケンドウジョウタテヨ</h3>", index_html)
+
+
     def test_kizunakai_events_are_valid(self) -> None:
         events = [
             event
