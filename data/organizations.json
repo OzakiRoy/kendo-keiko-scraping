@@ -78,6 +78,18 @@
     "public_description": "剣睦会の公式サイトで案内されている剣道稽古会の予定を掲載しています。"
   },
   {
+    "organization_id": "kendo_jo_tateyo",
+    "name": "ケンドウジョウタテヨ",
+    "area": "千葉県",
+    "website_url": "https://www.instagram.com/kendo_jo_tateyo/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "公式Instagramの告知を管理者が確認し、手動登録",
+    "public_description": "ケンドウジョウタテヨの公式Instagramで案内される剣道稽古会の予定を掲載しています。"
+  },
+  {
     "organization_id": "kenen",
     "name": "剣縁",
     "area": "全国",
