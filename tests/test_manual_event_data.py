@@ -756,17 +756,29 @@ class ManualEventDataTests(unittest.TestCase):
             if event["organization_id"] == "seikenkai_inzai"
         ]
 
-        self.assertEqual(2, len(events))
+        self.assertEqual(6, len(events))
         self.assertEqual(
-            ["2026-08-21", "2026-08-28"],
+            [
+                "2026-08-21",
+                "2026-08-28",
+                "2026-09-04",
+                "2026-09-11",
+                "2026-09-18",
+                "2026-09-25",
+            ],
             [event["event_date"] for event in events],
         )
 
         for event in events:
             self.assertEqual(
-                "西劔会 8月オープン稽古会",
+                (
+                    "西劔会 8月オープン稽古会"
+                    if event["event_date"].startswith("2026-08")
+                    else "西劔会 9月オープン稽古会"
+                ),
                 event["title"],
             )
+            self.assertEqual("西劔会", event["organization_name"])
             self.assertEqual("19:00", event["start_time"])
             self.assertEqual("21:00", event["end_time"])
             self.assertEqual(
@@ -774,13 +786,36 @@ class ManualEventDataTests(unittest.TestCase):
                 event["venue"],
             )
             self.assertEqual("無料", event["fee"])
+            self.assertIsNone(event["address"])
+            self.assertIsNone(event["access"])
             self.assertEqual("anyone", event["participation_type"])
             self.assertFalse(event["application_required"])
             self.assertEqual("manual", event["update_mode"])
             self.assertEqual("sns", event["source_type"])
             self.assertEqual(
-                "https://www.instagram.com/p/DbeucGlzVHK/",
+                (
+                    "https://www.instagram.com/p/DbeucGlzVHK/"
+                    if event["event_date"].startswith("2026-08")
+                    else "https://www.instagram.com/p/Dcn1pAlh1Yb/"
+                ),
                 event["source_url"],
+            )
+
+        september_events = [
+            event
+            for event in events
+            if event["event_date"].startswith("2026-09")
+        ]
+        self.assertEqual(
+            ["2026-09-03", "2026-09-10", "2026-09-17", "2026-09-24"],
+            [event["review_due_at"] for event in september_events],
+        )
+        for event in september_events:
+            self.assertIn("事前申込は任意・会費なし", event["raw_note"])
+            self.assertIn(
+                "面をつけて稽古できる方であれば、"
+                "小学生から大人まで参加可能",
+                event["raw_note"],
             )
 
 
