@@ -481,6 +481,71 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn("<h3>ケンドウジョウタテヨ</h3>", index_html)
 
 
+    def test_kendo_labo_event_is_valid_and_linked_to_organization(
+        self,
+    ) -> None:
+        organizations = load_organizations()
+        organization = find_organization(organizations, "kendo_labo")
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "kendo_labo"
+        ]
+
+        self.assertEqual("剣道LABO", organization.name)
+        self.assertEqual("東京都", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/kendo_labo/",
+            organization.website_url,
+        )
+        self.assertEqual("sns", organization.source_type)
+        self.assertEqual("manual", organization.scraper_type)
+        self.assertFalse(organization.scraper_enabled)
+        self.assertEqual("open_keiko", organization.event_type)
+        self.assertEqual(1, len(events))
+
+        event = events[0]
+        self.assertEqual(
+            "kendo_labo-20260919-1540-4701fc9e",
+            event["event_id"],
+        )
+        self.assertEqual("剣道LABO", event["organization_name"])
+        self.assertEqual("剣道LABO 稽古会", event["title"])
+        self.assertEqual("2026-09-19", event["event_date"])
+        self.assertEqual("土", event["weekday"])
+        self.assertEqual("15:40", event["start_time"])
+        self.assertEqual("18:40", event["end_time"])
+        self.assertEqual(
+            "新宿コズミックセンター剣道場",
+            event["venue"],
+        )
+        self.assertEqual("東京都", event["area"])
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertEqual("各回1,000円", event["fee"])
+        self.assertTrue(event["application_required"])
+        self.assertEqual(
+            "registration_required",
+            event["participation_type"],
+        )
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DczRzpKTat0/",
+            event["source_url"],
+        )
+        self.assertEqual("2026-09-18", event["review_due_at"])
+        self.assertIn("社会人対象", event["raw_note"])
+        self.assertIn("定員15名程度", event["raw_note"])
+        self.assertIn("事前申込必須", event["raw_note"])
+
+        index_html = (
+            Path(__file__).resolve().parents[1] / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("<h3>剣道LABO</h3>", index_html)
+
+
     def test_kizunakai_events_are_valid(self) -> None:
         events = [
             event
