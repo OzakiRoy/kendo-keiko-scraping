@@ -350,31 +350,70 @@ class ManualEventDataTests(unittest.TestCase):
             if event["organization_id"] == "kent_ladies"
         ]
 
-        self.assertEqual(1, len(events))
+        self.assertEqual(2, len(events))
+        self.assertEqual(
+            ["2026-08-30", "2026-09-12"],
+            [event["event_date"] for event in events],
+        )
 
-        event = events[0]
-
-        self.assertEqual("2026-08-30", event["event_date"])
-        self.assertEqual("日", event["weekday"])
+        august_event = events[0]
+        self.assertEqual("日", august_event["weekday"])
         self.assertEqual(
             "kent女子稽古会 8月30日稽古",
-            event["title"],
+            august_event["title"],
         )
-        self.assertEqual("12:30", event["start_time"])
-        self.assertEqual("15:00", event["end_time"])
+        self.assertEqual("12:30", august_event["start_time"])
+        self.assertEqual("15:00", august_event["end_time"])
         self.assertEqual(
             "文京スポーツセンター4階",
-            event["venue"],
+            august_event["venue"],
         )
-        self.assertEqual("500円", event["fee"])
-        self.assertEqual("anyone", event["participation_type"])
-        self.assertFalse(event["application_required"])
-        self.assertEqual("manual", event["update_mode"])
-        self.assertEqual("sns", event["source_type"])
+        self.assertEqual("500円", august_event["fee"])
+        self.assertEqual("anyone", august_event["participation_type"])
+        self.assertFalse(august_event["application_required"])
+        self.assertEqual("manual", august_event["update_mode"])
+        self.assertEqual("sns", august_event["source_type"])
         self.assertEqual(
             "https://www.instagram.com/p/DaW0XADE927/",
-            event["source_url"],
+            august_event["source_url"],
         )
+
+        september_event = events[1]
+        self.assertEqual(
+            "kent_ladies-20260912-1230-8547d672",
+            september_event["event_id"],
+        )
+        self.assertEqual("kent女子稽古会", september_event["organization_name"])
+        self.assertEqual("土", september_event["weekday"])
+        self.assertEqual(
+            "kent女子稽古会 9月12日稽古",
+            september_event["title"],
+        )
+        self.assertEqual("12:30", september_event["start_time"])
+        self.assertEqual("15:00", september_event["end_time"])
+        self.assertEqual(
+            "文京スポーツセンター4階",
+            september_event["venue"],
+        )
+        self.assertEqual("東京都", september_event["area"])
+        self.assertIsNone(september_event["address"])
+        self.assertIsNone(september_event["access"])
+        self.assertEqual("500円", september_event["fee"])
+        self.assertEqual(
+            "contact_required",
+            september_event["participation_type"],
+        )
+        self.assertFalse(september_event["application_required"])
+        self.assertEqual("manual", september_event["update_mode"])
+        self.assertEqual("sns", september_event["source_type"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DcxTARJk4ur/",
+            september_event["source_url"],
+        )
+        self.assertEqual("2026-09-11", september_event["review_due_at"])
+        self.assertIn("成人女性対象", september_event["raw_note"])
+        self.assertIn("高校生以下は保護者同伴", september_event["raw_note"])
+        self.assertIn("DMまたはオープンチャット", september_event["raw_note"])
 
 
     def test_kendo_jo_tateyo_event_is_valid_and_linked_to_organization(
