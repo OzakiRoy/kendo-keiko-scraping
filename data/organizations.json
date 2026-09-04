@@ -242,5 +242,17 @@
     "event_type": "federation_keiko",
     "notes": "公式の剣道稽古会・合同稽古会日程PDFから大武道場の合同稽古会を取得",
     "public_description": "東京都剣道連盟が東京武道館で開催する剣道合同稽古会の予定を掲載しています。"
+  },
+  {
+    "organization_id": "waguri_kendo",
+    "name": "一風会",
+    "area": "埼玉県",
+    "website_url": "https://www.instagram.com/waguri_kendo/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "公式Instagramの告知を管理者が確認し、手動登録",
+    "public_description": "埼玉県越谷市で開催される一風会の、社会人向けオープン稽古会の予定を掲載しています。"
   }
 ]

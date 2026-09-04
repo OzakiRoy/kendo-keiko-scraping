@@ -546,6 +546,71 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn("<h3>剣道LABO</h3>", index_html)
 
 
+    def test_waguri_kendo_event_is_valid_and_linked_to_organization(
+        self,
+    ) -> None:
+        organizations = load_organizations()
+        organization = find_organization(organizations, "waguri_kendo")
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "waguri_kendo"
+        ]
+
+        self.assertEqual("一風会", organization.name)
+        self.assertEqual("埼玉県", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/waguri_kendo/",
+            organization.website_url,
+        )
+        self.assertEqual("sns", organization.source_type)
+        self.assertEqual("manual", organization.scraper_type)
+        self.assertFalse(organization.scraper_enabled)
+        self.assertEqual("open_keiko", organization.event_type)
+        self.assertEqual("unknown", organization.default_participation_type)
+        self.assertIsNone(organization.default_application_required)
+        self.assertEqual(1, len(events))
+
+        event = events[0]
+        self.assertEqual(
+            "waguri_kendo-20260919-1300-282c2f6d",
+            event["event_id"],
+        )
+        self.assertEqual("一風会", event["organization_name"])
+        self.assertEqual("一風会 稽古会", event["title"])
+        self.assertEqual("2026-09-19", event["event_date"])
+        self.assertEqual("土", event["weekday"])
+        self.assertEqual("13:00", event["start_time"])
+        self.assertEqual("15:00", event["end_time"])
+        self.assertEqual("越谷総合体育館", event["venue"])
+        self.assertEqual("埼玉県", event["area"])
+        self.assertEqual(
+            "埼玉県越谷市増林2丁目33番地",
+            event["address"],
+        )
+        self.assertIsNone(event["access"])
+        self.assertEqual("1人200円", event["fee"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DckZrBeTZnx/",
+            event["source_url"],
+        )
+        self.assertEqual("2026-09-18", event["review_due_at"])
+        self.assertEqual(
+            "社会人向けオープン稽古。経験・年齢・所属を問わず参加可能。",
+            event["raw_note"],
+        )
+
+        index_html = (
+            Path(__file__).resolve().parents[1] / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("<h3>一風会</h3>", index_html)
+
+
     def test_kizunakai_events_are_valid(self) -> None:
         events = [
             event
