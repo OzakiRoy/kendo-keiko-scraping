@@ -105,7 +105,13 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertEqual("sns", event["source_type"])
             self.assertEqual("manual", event["update_mode"])
             self.assertEqual("active", event["status"])
-            self.assertEqual("2026-10-05", event["review_due_at"])
+            self.assertEqual(
+                (
+                    date.fromisoformat(event["event_date"])
+                    - timedelta(days=1)
+                ).isoformat(),
+                event["review_due_at"],
+            )
             self.assertIn("事前登録が必要", event["raw_note"])
             self.assertIn("InstagramのDM", event["raw_note"])
             self.assertIn("グループLINE", event["raw_note"])

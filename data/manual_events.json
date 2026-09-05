@@ -1733,7 +1733,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-09-11",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-12#09:00#cikubujima_keicokai#cikubujima_keicokai-20260912-0900-68071767"
     },
@@ -2069,7 +2069,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-09-18",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-19#09:00#cikubujima_keicokai#cikubujima_keicokai-20260919-0900-e1b89030"
     },
@@ -2433,7 +2433,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-09-25",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-09-26#09:00#cikubujima_keicokai#cikubujima_keicokai-20260926-0900-8f8772c9"
     },
@@ -2657,7 +2657,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-10-02",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-10-03#09:00#cikubujima_keicokai#cikubujima_keicokai-20261003-0900-56c33818"
     },
@@ -2685,7 +2685,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-10-09",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-10-10#09:00#cikubujima_keicokai#cikubujima_keicokai-20261010-0900-68172e8d"
     },
@@ -2713,7 +2713,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-10-16",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-10-17#09:00#cikubujima_keicokai#cikubujima_keicokai-20261017-0900-0d4db152"
     },
@@ -2741,7 +2741,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-10-23",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-10-24#09:00#cikubujima_keicokai#cikubujima_keicokai-20261024-0900-e53d14d7"
     },
@@ -2769,7 +2769,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-10-30",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-10-31#09:00#cikubujima_keicokai#cikubujima_keicokai-20261031-0900-14cda7f8"
     },
@@ -2797,7 +2797,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-11-06",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-11-07#09:00#cikubujima_keicokai#cikubujima_keicokai-20261107-0900-c1e4b64a"
     },
@@ -2825,7 +2825,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-11-13",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-11-14#09:00#cikubujima_keicokai#cikubujima_keicokai-20261114-0900-2edcd8b1"
     },
@@ -2853,7 +2853,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-11-20",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-11-21#09:00#cikubujima_keicokai#cikubujima_keicokai-20261121-0900-7b1fde0e"
     },
@@ -2881,7 +2881,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-11-27",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-11-28#09:00#cikubujima_keicokai#cikubujima_keicokai-20261128-0900-9afcaa12"
     },
@@ -2909,7 +2909,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-12-04",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-12-05#09:00#cikubujima_keicokai#cikubujima_keicokai-20261205-0900-400afe7a"
     },
@@ -2937,7 +2937,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-12-11",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-12-12#09:00#cikubujima_keicokai#cikubujima_keicokai-20261212-0900-13b53682"
     },
@@ -2965,7 +2965,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-12-18",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-12-19#09:00#cikubujima_keicokai#cikubujima_keicokai-20261219-0900-4e5288ad"
     },
@@ -2993,7 +2993,7 @@
       "update_mode": "manual",
       "participation_type": "registration_required",
       "verified_at": "2026-09-05T00:00:00+09:00",
-      "review_due_at": "2026-10-05",
+      "review_due_at": "2026-12-25",
       "gsi1_pk": "EVENT",
       "gsi1_sk": "2026-12-26#09:00#cikubujima_keicokai#cikubujima_keicokai-20261226-0900-d0148a98"
     }
