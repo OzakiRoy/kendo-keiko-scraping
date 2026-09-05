@@ -25,6 +25,112 @@ class ManualEventDataTests(unittest.TestCase):
             [event["event_id"] for event in events],
         )
 
+    def test_cikubujima_keicokai_events_are_valid(self) -> None:
+        organizations = load_organizations()
+        organization = find_organization(
+            organizations,
+            "cikubujima_keicokai",
+        )
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "cikubujima_keicokai"
+        ]
+        expected_dates = [
+            "2026-09-12",
+            "2026-09-19",
+            "2026-09-26",
+            "2026-10-03",
+            "2026-10-10",
+            "2026-10-17",
+            "2026-10-24",
+            "2026-10-31",
+            "2026-11-07",
+            "2026-11-14",
+            "2026-11-21",
+            "2026-11-28",
+            "2026-12-05",
+            "2026-12-12",
+            "2026-12-19",
+            "2026-12-26",
+        ]
+
+        self.assertEqual("竹生島稽古会（創道稽古会）", organization.name)
+        self.assertEqual("滋賀県", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/cikubujimakeicokai/",
+            organization.website_url,
+        )
+        self.assertEqual("sns", organization.source_type)
+        self.assertEqual("manual", organization.scraper_type)
+        self.assertFalse(organization.scraper_enabled)
+        self.assertEqual("open_keiko", organization.event_type)
+        self.assertEqual(
+            "registration_required",
+            organization.default_participation_type,
+        )
+        self.assertTrue(organization.default_application_required)
+
+        self.assertEqual(16, len(events))
+        self.assertEqual(expected_dates, [event["event_date"] for event in events])
+
+        for event in events:
+            self.assertEqual(
+                "竹生島稽古会（創道稽古会）",
+                event["organization_name"],
+            )
+            self.assertEqual(
+                "竹生島稽古会（創道稽古会）",
+                event["title"],
+            )
+            self.assertEqual("土", event["weekday"])
+            self.assertEqual("09:00", event["start_time"])
+            self.assertEqual("12:00", event["end_time"])
+            self.assertEqual("滋賀県", event["area"])
+            self.assertIsNone(event["address"])
+            self.assertIsNone(event["access"])
+            self.assertEqual(
+                "大人300円／中学生まで200円",
+                event["fee"],
+            )
+            self.assertTrue(event["application_required"])
+            self.assertEqual(
+                "registration_required",
+                event["participation_type"],
+            )
+            self.assertEqual(
+                "https://www.instagram.com/cikubujimakeicokai/",
+                event["source_url"],
+            )
+            self.assertEqual("sns", event["source_type"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("active", event["status"])
+            self.assertEqual("2026-10-05", event["review_due_at"])
+            self.assertIn("事前登録が必要", event["raw_note"])
+            self.assertIn("InstagramのDM", event["raw_note"])
+            self.assertIn("グループLINE", event["raw_note"])
+            self.assertIn("入会金・年会費なし", event["raw_note"])
+
+        takashima_events = events[:-1]
+        self.assertEqual(15, len(takashima_events))
+        for event in takashima_events:
+            self.assertEqual(
+                "滋賀県高島市内（詳細は事前登録後に案内）",
+                event["venue"],
+            )
+
+        kusatsu_event = events[-1]
+        self.assertEqual("2026-12-26", kusatsu_event["event_date"])
+        self.assertEqual(
+            "滋賀県草津市内（詳細は事前登録後に案内）",
+            kusatsu_event["venue"],
+        )
+
+        index_html = (
+            Path(__file__).resolve().parents[1] / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("<h3>竹生島稽古会（創道稽古会）</h3>", index_html)
+
     def test_kenen_events_are_valid_and_linked_to_organization(self) -> None:
         organizations = load_organizations()
         organization = find_organization(organizations, "kenen")

@@ -12,6 +12,20 @@
     "public_description": "全日本剣道連盟が全国各地で開催する公式稽古会の予定を掲載しています。"
   },
   {
+    "organization_id": "cikubujima_keicokai",
+    "name": "竹生島稽古会（創道稽古会）",
+    "area": "滋賀県",
+    "website_url": "https://www.instagram.com/cikubujimakeicokai/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "主催者本人から提供されたInstagram DMの情報を管理者が確認し、手動登録",
+    "public_description": "滋賀県を中心に週1回程度開催される竹生島稽古会（創道稽古会）の、所属を問わず滋賀県内外から事前登録のうえ参加できる稽古予定を掲載しています。",
+    "default_participation_type": "registration_required",
+    "default_application_required": true
+  },
+  {
     "organization_id": "gozen_kendo",
     "name": "悟禅会",
     "area": "東京都",
