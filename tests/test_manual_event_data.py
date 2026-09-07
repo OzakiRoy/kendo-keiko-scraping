@@ -55,7 +55,7 @@ class ManualEventDataTests(unittest.TestCase):
             "2026-12-26",
         ]
 
-        self.assertEqual("竹生島稽古会（創道稽古会）", organization.name)
+        self.assertEqual("竹生島稽古会（剣道稽古会）", organization.name)
         self.assertEqual("滋賀県", organization.area)
         self.assertEqual(
             "https://www.instagram.com/cikubujimakeicokai/",
@@ -76,11 +76,11 @@ class ManualEventDataTests(unittest.TestCase):
 
         for event in events:
             self.assertEqual(
-                "竹生島稽古会（創道稽古会）",
+                "竹生島稽古会（剣道稽古会）",
                 event["organization_name"],
             )
             self.assertEqual(
-                "竹生島稽古会（創道稽古会）",
+                "竹生島稽古会（剣道稽古会）",
                 event["title"],
             )
             self.assertEqual("土", event["weekday"])
@@ -135,7 +135,7 @@ class ManualEventDataTests(unittest.TestCase):
         index_html = (
             Path(__file__).resolve().parents[1] / "public" / "index.html"
         ).read_text(encoding="utf-8")
-        self.assertIn("<h3>竹生島稽古会（創道稽古会）</h3>", index_html)
+        self.assertIn("<h3>竹生島稽古会（剣道稽古会）</h3>", index_html)
 
     def test_kenen_events_are_valid_and_linked_to_organization(self) -> None:
         organizations = load_organizations()
