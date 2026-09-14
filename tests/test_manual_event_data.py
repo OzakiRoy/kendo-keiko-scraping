@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import date, timedelta
 from pathlib import Path
@@ -213,7 +214,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("眞心会", organization.name)
         self.assertEqual("manual", organization.scraper_type)
         self.assertFalse(organization.scraper_enabled)
-        self.assertEqual(14, len(events))
+        self.assertEqual(22, len(events))
         self.assertEqual(
             [
                 "2026-07-28",
@@ -223,32 +224,86 @@ class ManualEventDataTests(unittest.TestCase):
                 "2026-08-20",
                 "2026-08-25",
                 "2026-08-27",
-            "2026-09-01",
-            "2026-09-08",
-            "2026-09-10",
-            "2026-09-15",
-            "2026-09-17",
-            "2026-09-24",
-            "2026-09-29",
+                "2026-09-01",
+                "2026-09-08",
+                "2026-09-10",
+                "2026-09-15",
+                "2026-09-17",
+                "2026-09-24",
+                "2026-09-29",
+                "2026-10-06",
+                "2026-10-08",
+                "2026-10-13",
+                "2026-10-15",
+                "2026-10-20",
+                "2026-10-22",
+                "2026-10-27",
+                "2026-10-29",
             ],
             [event["event_date"] for event in events],
         )
-        for event in events:
+
+        october_events = [
+            event
+            for event in events
+            if event["event_date"].startswith("2026-10-")
+        ]
+        self.assertEqual(8, len(october_events))
+        self.assertNotIn(
+            "2026-10-01",
+            [event["event_date"] for event in october_events],
+        )
+        self.assertNotIn(
+            "2026-10-03",
+            [event["event_date"] for event in october_events],
+        )
+        for event in october_events:
+            event_date = date.fromisoformat(event["event_date"])
+            self.assertEqual("眞心会 通常稽古", event["title"])
             self.assertEqual("manual", event["update_mode"])
             self.assertEqual("anyone", event["participation_type"])
+            self.assertFalse(event["application_required"])
             self.assertEqual("active", event["status"])
             self.assertEqual("19:30", event["start_time"])
             self.assertEqual("20:30", event["end_time"])
-            expected_review_due_at = (
-                "2026-09-01"
-                if event["event_date"] >= "2026-09-01"
-                else "2026-08-24"
+            self.assertEqual(
+                "春里中学校屋内体育館1階武道場",
+                event["venue"],
             )
             self.assertEqual(
-                expected_review_due_at,
+                "埼玉県さいたま市見沼区小深作268-19",
+                event["address"],
+            )
+            self.assertEqual(
+                "駐車場あり（正門・北門・西門の3か所）",
+                event["access"],
+            )
+            self.assertEqual("会費不要", event["fee"])
+            self.assertEqual(
+                (event_date - timedelta(days=1)).isoformat(),
                 event["review_due_at"],
             )
 
+        existing_events = [
+            event for event in events if event["event_date"] < "2026-10-01"
+        ]
+        existing_digest = hashlib.sha256(
+            json.dumps(
+                existing_events,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+        self.assertEqual(14, len(existing_events))
+        self.assertEqual(
+            "e0c6f07b4db52bc7d2beb39b3b2aae8cfbeaac6954b0e9a4b6e11d115437a294",
+            existing_digest,
+        )
+        self.assertEqual(
+            len(events),
+            len({event["event_id"] for event in events}),
+        )
 
     def test_hagakurey_weeknight_events_are_valid(self) -> None:
         source_url = "https://www.instagram.com/p/Dbii2xfTw5J/"
