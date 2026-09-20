@@ -74,6 +74,7 @@ scripts/publish_manual_events.sh \
 11. `publish_only=true` でPublisherを直接実行
 12. `FunctionError` と公開フラグを確認
 13. S3原本の `events.json` を取得して構造・必須メタデータ・団体別件数を確認
+14. 同じJSONから再生成した3一覧HTMLとS3原本を比較
 
 ## Publisherへ渡すpayload
 
@@ -102,7 +103,9 @@ scripts/publish_manual_events.sh \
   "mode": "publish_only",
   "s3_published": true,
   "index_published": true,
-  "sitemap_published": true
+  "sitemap_published": true,
+  "listing_pages_published": true,
+  "listing_page_keys": ["keiko/index.html", "renseikai/index.html", "index.html"]
 }
 ```
 
@@ -112,6 +115,8 @@ PublisherはDynamoDBの自動イベントとZIP内の `data/manual_events.json` 
 
 - `events.json`
 - `index.html`
+- `keiko/index.html`
+- `renseikai/index.html`
 - `sitemap.xml`
 - favicon、OGP画像、Web App Manifestなどの公開アセット
 
@@ -135,3 +140,7 @@ PublisherはDynamoDBの自動イベントとZIP内の `data/manual_events.json` 
 Lambdaコード更新後にPublisher実行が失敗した場合は、原因を確認して再実行する。コード自体を戻す必要がある場合は、直前の正常なLambdaバージョンまたはGitコミットからZIPを再作成してPublisherだけを更新する。
 
 S3の公開結果確認ではCloudFrontではなく、まずS3原本の `events.json` を基準にする。CloudFrontの `index.html` はキャッシュが切れるまで以前の内容を返す場合がある。
+
+## カテゴリ一覧への対応
+
+全テストには実ブラウザ検証を含むため、開発環境は `requirements-dev.txt` とChromiumを準備する。手順は [カテゴリ一覧](category-listings.md)。初回の本番反映では [CloudFrontカテゴリURL runbook](cloudfront-category-urls.md) の順序に従い、カテゴリ原本とURL処理を準備してからトップのリンクを公開する。

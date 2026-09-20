@@ -1,5 +1,7 @@
 # 基本SEO対応: 静的イベントHTML生成
 
+現在の3一覧ページ構成・開発検証は [カテゴリ一覧](category-listings.md)、初回URL適用は [CloudFront runbook](cloudfront-category-urls.md) を参照する。以下の単体Lambda手順は初期構成の記録であり、通常の公開はPublisherのrunbookを使う。
+
 ## 目的
 
 `events.json` をブラウザの JavaScript だけで描画する構成を残しつつ、同じイベント情報を `index.html` にも静的生成する。

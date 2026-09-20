@@ -3,19 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>剣道稽古ナビ｜オープン稽古会・合同稽古会を地域と日付から検索</title>
-  <meta name="description" content="参加できる剣道のオープン稽古会・合同稽古会を、日付・地域・団体から探せる情報サイト。東京・埼玉・神奈川など関東を中心に、参加条件や公式情報へのリンクを掲載しています。">
-  <meta name="theme-color" content="#8c1d24">
+  <!-- PAGE_META_START -->
+  <title>剣道稽古ナビ｜稽古会・錬成会・練習試合を地域と日付から検索</title>
+  <meta name="description" content="参加できる剣道のオープン稽古会・合同稽古会・連盟稽古会と、大人向け錬成会・練習試合を開催日順に掲載。地域・日付・参加条件から探せます。">
   <link rel="canonical" href="https://kendo-keiko.com/">
+  <meta property="og:title" content="剣道稽古ナビ｜稽古会・錬成会・練習試合を地域と日付から検索">
+  <meta property="og:description" content="参加できる剣道のオープン稽古会・合同稽古会・連盟稽古会と、大人向け錬成会・練習試合を開催日順に掲載。地域・日付・参加条件から探せます。">
+  <meta property="og:url" content="https://kendo-keiko.com/">
+  <meta name="twitter:title" content="剣道稽古ナビ｜稽古会・錬成会・練習試合を地域と日付から検索">
+  <meta name="twitter:description" content="参加できる剣道のオープン稽古会・合同稽古会・連盟稽古会と、大人向け錬成会・練習試合を開催日順に掲載。地域・日付・参加条件から探せます。">
+  <!-- PAGE_META_END -->
+  <meta name="theme-color" content="#8c1d24">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
-  <meta property="og:title" content="剣道稽古ナビ｜オープン稽古会・合同稽古会を地域と日付から検索">
-  <meta property="og:description" content="参加できる剣道の稽古会を、日付・地域・団体から探せる情報サイト。関東を中心に、参加条件と公式情報へのリンクを掲載しています。">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://kendo-keiko.com/">
   <meta property="og:site_name" content="剣道稽古ナビ">
   <meta property="og:locale" content="ja_JP">
   <meta property="og:image" content="https://kendo-keiko.com/ogp.png">
@@ -25,8 +29,6 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="剣道稽古ナビ。参加できる稽古会を、日付・地域・参加条件から探す。">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="剣道稽古ナビ｜オープン稽古会・合同稽古会を検索">
-  <meta name="twitter:description" content="参加できる剣道の稽古会を、日付・地域・団体から探せる情報サイトです。">
   <meta name="twitter:image" content="https://kendo-keiko.com/ogp.png">
   <meta name="twitter:image:alt" content="剣道稽古ナビ。参加できる稽古会を、日付・地域・参加条件から探す。">
   <script type="application/ld+json">
@@ -42,6 +44,16 @@
   }
   </script>
   <style>
+    .listing-nav, .kind-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+    .listing-nav { margin: 0 0 28px; }
+    .listing-nav a { padding: 12px 16px; border: 1px solid var(--line); border-radius: 4px; }
+    .listing-nav a[aria-current="page"] { color: var(--accent); border-color: var(--accent); font-weight: 700; }
+    .kind-filter { border: 0; padding: 0; margin: 0 0 20px; min-width: 0; }
+    .kind-filter legend { font-weight: 700; margin-bottom: 8px; }
+    .kind-buttons button { min-height: 44px; }
+    .event-kind { color: var(--accent); font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
     :root {
       --paper: #f3f1ec;
       --surface: #ffffff;
@@ -905,6 +917,9 @@
   </style>
 </head>
 <body>
+  <!-- LISTING_CONFIG_START -->
+  <script type="application/json" id="listing-config">{"category": "all", "categories": {"all": {"label": "すべて", "types": null}, "keiko": {"label": "稽古会", "types": ["open_keiko", "federation_keiko"]}, "renseikai": {"label": "錬成会・練習試合", "types": ["adult_renseikai"]}}, "typeLabels": {"open_keiko": "オープン・合同稽古会", "federation_keiko": "連盟稽古会", "adult_renseikai": "錬成会・練習試合"}, "unknownTypeLabel": "種別未分類"}</script>
+  <!-- LISTING_CONFIG_END -->
   <header class="site-header">
     <div class="site-header__inner">
       <div class="brand-lockup">
@@ -915,10 +930,7 @@
         </div>
       </div>
       <p class="site-tagline">参加できる稽古会を、日付・地域・参加条件から探す</p>
-      <p class="lead">
-        関東を中心に、一般参加できるオープン稽古会・合同稽古会の予定を掲載しています。
-        開催日、地域、団体を確認し、参加前には必ず主催者の公式情報をご確認ください。
-      </p>
+      <p class="lead">参加できる剣道のオープン稽古会・合同稽古会・連盟稽古会と、大人向け錬成会・練習試合を開催日順に掲載。地域・日付・参加条件から探せます。 参加前には必ず主催者の公式情報をご確認ください。</p>
       <!-- EVENT_META_START -->
       <div class="meta" id="meta">稽古会情報を読み込んでいます...</div>
       <!-- EVENT_META_END -->
@@ -926,12 +938,28 @@
   </header>
 
   <main class="site-main">
+    <!-- LISTING_NAV_START -->
+    <nav class="listing-nav" aria-label="イベント一覧">
+      <a href="/" aria-current="page">総合一覧</a>
+      <a href="/keiko/">稽古会</a>
+      <a href="/renseikai/">錬成会・練習試合</a>
+    </nav>
+    <!-- LISTING_NAV_END -->
     <section class="search-section" aria-labelledby="search-heading">
       <div class="section-heading">
         <span class="section-heading__en">SEARCH</span>
-        <h2 id="search-heading">稽古会を探す</h2>
+        <h2 id="search-heading">稽古会・錬成会を探す</h2>
       </div>
 
+      <!-- KIND_FILTER_START -->
+      <fieldset class="kind-filter"><legend>種別</legend>
+        <div class="kind-buttons">
+          <button type="button" class="date-shortcut-button" data-category="all" aria-pressed="true">すべて</button>
+          <button type="button" class="date-shortcut-button" data-category="keiko" aria-pressed="false">稽古会</button>
+          <button type="button" class="date-shortcut-button" data-category="renseikai" aria-pressed="false">錬成会・練習試合</button>
+        </div>
+      </fieldset>
+      <!-- KIND_FILTER_END -->
       <div class="toolbar">
         <fieldset class="form-field date-shortcuts">
           <legend class="form-field__label">開催時期</legend>
@@ -986,7 +1014,7 @@
       <div class="section-heading section-heading--with-count">
         <div>
           <span class="section-heading__en">SCHEDULE</span>
-          <h2 id="events-heading">開催予定の稽古会</h2>
+          <h2 id="events-heading">開催予定のイベント</h2>
         </div>
         <!-- EVENT_COUNT_START -->
         <div class="count" id="count">0件掲載中</div>
@@ -1166,6 +1194,22 @@
   </footer>
 
   <script>
+    const listingConfig = JSON.parse(document.getElementById("listing-config").textContent);
+    let activeCategory = "all";
+    function matchesCategory(event, category) {
+      const types = listingConfig.categories[category].types;
+      return types === null || types.includes(event.event_type);
+    }
+    function eventTypeLabel(event) {
+      return typeof event.event_type === "string" && Object.hasOwn(listingConfig.typeLabels, event.event_type)
+        ? listingConfig.typeLabels[event.event_type] : listingConfig.unknownTypeLabel;
+    }
+    function setCategory(category) {
+      activeCategory = category;
+      document.querySelectorAll("[data-category]").forEach(button => {
+        button.setAttribute("aria-pressed", String(button.dataset.category === category));
+      });
+    }
     const PARTICIPATION_LABELS = Object.freeze({
       anyone: "一般参加可",
       contact_required: "事前連絡",
@@ -1287,6 +1331,7 @@
 
     function appendSelectOptions(selectId, values) {
       const select = document.getElementById(selectId);
+      select.length = 1;
       for (const value of values) {
         const option = document.createElement("option");
         option.value = value;
@@ -1305,6 +1350,12 @@
 
       appendSelectOptions("organization", organizations);
       appendSelectOptions("area", areas);
+      const participationTypes = new Set(events.flatMap(event => [...participationTypesForFilter(event)]));
+      const select = document.getElementById("participation");
+      select.length = 1;
+      for (const [value, label] of Object.entries(PARTICIPATION_LABELS)) {
+        if (participationTypes.has(value)) select.add(new Option(label, value));
+      }
     }
 
     function matchesKeyword(event, keyword) {
@@ -1391,6 +1442,7 @@
 
     function activeFilterLabels({ keyword, org, area, participation, dateShortcut }) {
       const labels = [];
+      if (activeCategory !== "all") labels.push(listingConfig.categories[activeCategory].label);
       if (dateShortcut) labels.push(DATE_FILTER_LABELS[dateShortcut]);
       if (area) labels.push(area);
       if (participation) labels.push(PARTICIPATION_LABELS[participation]);
@@ -1413,6 +1465,7 @@
       document.getElementById("area").value = "";
       document.getElementById("participation").value = "";
       setDateShortcut("");
+      setCategory("all");
       render();
       if (focusKeyword) document.getElementById("keyword").focus();
     }
@@ -1426,6 +1479,7 @@
       const dateRange = dateRangeForShortcut(dateShortcut);
 
       const events = allEvents.filter(event => {
+        if (!matchesCategory(event, activeCategory)) return false;
         if (org && event.organization_name !== org) return false;
         if (area && event.area !== area) return false;
         if (
@@ -1458,7 +1512,7 @@
       if (events.length === 0) {
         cards.innerHTML = `
           <div class="empty">
-            <div>条件に合う稽古会はありません。</div>
+            <div>条件に合うイベントはありません。</div>
             <button class="reset-button" type="button" data-reset-filters>条件をすべて解除</button>
           </div>
         `;
@@ -1472,6 +1526,7 @@
       for (const event of events) {
         const card = document.createElement("article");
         card.className = "card";
+        card.dataset.eventId = event.event_id || "";
 
         const sourceUrl = event.source_url ? `
           <div class="row">
@@ -1493,6 +1548,7 @@
         ` : "";
 
         card.innerHTML = `
+          <div class="event-kind">${escapeHtml(eventTypeLabel(event))}</div>
           <div class="date">${escapeHtml(formatDate(event))}</div>
           <div class="org">${escapeHtml(event.organization_name || "")}</div>
           ${title}
@@ -1511,18 +1567,32 @@
 
     async function main() {
       try {
-        const response = await fetch("./events.json", { cache: "no-store" });
+        const response = await fetch("/events.json", { cache: "no-store" });
         if (!response.ok) {
           throw new Error(`events.json の取得に失敗しました: ${response.status}`);
         }
 
         const payload = await response.json();
-        allEvents = payload.events || [];
+        if (!Array.isArray(payload.events) || payload.events.some(event => !event || typeof event !== "object" || Array.isArray(event))) {
+          throw new Error("イベントデータの形式が不正です");
+        }
+        allEvents = payload.events.filter(event => matchesCategory(event, listingConfig.category));
+        const sortKeys = ["event_date", "start_time", "organization_id", "event_id"];
+        allEvents.sort((a, b) => {
+          for (const key of sortKeys) {
+            const left = String(a[key] || "").trim(), right = String(b[key] || "").trim();
+            if (left !== right) return left < right ? -1 : 1;
+          }
+          return 0;
+        });
         generatedDate = isoDate(payload.generated_at);
 
         document.getElementById("meta").textContent =
-          `生成日時: ${payload.generated_at || "-"} / 件数: ${payload.event_count ?? allEvents.length}`;
+          `生成日時: ${payload.generated_at || "-"} / 件数: ${allEvents.length}`;
 
+        document.querySelectorAll("[data-category]").forEach(button => {
+          button.addEventListener("click", () => { setCategory(button.dataset.category); render(); });
+        });
         renderFilterOptions(allEvents);
         render();
 
@@ -1545,7 +1615,7 @@
           "最新データの読み込みに失敗しました。掲載済み情報を表示しています。";
 
         const cards = document.getElementById("cards");
-        if (!cards.querySelector(".card")) {
+        if (!cards.querySelector(".card, .empty")) {
           cards.innerHTML =
             `<div class="error">${escapeHtml(error.message)}</div>`;
         }

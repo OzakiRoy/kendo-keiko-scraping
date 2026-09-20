@@ -2,7 +2,7 @@
 
 ## 概要
 
-「参加できる稽古会を、日付・地域・参加条件から探す」を掲げ、社会人・一般参加者が参加しやすい剣道のオープン稽古会・合同稽古会を探せるWebサービス。
+「参加できる稽古会を、日付・地域・参加条件から探す」を掲げ、社会人・一般参加者が参加しやすい剣道の稽古会と、大人向け錬成会・練習試合を探せるWebサービス。
 
 最初は公式サイトから取得できる団体のスクレイピングを中心に始める。将来的には、SNS中心の団体やスクレイピングしづらい団体について、団体側が自分で稽古予定を登録できるフォームを提供する。
 
@@ -269,7 +269,7 @@ updated_at
 
 ## 基本SEOの静的生成
 
-開催予定はブラウザのJavaScript表示に加え、定期Lambda実行時に `index.html` へ静的生成する。`events.json`、`index.html`、`sitemap.xml` を同じデータ更新サイクルでS3へ発行し、HTMLと表示データの鮮度を揃える。
+開催予定はブラウザのJavaScript表示に加え、Publisher実行時に共通テンプレートから3一覧ページへ静的生成する。`events.json`、`index.html`、`keiko/index.html`、`renseikai/index.html`、`sitemap.xml` を同じデータ更新サイクルでS3へ発行する。
 
 実装・デプロイ手順は `docs/basic-seo-setup.md` を参照する。
 
@@ -288,3 +288,9 @@ python manage_manual_events.py list-review-due
 ## Instagram Story画像生成
 
 本番公開済みの `events.json` から、指定した土曜日と翌日曜日の稽古会をInstagram Story向けPNGへ生成できる。Story専用依存、実行方法、出力規則は [`docs/weekend-story.md`](docs/weekend-story.md) を参照する。
+
+## 種別とカテゴリ一覧
+
+`/` は総合一覧、`/keiko/` は稽古会、`/renseikai/` は大人向け錬成会・練習試合。共通テンプレートから静的生成し、総合一覧の種別フィルターは既存条件とANDで組み合わせられる。未知の種別は総合の「すべて」に残す。
+
+開発依存・ブラウザテスト・生成方法は [カテゴリ一覧](docs/category-listings.md)、本番URLの適用順序は [CloudFront runbook](docs/cloudfront-category-urls.md) を参照する。

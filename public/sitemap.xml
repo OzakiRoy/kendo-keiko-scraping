@@ -6,4 +6,10 @@
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
+  <url>
+    <loc>https://kendo-keiko.com/keiko/</loc>
+  </url>
+  <url>
+    <loc>https://kendo-keiko.com/renseikai/</loc>
+  </url>
 </urlset>

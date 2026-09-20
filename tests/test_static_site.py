@@ -214,7 +214,7 @@ class StaticSiteTests(unittest.TestCase):
             {"generated_at": "2026-07-21T10:30:00+09:00", "events": []},
         )
         self.assertIn("掲載件数: 0件", rendered)
-        self.assertIn("現在掲載中の稽古会はありません。", rendered)
+        self.assertIn("現在掲載中のイベントはありません。", rendered)
 
     def test_rejects_invalid_events_shape(self) -> None:
         with self.assertRaises(ValueError):

@@ -85,7 +85,13 @@ from kendo_keiko.models import RawScrapedEvent, ScrapeResult
 from kendo_keiko.scrapers.ajkf import scrape
 from kendo_keiko.scrapers.saitama import scrape as scrape_saitama
 
-print("[INFO] Lambda package imports: OK")
+from pathlib import Path
+from kendo_keiko.static_site import render_listing_pages
+import kendo_keiko
+root = Path(kendo_keiko.__file__).resolve().parent.parent
+pages = render_listing_pages((root / "public/index.html").read_text(), {"events": []})
+assert set(pages) == {"index.html", "keiko/index.html", "renseikai/index.html"}
+print("[INFO] Lambda package imports and all listing templates: OK")
 PY
 )
 
@@ -122,6 +128,7 @@ required_files=(
   "kendo_keiko/publication.py"
   "kendo_keiko/repository.py"
   "kendo_keiko/static_site.py"
+  "kendo_keiko/listing.py"
   "kendo_keiko/worker.py"
   "kendo_keiko/scrapers/__init__.py"
   "kendo_keiko/scrapers/ajkf.py"
@@ -160,6 +167,11 @@ done
 if grep -Eq '\.(pyc|pyo)$' "${ZIP_CONTENTS_FILE}"; then
   echo "[ERROR] Python cache file found in ZIP" >&2
   grep -E '\.(pyc|pyo)$' "${ZIP_CONTENTS_FILE}" >&2
+  exit 1
+fi
+
+if grep -Eq '(^|/)(\.venv|browsers|browser-libs|browser-debs|playwright|pyee|greenlet|PIL|assets/fonts)(/|[-.])|(^|/)requirements-(dev|story)\.txt$' "${ZIP_CONTENTS_FILE}"; then
+  echo "[ERROR] development-only dependency found in ZIP" >&2
   exit 1
 fi
 
