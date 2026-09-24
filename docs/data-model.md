@@ -123,3 +123,7 @@ EventBridge Scheduler
 Publisher LambdaはDynamoDBの自動イベントと手動JSONを統合する。同じ団体・イベント種別・開催日・開始時刻・終了時刻のイベントは重複とみなし、手動イベントを優先する。手動イベントが `cancelled` または `archived` の場合は、対応する自動イベントも公開しない。
 
 詳細は `docs/manual-events.md` を参照する。
+
+## 一覧のイベント種別
+
+`open_keiko`・`federation_keiko` は稽古会、`adult_renseikai` は大人が外部参加できる錬成会・練習試合。登録時に公式情報で確認し、タイトル等から自動分類しない。未知・欠損種別は総合一覧に「種別未分類」で残すがカテゴリ一覧には含めない。分類定義は `kendo_keiko/listing.py`、詳細は [カテゴリ一覧](category-listings.md) を参照。

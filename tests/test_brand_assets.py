@@ -25,7 +25,7 @@ class BrandAssetsTests(unittest.TestCase):
         html = INDEX_PATH.read_text(encoding="utf-8")
 
         self.assertIn(
-            "<title>剣道稽古ナビ｜オープン稽古会・合同稽古会を地域と日付から検索</title>",
+            "<title>剣道稽古ナビ｜稽古会・錬成会・練習試合を地域と日付から検索</title>",
             html,
         )
         self.assertIn("<h1>剣道稽古ナビ</h1>", html)

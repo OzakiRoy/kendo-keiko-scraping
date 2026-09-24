@@ -79,7 +79,7 @@ class LambdaStaticPublishTests(unittest.TestCase):
             "site.webmanifest",
         }
         self.assertEqual(
-            {"events.json", "index.html", "sitemap.xml", *expected_assets},
+            {"events.json", "index.html", "keiko/index.html", "renseikai/index.html", "sitemap.xml", *expected_assets},
             set(objects),
         )
         self.assertEqual(

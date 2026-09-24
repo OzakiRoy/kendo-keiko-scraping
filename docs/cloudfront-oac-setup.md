@@ -1,5 +1,7 @@
 # CloudFront + OAC セットアップ手順
 
+カテゴリURLの追加は [カテゴリURL runbook](cloudfront-category-urls.md) を参照する。DefaultRootObjectだけでは `/keiko/`・`/renseikai/` は配信できない。
+
 ## 目的
 
 S3 に配置した静的ビューアを、S3 を公開せずに CloudFront 経由でブラウザ公開する。

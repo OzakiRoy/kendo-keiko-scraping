@@ -16,7 +16,11 @@ from kendo_keiko.manual_events import (
     merge_public_events,
 )
 from kendo_keiko.models import normalize_event_metadata
-from kendo_keiko.static_site import build_sitemap_xml, render_static_index
+from kendo_keiko.static_site import (
+    build_sitemap_xml,
+    render_static_index,
+    render_listing_pages,
+)
 
 
 JST = ZoneInfo("Asia/Tokyo")
@@ -241,19 +245,26 @@ def publish_public_site(
         "events_key": events_key,
         "event_count": len(events),
         "index_published": False,
+        "listing_pages_published": False,
+        "listing_page_keys": [],
         "sitemap_published": False,
         "assets_published": False,
         "asset_keys": [],
     }
 
     if publish_index_html:
-        upload_text_to_s3(
-            bucket=events_bucket,
-            key=index_key,
-            body=build_public_index_html(payload),
-            content_type="text/html; charset=utf-8",
-            region_name=region_name,
-        )
+        template_path = Path(__file__).resolve().parent.parent / "public/index.html"
+        template = template_path.read_text(encoding="utf-8")
+        pages = render_listing_pages(template, payload, site_url=site_url)
+        page_keys = []
+        # Categories first, then the homepage containing their navigation.
+        for key in ("keiko/index.html", "renseikai/index.html", "index.html"):
+            output_key = index_key if key == "index.html" else key
+            upload_text_to_s3(
+                bucket=events_bucket, key=output_key, body=pages[key],
+                content_type="text/html; charset=utf-8", region_name=region_name,
+            )
+            page_keys.append(output_key)
         upload_text_to_s3(
             bucket=events_bucket,
             key=sitemap_key,
@@ -272,6 +283,8 @@ def publish_public_site(
         result.update(
             {
                 "index_published": True,
+                "listing_pages_published": True,
+                "listing_page_keys": page_keys,
                 "index_key": index_key,
                 "sitemap_published": True,
                 "sitemap_key": sitemap_key,

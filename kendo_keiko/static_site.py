@@ -1,10 +1,21 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
+import re
 from html import escape
 from pathlib import Path
 from typing import Any, Iterable
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
+
+from kendo_keiko.listing import (
+    CATEGORIES,
+    PAGES,
+    TYPE_LABELS,
+    UNKNOWN_TYPE_LABEL,
+    select_events,
+    type_label,
+)
 
 
 EVENT_META_START = "<!-- EVENT_META_START -->"
@@ -163,7 +174,8 @@ def render_event_card(
     reference_date: dt.date | None = None,
 ) -> str:
     lines = [
-        '        <article class="card">',
+        f'        <article class="card" data-event-id="{escape(_text(event.get("event_id")), quote=True)}">',
+        f'          <div class="event-kind">{escape(type_label(event))}</div>',
         f'          <div class="date">{escape(format_event_date(event), quote=True)}</div>',
         (
             '          <div class="org">'
@@ -240,7 +252,7 @@ def render_event_cards(
     reference_date: dt.date | None = None,
 ) -> str:
     if not events:
-        return '        <div class="empty">現在掲載中の稽古会はありません。</div>'
+        return '        <div class="empty">現在掲載中のイベントはありません。</div>'
 
     return "\n".join(
         render_event_card(event, reference_date=reference_date)
@@ -280,7 +292,11 @@ def _replace_marked_content(
 def render_static_index(
     template_html: str,
     payload: dict[str, Any],
+    *,
+    category: str = "all",
+    site_url: str = "https://kendo-keiko.com/",
 ) -> str:
+    template_html = render_page_shell(template_html, category, site_url)
     raw_events = payload.get("events", [])
     if not isinstance(raw_events, list):
         raise ValueError("events payloadのeventsは配列が必要です")
@@ -291,7 +307,7 @@ def render_static_index(
             raise ValueError("events payloadの各要素はオブジェクトが必要です")
         events.append(event)
 
-    events = sort_events(events)
+    events = sort_events(select_events(events, category))
     generated_at = _text(payload.get("generated_at"), "-")
     reference_date = _iso_date(generated_at)
     event_count = len(events)
@@ -324,7 +340,7 @@ def render_static_index(
         ),
         indent="        ",
     )
-    return html
+    return render_filter_options(html, events)
 
 
 def build_sitemap_xml(
@@ -333,17 +349,17 @@ def build_sitemap_xml(
     lastmod: dt.date | None = None,
 ) -> str:
     lastmod = lastmod or dt.date.today()
-    safe_site_url = escape(site_url, quote=True)
+    entries = "\n".join(
+        "  <url>\n"
+        f"    <loc>{escape(urljoin(site_url, page['path']), quote=True)}</loc>\n"
+        f"    <lastmod>{lastmod.isoformat()}</lastmod>\n"
+        "  </url>"
+        for page in PAGES.values()
+    )
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        '  <url>\n'
-        f'    <loc>{safe_site_url}</loc>\n'
-        f'    <lastmod>{lastmod.isoformat()}</lastmod>\n'
-        '    <changefreq>daily</changefreq>\n'
-        '    <priority>1.0</priority>\n'
-        '  </url>\n'
-        '</urlset>\n'
+        + entries + '\n</urlset>\n'
     )
 
 
@@ -352,10 +368,128 @@ def render_static_index_file(
     template_path: Path,
     output_path: Path,
     payload: dict[str, Any],
+    site_url: str = "https://kendo-keiko.com/",
 ) -> None:
     rendered = render_static_index(
         template_path.read_text(encoding="utf-8"),
         payload,
+        site_url=site_url,
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(rendered, encoding="utf-8")
+
+
+def render_filter_options(html: str, events: list[dict[str, Any]]) -> str:
+    """Match static options to the same page scope used by the browser."""
+    participation_types = {participation_type_for_display(event) for event in events}
+    if any(event.get("application_required") is True for event in events):
+        participation_types.add("registration_required")
+    options = {
+        "organization": [("", "すべての団体")] + [
+            (name, name) for name in sorted({
+                _text(event.get("organization_name")) for event in events
+                if _text(event.get("organization_name"))
+            })
+        ],
+        "area": [("", "すべての地域")] + [
+            (area, area) for area in sorted({
+                _text(event.get("area")) for event in events if _text(event.get("area"))
+            })
+        ],
+        "participation": [("", "すべての参加条件")] + [
+            (value, label) for value, label in PARTICIPATION_LABELS.items()
+            if value in participation_types
+        ],
+    }
+    for select_id, values in options.items():
+        content = "\n".join(
+            f'            <option value="{escape(value, quote=True)}">{escape(label)}</option>'
+            for value, label in values
+        )
+        html = re.sub(
+            rf'(<select id="{select_id}">).*?(</select>)',
+            lambda match: match[1] + "\n" + content + "\n          " + match[2],
+            html,
+            flags=re.S,
+        )
+    return html
+
+
+def render_page_shell(template: str, category: str, site_url: str) -> str:
+    page = PAGES[category]
+    canonical = urljoin(site_url, page["path"])
+    # Complete marked regions keep generation idempotent, even from a rendered page.
+    metadata = [
+        f'  <title>{escape(page["title"])}</title>',
+        f'  <meta name="description" content="{escape(page["description"], quote=True)}">',
+        f'  <link rel="canonical" href="{escape(canonical, quote=True)}">',
+    ]
+    for attr, value in (
+        ("og:title", page["title"]),
+        ("og:description", page["description"]),
+        ("og:url", canonical),
+        ("twitter:title", page["title"]),
+        ("twitter:description", page["description"]),
+    ):
+        name = "name" if attr.startswith("twitter:") else "property"
+        metadata.append(f'  <meta {name}="{attr}" content="{escape(value, quote=True)}">')
+    config = json.dumps(
+        {"category": category, "categories": CATEGORIES,
+         "typeLabels": TYPE_LABELS, "unknownTypeLabel": UNKNOWN_TYPE_LABEL},
+        ensure_ascii=False,
+    ).replace("<", "\\u003c")
+    navigation = ['    <nav class="listing-nav" aria-label="イベント一覧">']
+    for key, item in PAGES.items():
+        current = ' aria-current="page"' if key == category else ''
+        label = "総合一覧" if key == "all" else CATEGORIES[key]["label"]
+        navigation.append(f'      <a href="{item["path"]}"{current}>{label}</a>')
+    navigation.append('    </nav>')
+    controls = []
+    if category == "all":
+        controls.append(
+            '      <fieldset class="kind-filter"><legend>種別</legend>\n'
+            '        <div class="kind-buttons">'
+        )
+        for key, item in CATEGORIES.items():
+            controls.append(
+                f'          <button type="button" class="date-shortcut-button" data-category="{key}" '
+                f'aria-pressed="{str(key == "all").lower()}">{item["label"]}</button>'
+            )
+        controls.append('        </div>\n      </fieldset>')
+    for marker, content, indent in (
+        ("PAGE_META", "\n".join(metadata), "  "),
+        ("LISTING_CONFIG", f'  <script type="application/json" id="listing-config">{config}</script>', "  "),
+        ("LISTING_NAV", "\n".join(navigation), "    "),
+        ("KIND_FILTER", "\n".join(controls), "      "),
+    ):
+        template = _replace_marked_content(
+            template,
+            start_marker=f"<!-- {marker}_START -->",
+            end_marker=f"<!-- {marker}_END -->",
+            content=content,
+            indent=indent,
+        )
+    template = re.sub(
+        r'(<h2 id="search-heading">).*?(</h2>)',
+        lambda match: match[1] + escape(page["heading"]) + match[2],
+        template,
+    )
+    return re.sub(
+        r'(<p class="lead">).*?(</p>)',
+        lambda match: match[1] + escape(page["description"]) +
+        ' 参加前には必ず主催者の公式情報をご確認ください。' + match[2],
+        template,
+        flags=re.S,
+    )
+
+
+def render_listing_pages(
+    template: str,
+    payload: dict[str, Any],
+    *,
+    site_url: str = "https://kendo-keiko.com/",
+) -> dict[str, str]:
+    return {
+        page["key"]: render_static_index(template, payload, category=category, site_url=site_url)
+        for category, page in PAGES.items()
+    }

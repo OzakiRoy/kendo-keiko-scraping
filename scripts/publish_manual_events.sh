@@ -332,6 +332,9 @@ jq -e '
   and .s3_published == true
   and .index_published == true
   and .sitemap_published == true
+  and .listing_pages_published == true
+  and (.listing_page_keys | index("keiko/index.html") != null)
+  and (.listing_page_keys | index("renseikai/index.html") != null)
 ' "${response_file}" >/dev/null || fail "Publisher response flags are invalid"
 
 echo "[INFO] verify S3 source object: s3://${EVENTS_BUCKET}/${EVENTS_KEY}"
@@ -364,6 +367,18 @@ if [[ -n "${ORGANIZATION_ID}" ]]; then
   echo "[INFO] published events: organization_id=${ORGANIZATION_ID} count=${published_count}"
 fi
 
+echo "[INFO] verify generated listing pages against S3 events.json"
+python scripts/generate_event_section.py --events "${events_file}" \
+  --output-dir "${work_dir}/expected" --site-url "${SITE_URL}"
+for page_key in index.html keiko/index.html renseikai/index.html; do
+  remote_key="${page_key}"
+  [[ "${page_key}" != "index.html" ]] || remote_key="${INDEX_KEY}"
+  aws s3 cp "s3://${EVENTS_BUCKET}/${remote_key}" "${work_dir}/actual.html" \
+    --region "${AWS_REGION}" --only-show-errors
+  cmp -s "${work_dir}/expected/${page_key}" "${work_dir}/actual.html" || \
+    fail "S3 listing differs from published events: ${remote_key}"
+done
+
 echo "[INFO] publish completed successfully"
-echo "[INFO] S3 updated: ${EVENTS_KEY}, ${INDEX_KEY}, ${SITEMAP_KEY}, and public assets"
+echo "[INFO] S3 updated: ${EVENTS_KEY}, ${INDEX_KEY}, keiko/index.html, renseikai/index.html, ${SITEMAP_KEY}, and public assets"
 echo "[INFO] CloudFront may serve the previous index.html until its cache expires"
