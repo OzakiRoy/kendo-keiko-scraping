@@ -786,7 +786,7 @@ class ManualEventDataTests(unittest.TestCase):
             if event["organization_id"] == "kizunakai"
         ]
 
-        self.assertEqual(3, len(events))
+        self.assertEqual(4, len(events))
 
         events_by_date = {
             event["event_date"]: event
@@ -794,7 +794,7 @@ class ManualEventDataTests(unittest.TestCase):
         }
 
         self.assertEqual(
-            {"2026-08-14", "2026-08-27", "2026-09-11"},
+            {"2026-08-14", "2026-08-27", "2026-09-11", "2026-10-02"},
             set(events_by_date),
         )
 
@@ -879,6 +879,38 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("manual", event["update_mode"])
         self.assertEqual("active", event["status"])
         self.assertEqual("2026-09-10", event["review_due_at"])
+        self.assertIn("参加自由", event["raw_note"])
+        self.assertIn("途中参加OK", event["raw_note"])
+        self.assertIn("エアコン完備", event["raw_note"])
+
+        event = events_by_date["2026-10-02"]
+
+        self.assertEqual(
+            "kizunakai-20261002-1900-c0e1b2ce",
+            event["event_id"],
+        )
+        self.assertEqual("絆剱会", event["organization_name"])
+        self.assertEqual("絆剱会ゆる稽古会", event["title"])
+        self.assertEqual("2026-10-02", event["event_date"])
+        self.assertEqual("金", event["weekday"])
+        self.assertEqual("19:00", event["start_time"])
+        self.assertEqual("21:30", event["end_time"])
+        self.assertEqual("名細市民センター 多目的室", event["venue"])
+        self.assertEqual("埼玉県", event["area"])
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertEqual("一般200円／大学生以下100円", event["fee"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DdeG_rZxFW8/",
+            event["source_url"],
+        )
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual("2026-09-25T06:22:49+09:00", event["verified_at"])
+        self.assertEqual("2026-10-01", event["review_due_at"])
         self.assertIn("参加自由", event["raw_note"])
         self.assertIn("途中参加OK", event["raw_note"])
         self.assertIn("エアコン完備", event["raw_note"])
