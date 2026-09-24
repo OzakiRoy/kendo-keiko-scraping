@@ -1288,6 +1288,84 @@ class ManualEventDataTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("<h3>Sempuu 旋風</h3>", index_html)
 
+    def test_oyaji_renseikai_event_is_valid_and_listed_as_renseikai(
+        self,
+    ) -> None:
+        organizations = load_organizations()
+        organization = find_organization(
+            organizations,
+            "oyaji_no_kendo_renseikai",
+        )
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "oyaji_no_kendo_renseikai"
+        ]
+
+        self.assertEqual("親父ノ剣道錬成会", organization.name)
+        self.assertEqual("愛知県", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/oyaji_no_kendo_renseikai/",
+            organization.website_url,
+        )
+        self.assertEqual("sns", organization.source_type)
+        self.assertEqual("manual", organization.scraper_type)
+        self.assertFalse(organization.scraper_enabled)
+        self.assertEqual("adult_renseikai", organization.event_type)
+        self.assertEqual("unknown", organization.default_participation_type)
+        self.assertIsNone(organization.default_application_required)
+        self.assertEqual(1, len(events))
+
+        event = events[0]
+        self.assertEqual(
+            "oyaji_no_kendo_renseikai-20261123-0900-2bfe3bcc",
+            event["event_id"],
+        )
+        self.assertEqual("親父ノ剣道錬成会24", event["title"])
+        self.assertEqual("adult_renseikai", event["event_type"])
+        self.assertEqual("2026-11-23", event["event_date"])
+        self.assertEqual("月", event["weekday"])
+        self.assertEqual("09:00", event["start_time"])
+        self.assertEqual("12:30", event["end_time"])
+        self.assertEqual(
+            "愛知県 蒲郡市民体育センター 武道館3F 剣道場（蒲郡武道館）",
+            event["venue"],
+        )
+        self.assertEqual("愛知県", event["area"])
+        self.assertEqual("愛知県蒲郡市緑町3-69", event["address"])
+        self.assertIsNone(event["access"])
+        self.assertEqual(
+            "1チーム1,500円（1人500円計算）、個人参加・合同枠は1人ワンコイン",
+            event["fee"],
+        )
+        self.assertTrue(event["application_required"])
+        self.assertEqual(
+            "registration_required",
+            event["participation_type"],
+        )
+        self.assertEqual(
+            "https://www.instagram.com/p/DdqsC7rEu-d/?img_index=2",
+            event["source_url"],
+        )
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual("2026-09-25T07:00:01+09:00", event["verified_at"])
+        self.assertEqual("2026-11-22", event["review_due_at"])
+        self.assertIn("3人制団体戦", event["raw_note"])
+        self.assertIn("個人参加・合同枠あり", event["raw_note"])
+        self.assertIn("naokickboxing@gmail.com", event["raw_note"])
+        self.assertIn("申込締切10月23日", event["raw_note"])
+
+        self.assertEqual(events, select_events(events, "all"))
+        self.assertEqual([], select_events(events, "keiko"))
+        self.assertEqual(events, select_events(events, "renseikai"))
+
+        index_html = (
+            Path(__file__).resolve().parents[1] / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("<h3>親父ノ剣道錬成会</h3>", index_html)
+
 
 if __name__ == "__main__":
     unittest.main()
