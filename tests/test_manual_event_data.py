@@ -11,6 +11,7 @@ from kendo_keiko.manual_events import (
     load_manual_events,
     sort_manual_events,
 )
+from kendo_keiko.listing import select_events
 from kendo_keiko.repository import find_organization, load_organizations
 
 
@@ -1190,6 +1191,70 @@ class ManualEventDataTests(unittest.TestCase):
                 "小学生から大人まで参加可能",
                 event["raw_note"],
             )
+
+    def test_sempuu_platinum_event_is_valid_and_listed_as_renseikai(
+        self,
+    ) -> None:
+        organizations = load_organizations()
+        organization = find_organization(organizations, "sempuu")
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "sempuu"
+        ]
+
+        self.assertEqual("Sempuu 旋風", organization.name)
+        self.assertEqual("静岡県", organization.area)
+        self.assertEqual("https://www.sempuu.net/", organization.website_url)
+        self.assertEqual("official_site", organization.source_type)
+        self.assertEqual("manual", organization.scraper_type)
+        self.assertFalse(organization.scraper_enabled)
+        self.assertEqual("unknown", organization.event_type)
+        self.assertEqual("unknown", organization.default_participation_type)
+        self.assertIsNone(organization.default_application_required)
+        self.assertEqual(1, len(events))
+
+        event = events[0]
+        self.assertEqual(
+            "sempuu-20261012-0900-8fabdfff",
+            event["event_id"],
+        )
+        self.assertEqual("旋風プラクティスマッチ platinum", event["title"])
+        self.assertEqual("adult_renseikai", event["event_type"])
+        self.assertEqual("2026-10-12", event["event_date"])
+        self.assertEqual("月", event["weekday"])
+        self.assertEqual("09:00", event["start_time"])
+        self.assertEqual("12:30", event["end_time"])
+        self.assertEqual("浜北武道館（中瀬）", event["venue"])
+        self.assertEqual("静岡県", event["area"])
+        self.assertEqual("浜松市浜北区中瀬1215-1", event["address"])
+        self.assertIsNone(event["access"])
+        self.assertEqual("1,500円／チーム、500円／人", event["fee"])
+        self.assertTrue(event["application_required"])
+        self.assertEqual("registration_required", event["participation_type"])
+        self.assertEqual("official_site", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual(
+            "https://www.sempuu.net/platinum",
+            event["source_url"],
+        )
+        self.assertEqual("2026-09-24T11:31:16+09:00", event["verified_at"])
+        self.assertEqual("2026-10-11", event["review_due_at"])
+        self.assertIn("8:00開場・アップ", event["raw_note"])
+        self.assertIn("2人以上で参加可", event["raw_note"])
+        self.assertIn("個人参加可", event["raw_note"])
+        self.assertIn("概ね40歳以上", event["raw_note"])
+        self.assertIn("bluered12@sempuu.net", event["raw_note"])
+
+        self.assertEqual(events, select_events(events, "all"))
+        self.assertEqual([], select_events(events, "keiko"))
+        self.assertEqual(events, select_events(events, "renseikai"))
+
+        index_html = (
+            Path(__file__).resolve().parents[1] / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("<h3>Sempuu 旋風</h3>", index_html)
 
 
 if __name__ == "__main__":

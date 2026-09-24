@@ -246,6 +246,20 @@
     "default_application_required": false
   },
   {
+    "organization_id": "sempuu",
+    "name": "Sempuu 旋風",
+    "area": "静岡県",
+    "website_url": "https://www.sempuu.net/",
+    "source_type": "official_site",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "unknown",
+    "notes": "公式サイトの案内を管理者が確認し、手動登録",
+    "public_description": "Sempuu 旋風が浜松市で開催する、一般参加可能な剣道稽古会・大人向け錬成会の予定を掲載しています。",
+    "default_participation_type": "unknown",
+    "default_application_required": null
+  },
+  {
     "organization_id": "tokyo",
     "name": "東京都剣道連盟",
     "area": "東京都",
