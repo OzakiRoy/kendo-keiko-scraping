@@ -208,6 +208,20 @@
     "public_description": "MUSYAが千葉市で開催する自由参加型稽古会「だれでも道場」の予定を掲載しています。"
   },
   {
+    "organization_id": "oyaji_no_kendo_renseikai",
+    "name": "親父ノ剣道錬成会",
+    "area": "愛知県",
+    "website_url": "https://www.instagram.com/oyaji_no_kendo_renseikai/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "adult_renseikai",
+    "notes": "公式Instagramの告知を管理者が確認し、手動登録。投稿の主催表記は朝活稽古会。",
+    "public_description": "親父ノ剣道錬成会が愛知県蒲郡市で開催する、大人向け錬成会・練習試合の予定を掲載しています。",
+    "default_participation_type": "unknown",
+    "default_application_required": null
+  },
+  {
     "organization_id": "ruroken",
     "name": "流浪剣",
     "area": "東京都",
