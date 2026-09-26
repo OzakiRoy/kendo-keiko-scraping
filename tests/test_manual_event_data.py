@@ -600,7 +600,12 @@ class ManualEventDataTests(unittest.TestCase):
             ) = expected_schedules[event["event_date"]]
             self.assertEqual("hagakurey", event["organization_id"])
             self.assertEqual(expected_title, event["title"])
-            self.assertEqual("open_keiko", event["event_type"])
+            expected_event_type = (
+                "adult_renseikai"
+                if expected_content == "練習試合"
+                else "open_keiko"
+            )
+            self.assertEqual(expected_event_type, event["event_type"])
             self.assertEqual(expected_start, event["start_time"])
             self.assertEqual(expected_end, event["end_time"])
             self.assertEqual(expected_venue, event["venue"])
@@ -622,8 +627,18 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertIn(expected_content, event["raw_note"])
 
         self.assertEqual(events, select_events(events, "all"))
-        self.assertEqual(events, select_events(events, "keiko"))
-        self.assertEqual([], select_events(events, "renseikai"))
+        self.assertEqual(
+            [event for event in events if event["event_type"] == "open_keiko"],
+            select_events(events, "keiko"),
+        )
+        self.assertEqual(
+            [
+                event
+                for event in events
+                if event["event_type"] == "adult_renseikai"
+            ],
+            select_events(events, "renseikai"),
+        )
 
 
     def test_kent_ladies_event_is_valid(self) -> None:
