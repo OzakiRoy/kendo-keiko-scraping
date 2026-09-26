@@ -738,7 +738,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("manual", organization.scraper_type)
         self.assertFalse(organization.scraper_enabled)
         self.assertEqual("open_keiko", organization.event_type)
-        self.assertEqual(1, len(events))
+        self.assertEqual(2, len(events))
 
         event = events[0]
         self.assertEqual(
@@ -772,6 +772,45 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("2026-09-22", event["review_due_at"])
         self.assertIn("成人女性限定", event["raw_note"])
         self.assertIn("申込は公式投稿のQRから", event["raw_note"])
+
+        october_event = events[1]
+        self.assertEqual(
+            "kendo_jo_tateyo-20261011-1900-311cfda0",
+            october_event["event_id"],
+        )
+        self.assertEqual("10月だれでも道場", october_event["title"])
+        self.assertEqual("2026-10-11", october_event["event_date"])
+        self.assertEqual("日", october_event["weekday"])
+        self.assertEqual("19:00", october_event["start_time"])
+        self.assertEqual("21:00", october_event["end_time"])
+        self.assertEqual(
+            "YohaSアリーナ 剣道場",
+            october_event["venue"],
+        )
+        self.assertEqual("千葉県", october_event["area"])
+        self.assertIsNone(october_event["address"])
+        self.assertEqual("千葉公園駅", october_event["access"])
+        self.assertEqual("500円", october_event["fee"])
+        self.assertTrue(october_event["application_required"])
+        self.assertEqual(
+            "registration_required",
+            october_event["participation_type"],
+        )
+        self.assertEqual("open_keiko", october_event["event_type"])
+        self.assertEqual("sns", october_event["source_type"])
+        self.assertEqual("manual", october_event["update_mode"])
+        self.assertEqual("active", october_event["status"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DdfzJSdiZRX/?img_index=1",
+            october_event["source_url"],
+        )
+        self.assertEqual("2026-10-10", october_event["review_due_at"])
+        self.assertIn("フリー参加型の大人稽古会", october_event["raw_note"])
+        self.assertIn("高校生以上", october_event["raw_note"])
+        self.assertIn("申込フォーム", october_event["raw_note"])
+        self.assertIn("締切10/9", october_event["raw_note"])
+        self.assertIn("決済リンク", october_event["raw_note"])
+        self.assertIn("19:15から準備体操", october_event["raw_note"])
 
         index_html = (
             Path(__file__).resolve().parents[1] / "public" / "index.html"
