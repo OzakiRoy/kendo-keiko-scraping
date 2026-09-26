@@ -511,6 +511,121 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertIn("アテンド", event["raw_note"])
 
 
+    def test_hagakurey_october_weekend_events_are_valid(self) -> None:
+        source_url = "https://www.instagram.com/p/DduBH7zz988/"
+        events = [
+            event
+            for event in load_manual_events()
+            if event["source_url"] == source_url
+        ]
+        expected_schedules = {
+            "2026-10-03": (
+                "HAGAKUREY 10月通常稽古",
+                "19:00",
+                "21:00",
+                "渋谷区スポーツセンター",
+                "通常稽古",
+            ),
+            "2026-10-04": (
+                "HAGAKUREY 10月練習試合",
+                "15:00",
+                "17:00",
+                "渋谷区スポーツセンター",
+                "練習試合",
+            ),
+            "2026-10-10": (
+                "HAGAKUREY 10月昇段審査稽古会",
+                "15:00",
+                "18:00",
+                "墨田区総合体育館",
+                "昇段審査稽古会",
+            ),
+            "2026-10-11": (
+                "HAGAKUREY 10月練習試合",
+                "17:00",
+                "19:00",
+                "渋谷区スポーツセンター",
+                "練習試合",
+            ),
+            "2026-10-12": (
+                "HAGAKUREY 10月通常稽古",
+                "19:00",
+                "21:00",
+                "渋谷区スポーツセンター",
+                "通常稽古",
+            ),
+            "2026-10-17": (
+                "HAGAKUREY 10月通常稽古",
+                "15:00",
+                "18:00",
+                "墨田区総合体育館",
+                "通常稽古",
+            ),
+            "2026-10-18": (
+                "HAGAKUREY 10月練習試合",
+                "15:00",
+                "18:00",
+                "墨田区総合体育館",
+                "練習試合",
+            ),
+            "2026-10-24": (
+                "HAGAKUREY 10月練習試合",
+                "15:00",
+                "18:00",
+                "墨田区総合体育館",
+                "練習試合",
+            ),
+            "2026-10-25": (
+                "HAGAKUREY 10月通常稽古",
+                "18:00",
+                "21:00",
+                "墨田区総合体育館",
+                "通常稽古",
+            ),
+        }
+
+        self.assertEqual(9, len(events))
+        self.assertEqual(
+            list(expected_schedules),
+            [event["event_date"] for event in events],
+        )
+
+        for event in events:
+            (
+                expected_title,
+                expected_start,
+                expected_end,
+                expected_venue,
+                expected_content,
+            ) = expected_schedules[event["event_date"]]
+            self.assertEqual("hagakurey", event["organization_id"])
+            self.assertEqual(expected_title, event["title"])
+            self.assertEqual("open_keiko", event["event_type"])
+            self.assertEqual(expected_start, event["start_time"])
+            self.assertEqual(expected_end, event["end_time"])
+            self.assertEqual(expected_venue, event["venue"])
+            self.assertEqual("東京都", event["area"])
+            self.assertIsNone(event["address"])
+            self.assertIsNone(event["access"])
+            self.assertIsNone(event["fee"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual("anyone", event["participation_type"])
+            self.assertEqual(source_url, event["source_url"])
+            self.assertEqual("sns", event["source_type"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("active", event["status"])
+            self.assertEqual(
+                (date.fromisoformat(event["event_date"]) - timedelta(days=1)).isoformat(),
+                event["review_due_at"],
+            )
+            self.assertIn("初心者から経験者まで参加歓迎", event["raw_note"])
+            self.assertIn(expected_content, event["raw_note"])
+
+        self.assertEqual(events, select_events(events, "all"))
+        self.assertEqual(events, select_events(events, "keiko"))
+        self.assertEqual([], select_events(events, "renseikai"))
+
+
     def test_kent_ladies_event_is_valid(self) -> None:
         events = [
             event
