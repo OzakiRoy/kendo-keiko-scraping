@@ -37,10 +37,11 @@ class ListingPagesTests(unittest.TestCase):
                 self.assertEqual(
                     1,
                     html.count(
-                        'https://www.googletagmanager.com/gtag/js?id=G-M91BRN6W55'
+                        'https://www.googletagmanager.com/gtag/js?id=G-HY0WCBCXKW'
                     ),
                 )
-                self.assertEqual(1, html.count("gtag('config', 'G-M91BRN6W55')"))
+                self.assertEqual(1, html.count("gtag('config', 'G-HY0WCBCXKW')"))
+                self.assertNotIn('G-M91BRN6W55', html)
 
     def test_static_scope_counts_seo_and_idempotence(self):
         payload = public_fixture()
