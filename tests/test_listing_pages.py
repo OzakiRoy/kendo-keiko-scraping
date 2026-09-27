@@ -31,6 +31,17 @@ def fixture_pages():
 
 
 class ListingPagesTests(unittest.TestCase):
+    def test_google_analytics_tag_is_included_once_per_generated_page(self):
+        for key, html in fixture_pages().items():
+            with self.subTest(key=key):
+                self.assertEqual(
+                    1,
+                    html.count(
+                        'https://www.googletagmanager.com/gtag/js?id=G-M91BRN6W55'
+                    ),
+                )
+                self.assertEqual(1, html.count("gtag('config', 'G-M91BRN6W55')"))
+
     def test_static_scope_counts_seo_and_idempotence(self):
         payload = public_fixture()
         original = copy.deepcopy(payload)
