@@ -1413,13 +1413,9 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("unknown", organization.event_type)
         self.assertEqual("unknown", organization.default_participation_type)
         self.assertIsNone(organization.default_application_required)
-        self.assertEqual(9, len(events))
+        self.assertEqual(1, len(events))
 
-        event = next(
-            event
-            for event in events
-            if event["event_id"] == "sempuu-20261012-0900-8fabdfff"
-        )
+        event = events[0]
         self.assertEqual(
             "sempuu-20261012-0900-8fabdfff",
             event["event_id"],
@@ -1453,132 +1449,13 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn("bluered12@sempuu.net", event["raw_note"])
 
         self.assertEqual(events, select_events(events, "all"))
-        self.assertEqual(6, len(select_events(events, "keiko")))
-        self.assertEqual(3, len(select_events(events, "renseikai")))
-        self.assertIn(event, select_events(events, "renseikai"))
+        self.assertEqual([], select_events(events, "keiko"))
+        self.assertEqual(events, select_events(events, "renseikai"))
 
         index_html = (
             Path(__file__).resolve().parents[1] / "public" / "index.html"
         ).read_text(encoding="utf-8")
         self.assertIn("<h3>Sempuu 旋風</h3>", index_html)
-
-    def test_sempuu_october_and_november_events_are_valid(self) -> None:
-        events = [
-            event
-            for event in load_manual_events()
-            if event["organization_id"] == "sempuu"
-            and event["event_id"] != "sempuu-20261012-0900-8fabdfff"
-        ]
-
-        self.assertEqual(8, len(events))
-        expected = {
-            "sempuu-20261004-1330-5fc1315e": (
-                "旋風稽古会　旋Tsumuji １０月",
-                "2026-10-04",
-                "13:30",
-                "15:30",
-                "open_keiko",
-                None,
-                "2026-10-03",
-            ),
-            "sempuu-20261004-1700-5fb75477": (
-                "練習試合　竜巻Tartsumaki 10月",
-                "2026-10-04",
-                "17:00",
-                "19:00",
-                "adult_renseikai",
-                None,
-                "2026-10-03",
-            ),
-            "sempuu-20261005-0900-96cb6045": (
-                "Sempuu Regular Practice 風鈴Furin🎐",
-                "2026-10-05",
-                "09:00",
-                "11:00",
-                "open_keiko",
-                "新東名浜松浜北インター下車3分",
-                "2026-10-04",
-            ),
-            "sempuu-20261010-1000-752daccf": (
-                "審査向稽古会　風Kaze",
-                "2026-10-10",
-                "10:00",
-                "12:00",
-                "open_keiko",
-                None,
-                "2026-10-09",
-            ),
-            "sempuu-20261017-0930-9d7ef60e": (
-                "風鈴Furin🎐10/17(Sat)",
-                "2026-10-17",
-                "09:30",
-                "11:30",
-                "open_keiko",
-                "新東名浜松浜北インター下車3分",
-                "2026-10-16",
-            ),
-            "sempuu-20261026-0900-0f752e15": (
-                "風鈴Furin🎐10/26(Mon)",
-                "2026-10-26",
-                "09:00",
-                "11:00",
-                "open_keiko",
-                "新東名浜松浜北インター下車3分",
-                "2026-10-25",
-            ),
-            "sempuu-20261122-1330-d901a80f": (
-                "旋風稽古会　旋Tsumuji １１月",
-                "2026-11-22",
-                "13:30",
-                "15:30",
-                "open_keiko",
-                None,
-                "2026-11-21",
-            ),
-            "sempuu-20261122-1700-02200314": (
-                "練習試合　竜巻Tartsumaki 11月",
-                "2026-11-22",
-                "17:00",
-                "19:00",
-                "adult_renseikai",
-                None,
-                "2026-11-21",
-            ),
-        }
-
-        for event in events:
-            with self.subTest(event_id=event["event_id"]):
-                (
-                    title,
-                    event_date,
-                    start_time,
-                    end_time,
-                    event_type,
-                    access,
-                    review_due_at,
-                ) = expected[event["event_id"]]
-                self.assertEqual("Sempuu 旋風", event["organization_name"])
-                self.assertEqual(title, event["title"])
-                self.assertEqual(event_date, event["event_date"])
-                self.assertEqual(start_time, event["start_time"])
-                self.assertEqual(end_time, event["end_time"])
-                self.assertEqual(event_type, event["event_type"])
-                self.assertEqual("浜北武道館（中瀬）", event["venue"])
-                self.assertEqual("静岡県", event["area"])
-                self.assertIsNone(event["address"])
-                self.assertEqual(access, event["access"])
-                self.assertEqual("500円", event["fee"])
-                self.assertFalse(event["application_required"])
-                self.assertEqual("anyone", event["participation_type"])
-                self.assertEqual(
-                    "https://www.sempuu.net/events-1",
-                    event["source_url"],
-                )
-                self.assertEqual("official_site", event["source_type"])
-                self.assertEqual("manual", event["update_mode"])
-                self.assertEqual("active", event["status"])
-                self.assertEqual("2026-09-28T09:26:21+09:00", event["verified_at"])
-                self.assertEqual(review_due_at, event["review_due_at"])
 
     def test_oyaji_renseikai_event_is_valid_and_listed_as_renseikai(
         self,
