@@ -1413,7 +1413,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("unknown", organization.event_type)
         self.assertEqual("unknown", organization.default_participation_type)
         self.assertIsNone(organization.default_application_required)
-        self.assertEqual(10, len(events))
+        self.assertEqual(11, len(events))
 
         event = next(
             event
@@ -1453,7 +1453,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn("bluered12@sempuu.net", event["raw_note"])
 
         self.assertEqual(events, select_events(events, "all"))
-        self.assertEqual(7, len(select_events(events, "keiko")))
+        self.assertEqual(8, len(select_events(events, "keiko")))
         self.assertEqual(3, len(select_events(events, "renseikai")))
         self.assertIn(event, select_events(events, "renseikai"))
 
@@ -1470,7 +1470,7 @@ class ManualEventDataTests(unittest.TestCase):
             and event["event_id"] != "sempuu-20261012-0900-8fabdfff"
         ]
 
-        self.assertEqual(9, len(events))
+        self.assertEqual(10, len(events))
         expected = {
             "sempuu-20261004-1330-5fc1315e": (
                 "旋風稽古会　旋Tsumuji １０月",
@@ -1516,6 +1516,15 @@ class ManualEventDataTests(unittest.TestCase):
                 "open_keiko",
                 "新東名浜松浜北インター下車3分",
                 "2026-10-16",
+            ),
+            "sempuu-20261021-0900-d2628900": (
+                "風鈴Furin🎐10/21(Wed)",
+                "2026-10-21",
+                "09:00",
+                "11:00",
+                "open_keiko",
+                "新東名浜松浜北インター下車3分",
+                "2026-10-20",
             ),
             "sempuu-20261026-0900-0f752e15": (
                 "風鈴Furin🎐10/26(Mon)",
@@ -1586,15 +1595,14 @@ class ManualEventDataTests(unittest.TestCase):
                 self.assertEqual("official_site", event["source_type"])
                 self.assertEqual("manual", event["update_mode"])
                 self.assertEqual("active", event["status"])
-                expected_verified_at = (
-                    "2026-09-28T09:42:22+09:00"
-                    if event["event_id"]
-                    in {
-                        "sempuu-20261005-0900-96cb6045",
-                        "sempuu-20261014-0900-985d5e3c",
-                    }
-                    else "2026-09-28T09:26:21+09:00"
-                )
+                expected_verified_at = {
+                    "sempuu-20261005-0900-96cb6045":
+                        "2026-09-28T09:42:22+09:00",
+                    "sempuu-20261014-0900-985d5e3c":
+                        "2026-09-28T09:42:22+09:00",
+                    "sempuu-20261021-0900-d2628900":
+                        "2026-09-28T09:52:12+09:00",
+                }.get(event["event_id"], "2026-09-28T09:26:21+09:00")
                 self.assertEqual(expected_verified_at, event["verified_at"])
                 self.assertEqual(review_due_at, event["review_due_at"])
 
