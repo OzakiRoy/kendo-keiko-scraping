@@ -61,6 +61,7 @@ from kendo_keiko.scrapers.kenbokukai import (
 from kendo_keiko.scrapers.kenkyukai import (
     scrape as scrape_kenkyukai_for_org,
 )
+from kendo_keiko.scrapers.kent import normalize_kent_schedule_text
 
 
 SITES = {
@@ -93,7 +94,7 @@ def scrape_kent() -> list[RawScrapedEvent]:
     """
     site = SITES["kent"]
     raw = fetch(site["url"])
-    text = html_to_text(raw)
+    text = normalize_kent_schedule_text(html_to_text(raw))
 
     return parse_events_from_text(
         group=site["name"],
