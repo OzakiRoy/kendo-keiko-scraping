@@ -1251,7 +1251,7 @@ class ManualEventDataTests(unittest.TestCase):
             organization.default_participation_type,
         )
         self.assertFalse(organization.default_application_required)
-        self.assertEqual(2, len(events))
+        self.assertEqual(4, len(events))
         events_by_date = {
             event["event_date"]: event
             for event in events
@@ -1316,6 +1316,56 @@ class ManualEventDataTests(unittest.TestCase):
         )
         self.assertEqual("2026-09-04", event["review_due_at"])
         self.assertIn("主催者本人のInstagram DM", event["raw_note"])
+
+        expected_new_events = {
+            "2026-10-10": (
+                "iwaki_kamomekai-20261010-1700-cf50f486",
+                "土",
+                "17:00",
+                "19:00",
+                "2026-10-09",
+            ),
+            "2026-10-17": (
+                "iwaki_kamomekai-20261017-1300-b683495c",
+                "土",
+                "13:00",
+                "15:00",
+                "2026-10-16",
+            ),
+        }
+        for event_date, (
+            event_id,
+            weekday,
+            start_time,
+            end_time,
+            review_due_at,
+        ) in expected_new_events.items():
+            event = events_by_date[event_date]
+            self.assertEqual(event_id, event["event_id"])
+            self.assertEqual("磐城鷗会", event["organization_name"])
+            self.assertEqual("磐城鷗会 稽古", event["title"])
+            self.assertEqual(event_date, event["event_date"])
+            self.assertEqual(weekday, event["weekday"])
+            self.assertEqual(start_time, event["start_time"])
+            self.assertEqual(end_time, event["end_time"])
+            self.assertEqual("いわき市総合体育館", event["venue"])
+            self.assertEqual("福島県", event["area"])
+            self.assertIsNone(event["address"])
+            self.assertIsNone(event["access"])
+            self.assertIsNone(event["fee"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual("anyone", event["participation_type"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("sns", event["source_type"])
+            self.assertEqual(
+                "https://www.instagram.com/hitachi657/",
+                event["source_url"],
+            )
+            self.assertEqual("2026-09-30T15:26:00+09:00", event["verified_at"])
+            self.assertEqual(review_due_at, event["review_due_at"])
+            self.assertIn("主催者本人（Instagram: @hitachi657）からのDM", event["raw_note"])
+            self.assertIn("プロフィールURL自体に今回の日程掲載があるとは扱わない", event["raw_note"])
+            self.assertIn("参加費・住所・アクセス・終了後の予定は未確認", event["raw_note"])
 
         index_html = (
             Path(__file__).resolve().parents[1] / "public" / "index.html"
