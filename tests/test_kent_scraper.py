@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from kendo_keiko.models import Organization
@@ -54,6 +55,61 @@ class KentScraperTests(unittest.TestCase):
 
         mock_fetch.assert_called_once_with(
             "https://kendonetwork.com/"
+        )
+
+    @patch("kendo_keiko.scrapers.kent.fetch")
+    def test_scrapes_span_split_october_and_november_schedule(
+        self,
+        mock_fetch,
+    ) -> None:
+        fixture = (
+            Path(__file__).resolve().parent
+            / "fixtures"
+            / "kent_schedule_october_november.html"
+        )
+        mock_fetch.return_value = fixture.read_text(encoding="utf-8")
+
+        events = scrape(self.organization)
+
+        self.assertEqual(3, len(events))
+        self.assertEqual(
+            [
+                (
+                    "第289回剣道練習会",
+                    "2026-10-03",
+                    "土",
+                    "15:00",
+                    "18:00",
+                    "池袋スポーツセンター",
+                ),
+                (
+                    "第290回剣道練習会",
+                    "2026-10-11",
+                    "日",
+                    "15:00",
+                    "18:00",
+                    "池袋スポーツセンター",
+                ),
+                (
+                    "第291回剣道練習会",
+                    "2026-11-21",
+                    "土",
+                    "15:00",
+                    "18:00",
+                    "池袋スポーツセンター",
+                ),
+            ],
+            [
+                (
+                    event.title,
+                    event.date,
+                    event.weekday,
+                    event.start_time,
+                    event.end_time,
+                    event.venue,
+                )
+                for event in events
+            ],
         )
 
 
