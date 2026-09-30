@@ -906,7 +906,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("open_keiko", organization.event_type)
         self.assertEqual("unknown", organization.default_participation_type)
         self.assertIsNone(organization.default_application_required)
-        self.assertEqual(1, len(events))
+        self.assertEqual(3, len(events))
 
         event = events[0]
         self.assertEqual(
@@ -946,6 +946,22 @@ class ManualEventDataTests(unittest.TestCase):
             Path(__file__).resolve().parents[1] / "public" / "index.html"
         ).read_text(encoding="utf-8")
         self.assertIn("<h3>一風会</h3>", index_html)
+
+        added = {event["event_date"]: event for event in events if event["event_date"] != "2026-09-19"}
+        self.assertEqual({"2026-10-25", "2026-11-02"}, set(added))
+        self.assertEqual(
+            {
+                "2026-10-25": ("13:00", "15:30", "https://www.instagram.com/p/Dd6VqeqzzYC/", "2026-10-24"),
+                "2026-11-02": ("19:00", "21:00", "https://www.instagram.com/p/Dd6XE3jTd_u/", "2026-11-01"),
+            },
+            {date: (event["start_time"], event["end_time"], event["source_url"], event["review_due_at"]) for date, event in added.items()},
+        )
+        for event in added.values():
+            self.assertEqual("一風会 稽古会", event["title"])
+            self.assertEqual("越谷市立総合体育館 2階 武道場", event["venue"])
+            self.assertEqual("open_keiko", event["event_type"])
+            self.assertEqual("anyone", event["participation_type"])
+            self.assertFalse(event["application_required"])
 
 
     def test_kizunakai_events_are_valid(self) -> None:
