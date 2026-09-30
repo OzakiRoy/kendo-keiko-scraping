@@ -1693,7 +1693,7 @@ class ManualEventDataTests(unittest.TestCase):
             added["source_url"],
         )
         self.assertEqual("2026-10-01T06:45:28+09:00", added["verified_at"])
-        self.assertEqual("2026-11-28", added["review_due_at"])
+        self.assertEqual("2026-10-30", added["review_due_at"])
         self.assertIn("5人制団体戦", added["raw_note"])
         self.assertIn("締切10月31日", added["raw_note"])
 
