@@ -1381,7 +1381,7 @@ class ManualEventDataTests(unittest.TestCase):
             if event["organization_id"] == "seikenkai_inzai"
         ]
 
-        self.assertEqual(6, len(events))
+        self.assertEqual(9, len(events))
         self.assertEqual(
             [
                 "2026-08-21",
@@ -1390,6 +1390,9 @@ class ManualEventDataTests(unittest.TestCase):
                 "2026-09-11",
                 "2026-09-18",
                 "2026-09-25",
+                "2026-10-09",
+                "2026-10-16",
+                "2026-10-23",
             ],
             [event["event_date"] for event in events],
         )
@@ -1399,7 +1402,11 @@ class ManualEventDataTests(unittest.TestCase):
                 (
                     "西劔会 8月オープン稽古会"
                     if event["event_date"].startswith("2026-08")
-                    else "西劔会 9月オープン稽古会"
+                    else (
+                        "西劔会 9月オープン稽古会"
+                        if event["event_date"].startswith("2026-09")
+                        else "西劔会 10月オープン稽古会"
+                    )
                 ),
                 event["title"],
             )
@@ -1421,7 +1428,11 @@ class ManualEventDataTests(unittest.TestCase):
                 (
                     "https://www.instagram.com/p/DbeucGlzVHK/"
                     if event["event_date"].startswith("2026-08")
-                    else "https://www.instagram.com/p/Dcn1pAlh1Yb/"
+                    else (
+                        "https://www.instagram.com/p/Dcn1pAlh1Yb/"
+                        if event["event_date"].startswith("2026-09")
+                        else "https://www.instagram.com/p/Dd6Xs7ZTB4E/"
+                    )
                 ),
                 event["source_url"],
             )
