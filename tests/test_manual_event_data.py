@@ -641,6 +641,31 @@ class ManualEventDataTests(unittest.TestCase):
         )
 
 
+    def test_hagakurey_october_weeknight_events_are_valid(self) -> None:
+        source_url = "https://www.instagram.com/p/DdxjrhFTKOM/"
+        events = [event for event in load_manual_events() if event["source_url"] == source_url]
+        expected_dates = [
+            "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09",
+            "2026-10-13", "2026-10-15", "2026-10-16", "2026-10-20", "2026-10-21",
+            "2026-10-22", "2026-10-26", "2026-10-28", "2026-10-29", "2026-10-30",
+        ]
+        self.assertEqual(expected_dates, [event["event_date"] for event in events])
+        for event in events:
+            self.assertEqual("HAGAKUREY 10月平日夜練", event["title"])
+            self.assertEqual("open_keiko", event["event_type"])
+            self.assertEqual("21:00", event["start_time"])
+            self.assertEqual("22:30", event["end_time"])
+            self.assertEqual("墨田区総合体育館", event["venue"])
+            self.assertEqual("東京都墨田区錦糸4-15-1", event["address"])
+            self.assertEqual("contact_required", event["participation_type"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual(
+                (date.fromisoformat(event["event_date"]) - timedelta(days=1)).isoformat(),
+                event["review_due_at"],
+            )
+            self.assertIn("レベル・年齢・性別不問", event["raw_note"])
+
+
     def test_kent_ladies_event_is_valid(self) -> None:
         events = [
             event
