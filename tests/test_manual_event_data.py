@@ -1632,7 +1632,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("adult_renseikai", organization.event_type)
         self.assertEqual("unknown", organization.default_participation_type)
         self.assertIsNone(organization.default_application_required)
-        self.assertEqual(1, len(events))
+        self.assertEqual(2, len(events))
 
         event = events[0]
         self.assertEqual(
@@ -1674,6 +1674,28 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn("個人参加・合同枠あり", event["raw_note"])
         self.assertIn("naokickboxing@gmail.com", event["raw_note"])
         self.assertIn("申込締切10月23日", event["raw_note"])
+
+        added = events[1]
+        self.assertEqual(
+            "oyaji_no_kendo_renseikai-20261129-0900-8019c327",
+            added["event_id"],
+        )
+        self.assertEqual("親父ノ剣道錬成会25", added["title"])
+        self.assertEqual("2026-11-29", added["event_date"])
+        self.assertEqual("日", added["weekday"])
+        self.assertEqual("adult_renseikai", added["event_type"])
+        self.assertEqual("09:00", added["start_time"])
+        self.assertEqual("12:30", added["end_time"])
+        self.assertTrue(added["application_required"])
+        self.assertEqual("registration_required", added["participation_type"])
+        self.assertEqual(
+            "https://www.instagram.com/p/Dd6Yy3FyLrQ/",
+            added["source_url"],
+        )
+        self.assertEqual("2026-10-01T06:45:28+09:00", added["verified_at"])
+        self.assertEqual("2026-11-28", added["review_due_at"])
+        self.assertIn("5人制団体戦", added["raw_note"])
+        self.assertIn("締切10月31日", added["raw_note"])
 
         self.assertEqual(events, select_events(events, "all"))
         self.assertEqual([], select_events(events, "keiko"))
