@@ -1585,6 +1585,80 @@ class ManualEventDataTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("<h3>Sempuu 旋風</h3>", index_html)
 
+    def test_seijukai_october_events_are_valid_and_listed(self) -> None:
+        organizations = load_organizations()
+        organization = find_organization(
+            organizations,
+            "seijukai_sato_dojo",
+        )
+        self.assertEqual("誠寿会 佐藤道場", organization.name)
+        self.assertEqual("埼玉県", organization.area)
+        self.assertEqual("open_keiko", organization.event_type)
+        self.assertEqual("anyone", organization.default_participation_type)
+        self.assertIsNone(organization.default_application_required)
+
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "seijukai_sato_dojo"
+        ]
+        self.assertEqual(3, len(events))
+        expected = {
+            "2026-10-11": (
+                "seijukai_sato_dojo-20261011-1700-3e97f2ec",
+                "日",
+                "17:00",
+                "大宮武道館",
+                "2026-10-10",
+            ),
+            "2026-10-17": (
+                "seijukai_sato_dojo-20261017-1700-e8073fd1",
+                "土",
+                "17:00",
+                "岩槻文化公園",
+                "2026-10-16",
+            ),
+            "2026-10-31": (
+                "seijukai_sato_dojo-20261031-1500-857f758d",
+                "土",
+                "15:00",
+                "大宮武道館",
+                "2026-10-30",
+            ),
+        }
+
+        for event in events:
+            event_id, weekday, start_time, venue, review_due_at = expected[
+                event["event_date"]
+            ]
+            self.assertEqual(event_id, event["event_id"])
+            self.assertEqual("誠寿会 佐藤道場", event["organization_name"])
+            self.assertEqual("誠寿会 稽古", event["title"])
+            self.assertEqual(weekday, event["weekday"])
+            self.assertEqual(start_time, event["start_time"])
+            self.assertIsNone(event["end_time"])
+            self.assertEqual(venue, event["venue"])
+            self.assertEqual("埼玉県", event["area"])
+            self.assertIsNone(event["address"])
+            self.assertIsNone(event["access"])
+            self.assertIsNone(event["fee"])
+            self.assertIsNone(event["application_required"])
+            self.assertEqual("anyone", event["participation_type"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("sns", event["source_type"])
+            self.assertEqual(
+                "https://www.instagram.com/p/Dd6UaNlJFpL/",
+                event["source_url"],
+            )
+            self.assertEqual("2026-10-01T09:17:00+09:00", event["verified_at"])
+            self.assertEqual(review_due_at, event["review_due_at"])
+            self.assertIn("#誰でも", event["raw_note"])
+
+        index_html = (
+            Path(__file__).resolve().parents[1] / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("<h3>誠寿会 佐藤道場</h3>", index_html)
+
     def test_sempuu_october_and_november_events_are_valid(self) -> None:
         events = [
             event
