@@ -673,9 +673,9 @@ class ManualEventDataTests(unittest.TestCase):
             if event["organization_id"] == "kent_ladies"
         ]
 
-        self.assertEqual(2, len(events))
+        self.assertEqual(3, len(events))
         self.assertEqual(
-            ["2026-08-30", "2026-09-12"],
+            ["2026-08-30", "2026-09-12", "2026-10-24"],
             [event["event_date"] for event in events],
         )
 
@@ -737,6 +737,43 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn("成人女性対象", september_event["raw_note"])
         self.assertIn("高校生以下は保護者同伴", september_event["raw_note"])
         self.assertIn("DMまたはオープンチャット", september_event["raw_note"])
+
+        october_event = events[2]
+        self.assertEqual(
+            "kent_ladies-20261024-1530-2c9e25df",
+            october_event["event_id"],
+        )
+        self.assertEqual("kent女子稽古会", october_event["organization_name"])
+        self.assertEqual("土", october_event["weekday"])
+        self.assertEqual(
+            "kent女子稽古会 10月24日稽古",
+            october_event["title"],
+        )
+        self.assertEqual("15:30", october_event["start_time"])
+        self.assertEqual("18:00", october_event["end_time"])
+        self.assertEqual(
+            "文京スポーツセンター4階",
+            october_event["venue"],
+        )
+        self.assertEqual("東京都", october_event["area"])
+        self.assertIsNone(october_event["address"])
+        self.assertIsNone(october_event["access"])
+        self.assertEqual("500円", october_event["fee"])
+        self.assertEqual(
+            "contact_required",
+            october_event["participation_type"],
+        )
+        self.assertFalse(october_event["application_required"])
+        self.assertEqual("open_keiko", october_event["event_type"])
+        self.assertEqual("manual", october_event["update_mode"])
+        self.assertEqual("sns", october_event["source_type"])
+        self.assertEqual(
+            "https://www.instagram.com/p/Dd9J5xgk-Z1/",
+            october_event["source_url"],
+        )
+        self.assertEqual("2026-10-23", october_event["review_due_at"])
+        self.assertIn("成人女性", october_event["raw_note"])
+        self.assertIn("DMまたは", october_event["raw_note"])
 
 
     def test_kendo_jo_tateyo_event_is_valid_and_linked_to_organization(
