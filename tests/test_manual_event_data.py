@@ -1180,7 +1180,7 @@ class ManualEventDataTests(unittest.TestCase):
             organization.default_participation_type,
         )
         self.assertFalse(organization.default_application_required)
-        self.assertEqual(7, len(events))
+        self.assertEqual(13, len(events))
         events_by_date = {
             event["event_date"]: event
             for event in events
@@ -1296,6 +1296,90 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertEqual(review_due, event["review_due_at"])
             self.assertIn("訂正版", event["raw_note"])
             self.assertIn(usage, event["raw_note"])
+            self.assertIn("荒天時", event["raw_note"])
+            self.assertIn("追加・変更", event["raw_note"])
+
+        new_expected_schedules = {
+            "2026-10-07": (
+                "gozen_kendo-20261007-1000-4e837dd9",
+                "10:00",
+                "12:00",
+                "神奈川県立武道館",
+                "神奈川県",
+                "当日の人数次第",
+                "2026-10-06",
+            ),
+            "2026-10-08": (
+                "gozen_kendo-20261008-0930-da30fe7c",
+                "09:30",
+                "11:30",
+                "新宿区スポーツセンター 4F",
+                "東京都",
+                "400円",
+                "2026-10-07",
+            ),
+            "2026-10-14": (
+                "gozen_kendo-20261014-1000-9cd568ff",
+                "10:00",
+                "12:00",
+                "神奈川県立武道館",
+                "神奈川県",
+                "当日の人数次第",
+                "2026-10-13",
+            ),
+            "2026-10-15": (
+                "gozen_kendo-20261015-0930-f03a92cf",
+                "09:30",
+                "11:30",
+                "新宿区スポーツセンター 4F",
+                "東京都",
+                "400円",
+                "2026-10-14",
+            ),
+            "2026-10-22": (
+                "gozen_kendo-20261022-0930-64388450",
+                "09:30",
+                "11:30",
+                "新宿区スポーツセンター 4F",
+                "東京都",
+                "400円",
+                "2026-10-21",
+            ),
+            "2026-10-29": (
+                "gozen_kendo-20261029-0930-a5ff25e6",
+                "09:30",
+                "11:30",
+                "新宿区スポーツセンター 4F",
+                "東京都",
+                "400円",
+                "2026-10-28",
+            ),
+        }
+
+        for event_date, expected in new_expected_schedules.items():
+            event_id, start, end, venue, area, fee, review_due = expected
+            event = events_by_date[event_date]
+            self.assertEqual(event_id, event["event_id"])
+            self.assertEqual("悟禅会", event["organization_name"])
+            self.assertEqual("悟禅会 稽古会", event["title"])
+            self.assertEqual(start, event["start_time"])
+            self.assertEqual(end, event["end_time"])
+            self.assertEqual(venue, event["venue"])
+            self.assertEqual(area, event["area"])
+            self.assertIsNone(event["address"])
+            self.assertIsNone(event["access"])
+            self.assertEqual(fee, event["fee"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual("anyone", event["participation_type"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("sns", event["source_type"])
+            self.assertEqual(
+                "https://www.instagram.com/p/Dd-y6mjyMbZ/",
+                event["source_url"],
+            )
+            self.assertEqual(review_due, event["review_due_at"])
+            self.assertIn("皆様の参加歓迎", event["raw_note"])
+            self.assertIn("火曜日のみ2日前までの事前連絡制", event["raw_note"])
             self.assertIn("荒天時", event["raw_note"])
             self.assertIn("追加・変更", event["raw_note"])
 
