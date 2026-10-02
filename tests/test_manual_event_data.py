@@ -760,7 +760,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIsNone(october_event["access"])
         self.assertEqual("500円", october_event["fee"])
         self.assertEqual(
-            "contact_required",
+            "anyone",
             october_event["participation_type"],
         )
         self.assertFalse(october_event["application_required"])

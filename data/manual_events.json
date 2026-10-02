@@ -3859,7 +3859,7 @@
       "status": "active",
       "raw_note": "公式Instagram投稿の画像とキャプションを確認。楽しく剣道したい成人女性が対象で、高校生以下は保護者同伴。どなたでも大歓迎。参加希望者はDMまたは画像3枚目のQRコードから参加できるLINEオープンチャットへ問い合わせ。住所・アクセスは公式投稿で確認できず未設定。",
       "update_mode": "manual",
-      "participation_type": "contact_required",
+      "participation_type": "anyone",
       "verified_at": "2026-10-02T10:54:17+09:00",
       "review_due_at": "2026-10-23",
       "gsi1_pk": "EVENT",
