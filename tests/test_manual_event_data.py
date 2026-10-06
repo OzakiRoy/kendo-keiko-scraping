@@ -2012,6 +2012,97 @@ class ManualEventDataTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("<h3>親父ノ剣道錬成会</h3>", index_html)
 
+    def test_yuyukai_october_events_are_valid_and_linked_to_organization(
+        self,
+    ) -> None:
+        organizations = load_organizations()
+        organization = find_organization(organizations, "yuyukai_kendo")
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "yuyukai_kendo"
+        ]
+
+        self.assertEqual("悠友会 剣道サークル", organization.name)
+        self.assertEqual("大阪府", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/yuyukai_kendo/",
+            organization.website_url,
+        )
+        self.assertEqual("sns", organization.source_type)
+        self.assertEqual("manual", organization.scraper_type)
+        self.assertFalse(organization.scraper_enabled)
+        self.assertEqual("open_keiko", organization.event_type)
+        self.assertEqual(
+            "contact_required",
+            organization.default_participation_type,
+        )
+        self.assertFalse(organization.default_application_required)
+
+        self.assertEqual(3, len(events))
+        self.assertEqual(
+            ["2026-10-10", "2026-10-18", "2026-10-25"],
+            [event["event_date"] for event in events],
+        )
+
+        expected = {
+            "2026-10-10": {
+                "event_id": "yuyukai_kendo-20261010-1830-a21b3ef4",
+                "weekday": "土",
+                "venue": "初芝体育館 第二体育室",
+                "review_due_at": "2026-10-09",
+            },
+            "2026-10-18": {
+                "event_id": "yuyukai_kendo-20261018-1830-a42e6863",
+                "weekday": "日",
+                "venue": "金岡公園体育館 小体育室",
+                "review_due_at": "2026-10-17",
+            },
+            "2026-10-25": {
+                "event_id": "yuyukai_kendo-20261025-1830-7f179437",
+                "weekday": "日",
+                "venue": "金岡公園体育館 小体育室",
+                "review_due_at": "2026-10-24",
+            },
+        }
+
+        for event in events:
+            details = expected[event["event_date"]]
+            self.assertEqual(details["event_id"], event["event_id"])
+            self.assertEqual("悠友会 剣道サークル", event["organization_name"])
+            self.assertEqual("悠友会 稽古会", event["title"])
+            self.assertEqual("open_keiko", event["event_type"])
+            self.assertEqual(details["weekday"], event["weekday"])
+            self.assertEqual("18:30", event["start_time"])
+            self.assertEqual("20:00", event["end_time"])
+            self.assertEqual(details["venue"], event["venue"])
+            self.assertEqual("大阪府", event["area"])
+            self.assertIsNone(event["address"])
+            self.assertIsNone(event["access"])
+            self.assertEqual("500円", event["fee"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual("contact_required", event["participation_type"])
+            self.assertEqual(
+                "https://www.instagram.com/p/Dd7jpUCzjPr/",
+                event["source_url"],
+            )
+            self.assertEqual("sns", event["source_type"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("active", event["status"])
+            self.assertEqual(
+                "2026-10-06T10:07:14+09:00",
+                event["verified_at"],
+            )
+            self.assertEqual(details["review_due_at"], event["review_due_at"])
+            self.assertIn("経験者・リバ剣、大歓迎", event["raw_note"])
+            self.assertIn("参加希望の方はDMまでお気軽にどうぞ", event["raw_note"])
+            self.assertIn("申込必須の明記はなく", event["raw_note"])
+
+        index_html = (
+            Path(__file__).resolve().parents[1] / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("<h3>悠友会 剣道サークル</h3>", index_html)
+
 
 if __name__ == "__main__":
     unittest.main()
