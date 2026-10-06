@@ -54,6 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", dest="publish", action="store_false", help="素材生成のみ（既定）")
     mode.add_argument("--publish", dest="publish", action="store_true", help="認証・S3・Instagram APIを使って投稿")
+    parser.add_argument("--verify-destination", action="store_true", help="投稿せず、設定したInstagram投稿先だけ読み取り確認")
     parser.set_defaults(publish=False)
     return parser
 
@@ -72,6 +73,25 @@ def _record(store: ReelStateStore, key: str, *, status: str, target_friday: dt.d
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.verify_destination and args.publish:
+        build_parser().error("--verify-destination cannot be combined with --publish")
+    if args.verify_destination:
+        try:
+            from kendo_keiko.weekend_reel import InstagramApiClient, InstagramApiConfig
+
+            config = InstagramApiConfig.from_env()
+            destination = InstagramApiClient(config).verify_destination()
+            print(
+                "Verified Instagram destination: "
+                f"@{destination['username']} ({destination.get('account_type') or 'professional account'})"
+            )
+            return 0
+        except ReelConfigError as exc:
+            print(f"[CONFIG] {exc}", file=sys.stderr)
+            return CONFIG_EXIT_CODE
+        except ReelError as exc:
+            print(f"[ERROR] {exc}", file=sys.stderr)
+            return 2
     if args.events_file is not None and args.events_url != DEFAULT_EVENTS_URL:
         parser = build_parser()
         parser.error("--events-file and --events-url are mutually exclusive")

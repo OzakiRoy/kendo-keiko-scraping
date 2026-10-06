@@ -81,6 +81,14 @@ API versionは `INSTAGRAM_GRAPH_API_VERSION`（既定 `v25.0`）で固定する�
 採用バージョンとpermissionを確認してから変更する。tokenは環境変数へ直接書く場合もgit管理外の
 600権限ファイルから読み込み、ログ・PR・manifestへ出さない。
 
+投稿前の読み取り専用確認（S3アップロード・container作成・公開はしない）:
+
+```bash
+scripts/run_instagram_reel.sh --verify-destination
+```
+
+設定したユーザーIDとusername、Business/Creator種別がAPI応答と一致しない場合は停止する。
+
 投稿は次の順で行う。
 
 1. destination IDとusernameを読み取り専用APIで照合し、Business/Creator以外なら停止。
