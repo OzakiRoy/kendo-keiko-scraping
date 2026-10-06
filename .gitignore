@@ -18,9 +18,6 @@ venv/
 # output
 *.json
 *.log
-output/instagram-reel/
-.local/instagram-reel/
-.venv-reel/
 
 # generated data
 data/events.json
@@ -66,4 +63,3 @@ route53-cloudfront-alias-records.json
 
 # Mixed listing regression fixture
 !tests/fixtures/listing_events.json
-!tests/fixtures/weekend_reel_events.json
