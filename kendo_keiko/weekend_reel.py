@@ -13,6 +13,7 @@ import tempfile
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from random import Random
 from typing import Any, Callable, Iterable, Iterator, Mapping, Sequence
 from urllib.parse import urljoin
 
@@ -325,146 +326,379 @@ def select_reel_events(
 
 @dataclass(frozen=True)
 class ReelLayout:
-    base: EventLayout
-    category_label: str
+    event: ReelEvent
+    organization_lines: tuple[str, ...]
+    title_lines: tuple[str, ...]
+    details: tuple[tuple[str, str, tuple[str, ...]], ...]
     height: int
 
-    @property
-    def event(self) -> Any:
-        return self.base.event
+
+@dataclass(frozen=True)
+class ReelPage:
+    kind: str
+    date: dt.date | None
+    events: tuple[ReelEvent, ...] = ()
+    part_label: str | None = None
 
 
-def layout_reel_event(draw: ImageDraw.ImageDraw, event: ReelEvent, fonts: dict[str, Any]) -> ReelLayout:
-    base = layout_event(draw, event.story_event, fonts)
-    height = base.height + 44
-    available = CONTENT_BOTTOM - CONTENT_TOP
-    if height > available:
-        raise LayoutOverflowError(f"event does not fit on one Reel page: {event.event_id}")
-    return ReelLayout(base, event.category_label, height)
-
-
-def _paginate_reel_layouts(layouts: Iterable[ReelLayout]) -> list[list[ReelLayout]]:
-    available = CONTENT_BOTTOM - CONTENT_TOP
-    pages: list[list[ReelLayout]] = []
-    current: list[ReelLayout] = []
-    used = 0
-    for layout in layouts:
-        required = layout.height + (CARD_GAP if current else 0)
-        if current and (len(current) >= MAX_EVENTS_PER_PAGE or used + required > available):
-            pages.append(current)
-            current = []
-            used = 0
-            required = layout.height
-        if required > available:
-            raise LayoutOverflowError(f"event does not fit on one Reel page: {layout.event.event_id}")
-        current.append(layout)
-        used += required
+def _reel_wrap_text(draw: ImageDraw.ImageDraw, text: str, font: Any, max_width: int) -> tuple[str, ...]:
+    """Wrap Japanese at characters but keep latin words such as ``kent`` intact."""
+    if not text:
+        return ()
+    tokens = re.findall(r"[A-Za-z][A-Za-z0-9&'./_+-]*|[0-9]+|.", text, flags=re.S)
+    lines: list[str] = []
+    current = ""
+    for token in tokens:
+        candidate = current + token
+        if draw.textlength(candidate, font=font) <= max_width:
+            current = candidate
+            continue
+        if current.strip():
+            lines.append(current.rstrip())
+            current = token.lstrip()
+        else:
+            # A genuinely oversized token is the only case where character wrapping is allowed.
+            for character in token:
+                if current and draw.textlength(current + character, font=font) > max_width:
+                    lines.append(current)
+                    current = ""
+                current += character
     if current:
-        pages.append(current)
-    if len(pages) >= 2 and len(pages[-1]) == 1 and len(pages[-2]) >= 3:
-        moved = pages[-2][-1]
-        candidate = [moved, *pages[-1]]
-        candidate_height = sum(item.height for item in candidate) + CARD_GAP * (len(candidate) - 1)
-        if candidate_height <= available:
-            pages[-2].pop()
-            pages[-1] = candidate
-    return pages
+        lines.append(current.rstrip())
+    return tuple(lines)
 
 
-def _page_start_and_gap(page: list[ReelLayout]) -> tuple[int, int]:
-    content_height = CONTENT_BOTTOM - CONTENT_TOP
-    cards_height = sum(layout.height for layout in page)
-    base_gaps = CARD_GAP * max(0, len(page) - 1)
-    unused = max(0, content_height - cards_height - base_gaps)
-    top_offset = min(180, unused // 2)
-    if len(page) <= 1:
-        return CONTENT_TOP + top_offset, CARD_GAP
-    extra_gap = min(72, max(0, unused - top_offset) // (len(page) - 1))
-    return CONTENT_TOP + top_offset, CARD_GAP + extra_gap
+def _draw_centered(draw: ImageDraw.ImageDraw, text: str, y: int, font: Any, fill: str) -> None:
+    width = draw.textlength(text, font=font)
+    draw.text(((STORY_WIDTH - width) / 2, y), text, font=font, fill=fill)
 
 
-def _format_reel_date(event: Any) -> str:
-    return f"{_format_event_day(event.event_date)}  {_format_time(event)}"
+def _paper_background(seed: int) -> Image.Image:
+    rng = Random(seed)
+    texture = Image.new("RGB", (180, 320), PAPER)
+    pixels = texture.load()
+    for y in range(texture.height):
+        for x in range(texture.width):
+            delta = rng.randrange(-5, 6)
+            pixels[x, y] = tuple(max(0, min(255, int(value) + delta)) for value in (243, 241, 236))
+    return texture.resize((STORY_WIDTH, STORY_HEIGHT), Image.Resampling.BICUBIC)
 
 
-def render_reel_frames(events: Sequence[ReelEvent], target_friday: dt.date) -> list[Image.Image]:
+def _draw_cloud(draw: ImageDraw.ImageDraw, x: int, y: int, scale: float = 1.0) -> None:
+    fill = "#eee6df"
+    for left, top, width, height in ((0, 34, 180, 28), (46, 0, 116, 38), (112, 48, 180, 28), (210, 22, 140, 28)):
+        draw.rounded_rectangle(
+            (x + int(left * scale), y + int(top * scale), x + int((left + width) * scale), y + int((top + height) * scale)),
+            radius=int(14 * scale), fill=fill,
+        )
+
+
+def _draw_mountains(draw: ImageDraw.ImageDraw) -> None:
+    draw.polygon([(0, 1570), (170, 1405), (310, 1540), (490, 1370), (650, 1530), (835, 1390), (1080, 1535), (1080, 1810), (0, 1810)], fill="#e7ddd5")
+    draw.polygon([(0, 1650), (190, 1480), (380, 1610), (545, 1450), (740, 1630), (900, 1485), (1080, 1600), (1080, 1810), (0, 1810)], fill="#eee7df")
+    for offset, color in ((0, "#cfc0b4"), (30, "#d9cbc0"), (64, "#ded2c8")):
+        points = [(0, 1690 + offset), (140, 1530 + offset), (260, 1660 + offset), (430, 1515 + offset), (590, 1680 + offset), (760, 1535 + offset), (930, 1685 + offset), (1080, 1560 + offset)]
+        draw.line(points, fill=color, width=3, joint="curve")
+
+
+def _draw_enso(draw: ImageDraw.ImageDraw) -> None:
+    draw.arc((350, 1410, 810, 1870), start=198, end=520, fill="#d7c7bd", width=14)
+    draw.arc((366, 1426, 794, 1854), start=200, end=515, fill="#e5d8d0", width=5)
+
+
+def _draw_shinai_and_men(draw: ImageDraw.ImageDraw) -> None:
+    # Minimal line-art decorations keep the supplied reference's kendo motif without baking text into a background.
+    draw.line((120, 1770, 930, 1515), fill="#5c3429", width=24)
+    draw.line((120, 1770, 930, 1515), fill="#9a6550", width=7)
+    draw.line((205, 1788, 1000, 1580), fill="#4e2b25", width=14)
+    draw.ellipse((855, 1435, 1110, 1795), fill="#482b29", outline="#2d1b1b", width=8)
+    draw.ellipse((882, 1462, 1085, 1765), outline="#b58f7e", width=12)
+    for x in range(895, 1088, 30):
+        draw.line((x, 1475, x - 2, 1755), fill="#d5b3a0", width=7)
+    for y in range(1510, 1755, 34):
+        draw.line((887, y, 1080, y + 4), fill="#8e6659", width=5)
+
+
+def _draw_background(image: Image.Image, *, seed: int, footer: bool = True) -> ImageDraw.ImageDraw:
+    texture = _paper_background(seed)
+    image.paste(texture)
+    draw = ImageDraw.Draw(image)
+    _draw_cloud(draw, -95, 45, 0.9)
+    _draw_cloud(draw, 870, 280, 0.75)
+    _draw_mountains(draw)
+    _draw_enso(draw)
+    _draw_shinai_and_men(draw)
+    if footer:
+        draw.rectangle((0, 1780, STORY_WIDTH, STORY_HEIGHT), fill=ACCENT)
+        draw.line((72, 1820, 250, 1820), fill="#f7e8e3", width=2)
+        draw.line((830, 1820, 1008, 1820), fill="#f7e8e3", width=2)
+    return draw
+
+
+def _draw_header(image: Image.Image, draw: ImageDraw.ImageDraw, icon: Image.Image, *, y: int = 88) -> None:
+    icon_size = 130
+    scaled_icon = icon.resize((icon_size, icon_size), Image.Resampling.LANCZOS)
+    image.paste(scaled_icon, (92, y), scaled_icon)
+    title_font = load_font(DEFAULT_SERIF_FONT_PATH, 48, weight=700)
+    english_font = load_font(DEFAULT_FONT_PATH, 18, weight=500)
+    draw.text((252, y + 22), "剣道稽古ナビ", font=title_font, fill=INK)
+    draw.line((254, y + 98, 300, y + 98), fill=ACCENT, width=3)
+    draw.text((315, y + 88), "KENDO KEIKO NAVI", font=english_font, fill=INK_SOFT)
+    draw.line((690, y + 98, 735, y + 98), fill=ACCENT, width=3)
+    draw.line((982, y - 18, 982, y + 145), fill=ACCENT, width=3)
+    vertical = "稽古でつながる\n剣道の今を、\nもっと身近に。"
+    small = load_font(DEFAULT_SERIF_FONT_PATH, 25, weight=600)
+    for row, line in enumerate(vertical.splitlines()):
+        draw.text((865, y - 9 + row * 42), line, font=small, fill=INK)
+
+
+def _draw_footer(draw: ImageDraw.ImageDraw, *, cta: bool = False) -> None:
+    footer_font = load_font(DEFAULT_SERIF_FONT_PATH, 30 if cta else 25, weight=600)
+    domain_font = load_font(DEFAULT_SERIF_FONT_PATH, 32, weight=600)
+    globe_x, globe_y = 320, 1834
+    draw.ellipse((globe_x - 22, globe_y - 22, globe_x + 22, globe_y + 22), outline="#fffaf4", width=3)
+    draw.arc((globe_x - 11, globe_y - 21, globe_x + 11, globe_y + 21), 90, 270, fill="#fffaf4", width=2)
+    draw.arc((globe_x - 11, globe_y - 21, globe_x + 11, globe_y + 21), 270, 90, fill="#fffaf4", width=2)
+    draw.line((globe_x - 20, globe_y, globe_x + 20, globe_y), fill="#fffaf4", width=2)
+    draw.line((370, 1805, 370, 1865), fill="#fffaf4", width=2)
+    draw.text((402, 1812), "kendo-keiko.com", font=domain_font, fill="#fffaf4")
+    if cta:
+        warning = "参加前に必ず公式情報をご確認ください"
+        width = draw.textlength(warning, font=footer_font)
+        draw.text(((STORY_WIDTH - width) / 2, 1870), warning, font=footer_font, fill="#fffaf4")
+    else:
+        draw.text((690, 1870), "参加前に公式情報をご確認ください", font=load_font(DEFAULT_FONT_PATH, 20, weight=500), fill="#fffaf4")
+
+
+def _draw_icon(draw: ImageDraw.ImageDraw, x: int, y: int, kind: str) -> None:
+    draw.ellipse((x - 25, y - 25, x + 25, y + 25), fill=ACCENT)
+    white = "#fffaf4"
+    if kind == "time":
+        draw.rectangle((x - 11, y - 10, x + 11, y + 12), outline=white, width=3)
+        draw.line((x - 7, y - 15, x - 7, y - 7), fill=white, width=3)
+        draw.line((x + 7, y - 15, x + 7, y - 7), fill=white, width=3)
+        draw.line((x - 7, y - 1, x + 7, y - 1), fill=white, width=2)
+    elif kind == "venue":
+        draw.ellipse((x - 10, y - 15, x + 10, y + 7), outline=white, width=3)
+        draw.polygon([(x - 10, y), (x, y + 17), (x + 10, y)], outline=white)
+        draw.ellipse((x - 3, y - 8, x + 3, y - 2), outline=white, width=2)
+    elif kind == "area":
+        draw.line((x - 15, y - 10, x - 4, y - 15, x + 7, y - 10, x + 15, y - 15), fill=white, width=3)
+        draw.line((x - 15, y + 12, x - 4, y + 7, x + 7, y + 12, x + 15, y + 7), fill=white, width=3)
+        draw.line((x - 15, y - 10, x - 15, y + 12), fill=white, width=3)
+        draw.line((x + 7, y - 10, x + 7, y + 12), fill=white, width=3)
+    elif kind == "people":
+        draw.ellipse((x - 11, y - 12, x - 1, y - 2), fill=white)
+        draw.ellipse((x + 2, y - 11, x + 12, y - 1), fill=white)
+        draw.arc((x - 16, y - 1, x + 5, y + 15), 180, 360, fill=white, width=3)
+        draw.arc((x - 1, y, x + 18, y + 15), 180, 360, fill=white, width=3)
+    else:
+        draw.ellipse((x - 13, y - 10, x + 13, y - 1), outline=white, width=3)
+        draw.arc((x - 13, y - 4, x + 13, y + 11), 0, 180, fill=white, width=3)
+        draw.line((x - 13, y - 5, x - 13, y + 8), fill=white, width=3)
+        draw.line((x + 13, y - 5, x + 13, y + 8), fill=white, width=3)
+
+
+def layout_reel_event(draw: ImageDraw.ImageDraw, event: ReelEvent, fonts: dict[str, Any], *, min_height: int = 340) -> ReelLayout:
+    value_width = 560
+    organization_lines = _reel_wrap_text(draw, event.story_event.organization_name, fonts["org"], 760)
+    title_lines = _reel_wrap_text(draw, event.story_event.title or "（名称未設定）", fonts["title"], 760)
+    details: list[tuple[str, str, tuple[str, ...]]] = []
+    values = (
+        ("time", "時間", f"{event.story_event.start_time} - {event.story_event.end_time}".strip(" -"), fonts["body"]),
+        ("venue", "会場", event.story_event.venue or "公式情報を確認", fonts["body"]),
+        ("area", "エリア", event.story_event.area or "公式情報を確認", fonts["body"]),
+        ("people", "参加条件", "／".join(event.story_event.participation_labels), fonts["body"]),
+    )
+    if event.story_event.fee:
+        values += (("coin", "参加費", event.story_event.fee, fonts["body"]),)
+    else:
+        values += (("coin", "参加費", "公式情報を確認", fonts["body"]),)
+    if event.story_event.access:
+        values += (("area", "アクセス", event.story_event.access, fonts["body"]),)
+    for kind, label, value, font in values:
+        lines = _reel_wrap_text(draw, value, font, value_width) or ("公式情報を確認",)
+        details.append((kind, label, lines))
+    details_height = sum(max(28, len(lines) * 25) for _, _, lines in details)
+    height = max(min_height, 70 + len(organization_lines) * 32 + len(title_lines) * 30 + details_height + 16)
+    if height > 920:
+        raise LayoutOverflowError(f"event card does not fit on one Reel page: {event.event_id}")
+    return ReelLayout(event, organization_lines, title_lines, tuple(details), height)
+
+
+def build_reel_pages(events: Sequence[ReelEvent], target_friday: dt.date) -> tuple[ReelPage, ...]:
     if not events:
         raise NoEventsError("no publishable events for the target weekend")
-    measuring = Image.new("RGB", (STORY_WIDTH, STORY_HEIGHT), PAPER)
-    draw = ImageDraw.Draw(measuring)
-    fonts = _font_set(DEFAULT_FONT_PATH, DEFAULT_SERIF_FONT_PATH)
-    layouts = [layout_reel_event(draw, event, fonts) for event in events]
-    pages = _paginate_reel_layouts(layouts)
-    heading_font = load_font(DEFAULT_SERIF_FONT_PATH, 64, weight=700)
-    site_font = load_font(DEFAULT_SERIF_FONT_PATH, 36, weight=700)
-    domain_font = load_font(DEFAULT_FONT_PATH, 22, weight=500)
-    date_font = load_font(DEFAULT_SERIF_FONT_PATH, 40, weight=600)
-    footer_font = load_font(DEFAULT_FONT_PATH, 24, weight=500)
-    footer_site_font = load_font(DEFAULT_SERIF_FONT_PATH, 32, weight=600)
-    page_font = load_font(DEFAULT_SERIF_FONT_PATH, 31, weight=700)
-    small_font = fonts["small"]
+    pages: list[ReelPage] = [ReelPage("cover", None)]
+    weekdays = "月火水木金土日"
+    measuring = ImageDraw.Draw(Image.new("RGB", (STORY_WIDTH, STORY_HEIGHT), PAPER))
+    fonts = {
+        "org": load_font(DEFAULT_SERIF_FONT_PATH, 31, weight=700),
+        "title": load_font(DEFAULT_SERIF_FONT_PATH, 39, weight=700),
+        "body": load_font(DEFAULT_FONT_PATH, 27, weight=500),
+    }
+    for day in target_dates(target_friday):
+        day_events = tuple(event for event in events if event.story_event.event_date == day.isoformat())
+        if not day_events:
+            continue
+        chunks: list[tuple[ReelEvent, ...]] = []
+        current: list[ReelEvent] = []
+        for event in day_events:
+            candidate = [*current, event]
+            minimum = {1: 790, 2: 505, 3: 340}[min(3, len(candidate))]
+            layouts = [layout_reel_event(measuring, item, fonts, min_height=minimum) for item in candidate]
+            candidate_height = sum(item.height for item in layouts) + 24 * (len(layouts) - 1)
+            if current and (len(candidate) > 3 or candidate_height > 1080):
+                chunks.append(tuple(current))
+                current = [event]
+            else:
+                current = candidate
+        if current:
+            chunks.append(tuple(current))
+        for index, chunk in enumerate(chunks, start=1):
+            label = f"{weekdays[day.weekday()]}曜" if len(chunks) == 1 else f"{weekdays[day.weekday()]}曜 {index}/{len(chunks)}"
+            pages.append(ReelPage("day", day, tuple(chunk), label))
+    pages.append(ReelPage("cta", None))
+    return tuple(pages)
+
+
+def reel_page_durations(pages: Sequence[ReelPage], page_seconds: float) -> tuple[float, ...]:
+    durations: list[float] = []
+    for page in pages:
+        if page.kind == "cover" or page.kind == "cta":
+            multiplier = 0.95
+        else:
+            multiplier = {1: 1.25, 2: 1.12, 3: 1.0}[min(3, len(page.events))]
+        durations.append(round(max(3.0, page_seconds * multiplier), 2))
+    return tuple(durations)
+
+
+def _draw_event_card(draw: ImageDraw.ImageDraw, layout: ReelLayout, *, x: int, y: int, number: int) -> None:
+    right = STORY_WIDTH - 52
+    bottom = y + layout.height
+    draw.rounded_rectangle((x + 5, y + 7, right + 5, bottom + 7), radius=18, fill="#d9cec6")
+    draw.rounded_rectangle((x, y, right, bottom), radius=18, fill="#fffdfa", outline="#bea999", width=2)
+    strip_right = x + 138
+    draw.rounded_rectangle((x + 8, y + 8, strip_right, bottom - 8), radius=13, fill=ACCENT)
+    draw.rectangle((x + 8, y + 40, strip_right, bottom - 40), fill=ACCENT)
+    draw.text((x + 40, y + 48), f"{number:02d}", font=load_font(DEFAULT_SERIF_FONT_PATH, 56, weight=700), fill="#fffaf4")
+    draw.line((x + 36, y + 128, x + 108, y + 128), fill="#fffaf4", width=2)
+    cursor = y + 30
+    content_x = strip_right + 42
+    draw.text((content_x, cursor), "稽古会" if layout.event.event_type != "adult_renseikai" else "大人向け錬成会・練習試合", font=load_font(DEFAULT_FONT_PATH, 20, weight=600), fill=ACCENT)
+    cursor += 30
+    cursor = _draw_lines(draw, layout.organization_lines, x=content_x, y=cursor, font=load_font(DEFAULT_SERIF_FONT_PATH, 31, weight=700), fill=ACCENT, line_height=36)
+    cursor += 4
+    cursor = _draw_lines(draw, layout.title_lines, x=content_x, y=cursor, font=load_font(DEFAULT_SERIF_FONT_PATH, 36, weight=700), fill=INK, line_height=39)
+    draw.line((content_x, cursor + 8, right - 32, cursor + 8), fill=ACCENT, width=2)
+    cursor += 28
+    label_x = content_x + 5
+    value_x = content_x + 188
+    for kind, label, lines in layout.details:
+        row_height = max(28, len(lines) * 25)
+        center = cursor + row_height // 2
+        _draw_icon(draw, label_x, center, kind)
+        draw.text((content_x + 38, cursor + 5), label, font=load_font(DEFAULT_FONT_PATH, 23, weight=500), fill=INK_SOFT)
+        draw.line((value_x - 20, cursor + 2, value_x - 20, cursor + row_height - 6), fill=ACCENT, width=2)
+        _draw_lines(draw, lines, x=value_x, y=cursor + 2, font=load_font(DEFAULT_FONT_PATH, 23, weight=500), fill=INK, line_height=25)
+        cursor += row_height
+
+
+def _render_cover(target_friday: dt.date, icon: Image.Image) -> Image.Image:
+    image = Image.new("RGB", (STORY_WIDTH, STORY_HEIGHT))
+    draw = _draw_background(image, seed=17)
+    _draw_header(image, draw, icon, y=105)
+    large = load_font(DEFAULT_SERIF_FONT_PATH, 94, weight=700)
+    huge_ink = load_font(DEFAULT_SERIF_FONT_PATH, 164, weight=700)
+    date_font = load_font(DEFAULT_SERIF_FONT_PATH, 54, weight=700)
+    _draw_centered(draw, "今週末の", 380, large, ACCENT)
+    _draw_centered(draw, "稽古会", 485, huge_ink, INK)
+    draw.line((130, 680, 950, 680), fill=ACCENT, width=3)
+    dates = "・".join(f"{day.month}/{day.day}（{('月火水木金土日')[day.weekday()]}）" for day in target_dates(target_friday))
+    _draw_centered(draw, dates, 710, date_font, ACCENT)
+    _draw_centered(draw, "参加できる稽古会をピックアップ", 825, load_font(DEFAULT_SERIF_FONT_PATH, 39, weight=600), INK)
+    for index, (kind, text) in enumerate((("search", "日付・地域で探せる"), ("people", "参加条件も見やすく"), ("paper", "詳細はWebでチェック"))):
+        cy = 990 + index * 102
+        _draw_icon(draw, 215, cy, "area" if kind == "search" else "people" if kind == "people" else "coin")
+        draw.line((260, cy - 25, 260, cy + 25), fill=ACCENT, width=2)
+        draw.text((300, cy - 28), text, font=load_font(DEFAULT_SERIF_FONT_PATH, 31, weight=600), fill=INK)
+    _draw_footer(draw)
+    return image
+
+
+def _render_day_page(page: ReelPage, total_pages: int, icon: Image.Image) -> Image.Image:
+    image = Image.new("RGB", (STORY_WIDTH, STORY_HEIGHT))
+    draw = _draw_background(image, seed=100 + int(page.date.strftime("%d")))
+    _draw_header(image, draw, icon, y=64)
+    day = page.date
+    assert day is not None
+    date_font = load_font(DEFAULT_SERIF_FONT_PATH, 142, weight=700)
+    weekday_font = load_font(DEFAULT_SERIF_FONT_PATH, 54, weight=700)
+    count_font = load_font(DEFAULT_SERIF_FONT_PATH, 34, weight=700)
+    draw.text((150, 245), f"{day.month}/{day.day}", font=date_font, fill=ACCENT)
+    draw.text((720, 325), f"（{('月火水木金土日')[day.weekday()]}）", font=weekday_font, fill=INK)
+    count = f"{page.part_label}  {len(page.events)}件"
+    count_width = draw.textlength(count, font=count_font) + 74
+    left = (STORY_WIDTH - count_width) / 2
+    draw.rounded_rectangle((left, 405, left + count_width, 470), radius=15, fill=ACCENT)
+    draw.text((left + 37, 415), count, font=count_font, fill="#fffaf4")
+    tagline = "今週末も、よい稽古を。" if len(page.events) <= 2 else "参加できる稽古会をピックアップ"
+    _draw_centered(draw, tagline, 500, load_font(DEFAULT_SERIF_FONT_PATH, 34, weight=600), INK)
+    draw.line((150, 550, 930, 550), fill=ACCENT, width=2)
+    measuring = ImageDraw.Draw(Image.new("RGB", (STORY_WIDTH, STORY_HEIGHT), PAPER))
+    fonts = {"org": load_font(DEFAULT_SERIF_FONT_PATH, 31, weight=700), "title": load_font(DEFAULT_SERIF_FONT_PATH, 39, weight=700), "body": load_font(DEFAULT_FONT_PATH, 27, weight=500)}
+    min_height = {1: 790, 2: 505, 3: 340}[min(3, len(page.events))]
+    layouts = [layout_reel_event(measuring, event, fonts, min_height=min_height) for event in page.events]
+    total_height = sum(item.height for item in layouts) + 24 * (len(layouts) - 1)
+    y = 590 + max(0, min(70, (1080 - total_height) // 2))
+    for number, layout in enumerate(layouts, start=1):
+        _draw_event_card(draw, layout, x=46, y=y, number=number)
+        y += layout.height + 24
+    _draw_footer(draw)
+    return image
+
+
+def _render_cta(icon: Image.Image) -> Image.Image:
+    image = Image.new("RGB", (STORY_WIDTH, STORY_HEIGHT))
+    draw = _draw_background(image, seed=99)
+    _draw_header(image, draw, icon, y=105)
+    _draw_centered(draw, "稽古会を探すなら", 390, load_font(DEFAULT_SERIF_FONT_PATH, 66, weight=700), INK)
+    draw.text((92, 505), "剣道稽古", font=load_font(DEFAULT_SERIF_FONT_PATH, 130, weight=700), fill=ACCENT)
+    draw.text((690, 505), "ナビ", font=load_font(DEFAULT_SERIF_FONT_PATH, 130, weight=700), fill=INK)
+    draw.line((100, 670, 960, 670), fill="#d39b94", width=3)
+    for index, text in enumerate(("日付・地域で探せる", "参加条件も見やすく整理", "掲載希望・情報修正はDMへ")):
+        cy = 790 + index * 125
+        _draw_icon(draw, 175, cy, ("area", "paper", "people")[index])
+        draw.line((235, cy - 27, 235, cy + 27), fill=INK_SOFT, width=2)
+        draw.text((280, cy - 31), text, font=load_font(DEFAULT_SERIF_FONT_PATH, 34, weight=600), fill=INK)
+    draw.rounded_rectangle((90, 1180, 990, 1360), radius=24, fill=ACCENT)
+    draw.text((170, 1205), "↗", font=load_font(DEFAULT_FONT_PATH, 78, weight=400), fill="#fffaf4")
+    draw.line((286, 1210, 286, 1332), fill="#fffaf4", width=2)
+    draw.text((350, 1200), "プロフィールの", font=load_font(DEFAULT_SERIF_FONT_PATH, 44, weight=700), fill="#fffaf4")
+    draw.text((350, 1262), "リンクからチェック", font=load_font(DEFAULT_SERIF_FONT_PATH, 44, weight=700), fill="#fffaf4")
+    _draw_centered(draw, "kendo-keiko.com", 1415, load_font(DEFAULT_SERIF_FONT_PATH, 44, weight=600), INK)
+    _draw_centered(draw, "参加前に必ず主催者の公式情報をご確認ください", 1490, load_font(DEFAULT_SERIF_FONT_PATH, 27, weight=500), INK)
+    _draw_footer(draw, cta=True)
+    return image
+
+
+def render_reel_frames(events: Sequence[ReelEvent], target_friday: dt.date, *, pages: Sequence[ReelPage] | None = None) -> list[Image.Image]:
+    if not events:
+        raise NoEventsError("no publishable events for the target weekend")
+    page_list = tuple(pages or build_reel_pages(events, target_friday))
     if not DEFAULT_ICON_PATH.is_file():
         raise ReelError("official brand icon not found")
     with Image.open(DEFAULT_ICON_PATH) as source_icon:
-        brand_icon = source_icon.convert("RGBA").resize((146, 146), Image.Resampling.LANCZOS)
-        footer_icon = source_icon.convert("RGBA").resize((82, 82), Image.Resampling.LANCZOS)
-    images: list[Image.Image] = []
-    for page_number, page in enumerate(pages, start=1):
-        image = Image.new("RGB", (STORY_WIDTH, STORY_HEIGHT), PAPER)
-        draw = ImageDraw.Draw(image)
-        draw.rectangle((0, 0, STORY_WIDTH, 18), fill=INK)
-        draw.rectangle((0, 18, STORY_WIDTH, 29), fill=ACCENT)
-        image.paste(brand_icon, (CONTENT_LEFT, 54), brand_icon)
-        draw.text((CONTENT_LEFT + 174, 76), "剣道稽古ナビ", font=site_font, fill=INK)
-        draw.text((CONTENT_LEFT + 174, 132), "kendo-keiko.com", font=domain_font, fill=ACCENT)
-        page_text = f"{page_number}/{len(pages)}"
-        page_width = draw.textlength(page_text, font=page_font)
-        pill_left = CONTENT_RIGHT - page_width - 46
-        draw.rounded_rectangle((pill_left, 72, CONTENT_RIGHT, 126), radius=27, fill=ACCENT)
-        draw.text((pill_left + 23, 76), page_text, font=page_font, fill=SURFACE)
-        _draw_centered_text(draw, "今週末（金〜日）の稽古会", y=226, font=heading_font, fill=INK)
-        _draw_divider(draw, 340)
-        _draw_centered_text(draw, target_date_label(target_friday), y=370, font=date_font, fill=ACCENT)
-        y, page_gap = _page_start_and_gap(page)
-        for layout in page:
-            bottom = y + layout.height
-            draw.rounded_rectangle((CONTENT_LEFT + 6, y + 8, CONTENT_RIGHT + 6, bottom + 8), radius=18, fill=SHADOW)
-            draw.rounded_rectangle((CONTENT_LEFT, y, CONTENT_RIGHT, bottom), radius=18, fill=SURFACE, outline=WARM_LINE, width=2)
-            _draw_card_corners(draw, CONTENT_LEFT, y, CONTENT_RIGHT, bottom)
-            datetime_text = _format_reel_date(layout.event)
-            datetime_width = round(draw.textlength(datetime_text, font=small_font)) + 34
-            draw.rounded_rectangle((CARD_LEFT_X, y + 24, CARD_LEFT_X + datetime_width, y + 64), radius=14, fill=ACCENT)
-            draw.text((CARD_LEFT_X + 17, y + 27), datetime_text, font=small_font, fill=SURFACE)
-            left_cursor = y + 82
-            left_cursor = _draw_lines(draw, layout.base.organization_lines or ("",), x=CARD_LEFT_X, y=left_cursor, font=fonts["org"], fill=INK, line_height=52)
-            left_cursor = _draw_lines(draw, layout.base.title_lines, x=CARD_LEFT_X, y=left_cursor, font=fonts["title"], fill=INK_SOFT, line_height=42)
-            draw.text((CARD_LEFT_X, left_cursor + 5), layout.category_label, font=small_font, fill=ACCENT)
-            labels = (*layout.event.participation_labels,)
-            _draw_participation_badges(draw, labels, x=CARD_LEFT_X, y=left_cursor + 37, font=small_font)
-            draw.line((CARD_DIVIDER_X, y + 86, CARD_DIVIDER_X, bottom - 28), fill=LINE, width=2)
-            right_cursor = y + 88
-            draw.text((CARD_RIGHT_X, right_cursor), "会場", font=fonts["body"], fill=ACCENT)
-            right_cursor = _draw_lines(draw, layout.base.venue_lines or ("未取得",), x=CARD_VALUE_X, y=right_cursor, font=fonts["body"], fill=INK_SOFT, line_height=38)
-            draw.text((CARD_RIGHT_X, right_cursor), "地域", font=small_font, fill=ACCENT)
-            right_cursor = _draw_lines(draw, layout.base.area_lines or ("未設定",), x=CARD_VALUE_X, y=right_cursor, font=small_font, fill=INK_SOFT, line_height=36)
-            if layout.base.fee_lines:
-                draw.text((CARD_RIGHT_X, right_cursor), "参加費", font=small_font, fill=ACCENT)
-                right_cursor = _draw_lines(draw, layout.base.fee_lines, x=CARD_VALUE_X, y=right_cursor, font=small_font, fill=INK_SOFT, line_height=35)
-            if layout.base.access_lines:
-                draw.text((CARD_RIGHT_X, right_cursor), "アクセス", font=small_font, fill=ACCENT)
-                _draw_lines(draw, layout.base.access_lines, x=CARD_VALUE_X, y=right_cursor, font=small_font, fill=INK_SOFT, line_height=35)
-            y = bottom + page_gap
-        draw.rectangle((0, 1682, STORY_WIDTH, 1820), fill=ACCENT)
-        image.paste(footer_icon, (145, 1710), footer_icon)
-        draw.text((247, 1726), "剣道稽古ナビ", font=footer_site_font, fill=SURFACE)
-        draw.line((520, 1718, 520, 1788), fill=SURFACE, width=2)
-        draw.text((552, 1730), "kendo-keiko.com", font=domain_font, fill=SURFACE)
-        draw.rectangle((0, 1820, STORY_WIDTH, STORY_HEIGHT), fill=INK)
-        warning = "参加前に必ず主催者の公式情報をご確認ください"
-        warning_width = draw.textlength(warning, font=footer_font)
-        draw.text(((STORY_WIDTH - warning_width) / 2, 1857), warning, font=footer_font, fill=SURFACE)
-        images.append(image)
-    return images
+        icon = source_icon.convert("RGBA")
+        rendered: list[Image.Image] = []
+        for page in page_list:
+            if page.kind == "cover":
+                rendered.append(_render_cover(target_friday, icon))
+            elif page.kind == "day":
+                rendered.append(_render_day_page(page, len(page_list), icon))
+            else:
+                rendered.append(_render_cta(icon))
+        return rendered
 
 
 def caption_for_reel(selection: ReelSelection) -> str:
@@ -569,6 +803,8 @@ def _write_caption_and_manifest(
     generated_at: str,
     mode: str,
     regions: Sequence[str],
+    pages: Sequence[ReelPage],
+    page_durations: Sequence[float],
 ) -> tuple[Path, Path, dict[str, Any]]:
     caption_path = output_dir / "caption.txt"
     manifest_path = output_dir / "manifest.json"
@@ -585,6 +821,17 @@ def _write_caption_and_manifest(
         "target_friday": selection.target_friday.isoformat(),
         "target_dates": [date.isoformat() for date in target_dates(selection.target_friday)],
         "regions": list(regions),
+        "pages": [
+            {
+                "kind": page.kind,
+                "date": page.date.isoformat() if page.date else None,
+                "label": page.part_label,
+                "event_ids": [event.event_id for event in page.events],
+                "file": f"page-{index:02d}.png",
+                "duration_seconds": duration,
+            }
+            for index, (page, duration) in enumerate(zip(pages, page_durations), start=1)
+        ],
         "events": [
             {
                 "event_id": event.event_id,
@@ -627,17 +874,27 @@ def generate_reel_assets(
     if page_seconds < 3 or page_seconds > MAX_VIDEO_SECONDS:
         raise ReelError("page_seconds must be between 3 and 900")
     output_dir.mkdir(parents=True, exist_ok=True)
-    frames = render_reel_frames(selection.events, selection.target_friday)
+    pages = build_reel_pages(selection.events, selection.target_friday)
+    page_durations = reel_page_durations(pages, page_seconds)
+    frames = render_reel_frames(selection.events, selection.target_friday, pages=pages)
     caption = caption_for_reel(selection)
     with tempfile.TemporaryDirectory(prefix="kendo-reel-frames-") as frame_dir:
         frame_root = Path(frame_dir)
         for number, image in enumerate(frames, start=1):
             image.save(frame_root / f"frame-{number:05d}.png", format="PNG")
+            image.save(output_dir / f"page-{number:02d}.png", format="PNG", optimize=True)
         cover_path = output_dir / "cover.png"
         frames[0].save(cover_path, format="PNG", optimize=True)
         video_path = output_dir / "reel.mp4"
         ffmpeg = get_ffmpeg_path()
-        frame_rate = f"1/{page_seconds:g}"
+        concat_path = frame_root / "frames.txt"
+        concat_lines: list[str] = []
+        for number, duration in enumerate(page_durations, start=1):
+            frame_path = (frame_root / f"frame-{number:05d}.png").as_posix()
+            concat_lines.extend((f"file '{frame_path}'", f"duration {duration:g}"))
+        # The concat demuxer applies the final duration only when the final frame is repeated.
+        concat_lines.append(f"file '{(frame_root / f'frame-{len(frames):05d}.png').as_posix()}'")
+        concat_path.write_text("\n".join(concat_lines) + "\n", encoding="utf-8")
         result = subprocess.run(
             [
                 ffmpeg,
@@ -645,10 +902,12 @@ def generate_reel_assets(
                 "-hide_banner",
                 "-loglevel",
                 "error",
-                "-framerate",
-                frame_rate,
+                "-f",
+                "concat",
+                "-safe",
+                "0",
                 "-i",
-                str(frame_root / "frame-%05d.png"),
+                str(concat_path),
                 "-f",
                 "lavfi",
                 "-i",
@@ -688,6 +947,8 @@ def generate_reel_assets(
         generated_at=generated,
         mode=mode,
         regions=regions,
+        pages=pages,
+        page_durations=page_durations,
     )
     return ReelAssets(output_dir, video_path, cover_path, caption_path, manifest_path, manifest, probe)
 

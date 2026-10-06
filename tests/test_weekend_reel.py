@@ -16,6 +16,7 @@ from kendo_keiko.weekend_reel import (
     ReelError,
     ReelStateStore,
     ReelUnknownResult,
+    build_reel_pages,
     caption_for_reel,
     generate_reel_assets,
     parse_target_friday,
@@ -24,6 +25,7 @@ from kendo_keiko.weekend_reel import (
     run_key,
     select_reel_events,
     target_dates,
+    _reel_wrap_text,
 )
 
 
@@ -92,6 +94,26 @@ class WeekendReelTests(unittest.TestCase):
         self.assertEqual("大人向け錬成会・練習試合", selection.events[1].category_label)
         self.assertEqual("稽古会", selection.events[2].category_label)
 
+    def test_pages_have_dedicated_cover_daily_groups_and_cta(self) -> None:
+        selection = select_reel_events(self.payload, self.friday)
+        pages = build_reel_pages(selection.events, self.friday)
+        self.assertEqual(["cover", "day", "day", "cta"], [page.kind for page in pages])
+        self.assertEqual(["2026-10-09", "2026-10-10"], [page.date.isoformat() for page in pages[1:3]])
+        self.assertEqual(2, len(pages[1].events))
+        self.assertEqual(1, len(pages[2].events))
+
+    def test_reel_wrap_keeps_latin_word_together(self) -> None:
+        from PIL import ImageDraw
+
+        image = Image.new("RGB", (1080, 1920), "white")
+        draw = ImageDraw.Draw(image)
+        from kendo_keiko.weekend_reel import load_font, DEFAULT_SERIF_FONT_PATH
+
+        font = load_font(DEFAULT_SERIF_FONT_PATH, 31, weight=700)
+        lines = _reel_wrap_text(draw, "社会人剣道サークルkent", font, 760)
+        self.assertIn("kent", "".join(lines))
+        self.assertNotIn("k\n", "\n".join(lines))
+
     def test_region_filter_and_invalid_schema(self) -> None:
         selection = select_reel_events(self.payload, self.friday, areas=["千葉県"])
         self.assertEqual(["reel-friday-match"], [event.event_id for event in selection.events])
@@ -128,6 +150,7 @@ class WeekendReelTests(unittest.TestCase):
             manifest = json.loads(assets.manifest_path.read_text(encoding="utf-8"))
             self.assertEqual("a" * 64, manifest["input"]["sha256"])
             self.assertEqual(3, len(manifest["events"]))
+            self.assertEqual(len(manifest["pages"]), len(list(output.glob("page-*.png"))))
 
     def test_state_store_records_run_and_key(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
