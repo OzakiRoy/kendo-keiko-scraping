@@ -1695,7 +1695,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("unknown", organization.event_type)
         self.assertEqual("unknown", organization.default_participation_type)
         self.assertIsNone(organization.default_application_required)
-        self.assertEqual(6, len(events))
+        self.assertEqual(7, len(events))
 
         event = next(
             event
@@ -1736,7 +1736,7 @@ class ManualEventDataTests(unittest.TestCase):
 
         self.assertEqual(events, select_events(events, "all"))
         self.assertEqual(3, len(select_events(events, "keiko")))
-        self.assertEqual(3, len(select_events(events, "renseikai")))
+        self.assertEqual(4, len(select_events(events, "renseikai")))
         self.assertIn(event, select_events(events, "renseikai"))
 
         index_html = (
@@ -1823,7 +1823,11 @@ class ManualEventDataTests(unittest.TestCase):
             event
             for event in load_manual_events()
             if event["organization_id"] == "sempuu"
-            and event["event_id"] != "sempuu-20261012-0900-8fabdfff"
+            and event["event_id"]
+            not in {
+                "sempuu-20261012-0900-8fabdfff",
+                "sempuu-20270111-0900-4ead9ac9",
+            }
         ]
 
         self.assertEqual(5, len(events))
@@ -1911,6 +1915,51 @@ class ManualEventDataTests(unittest.TestCase):
                     event["verified_at"],
                 )
                 self.assertEqual(review_due_at, event["review_due_at"])
+
+    def test_sempuu_january_2027_practice_match_is_valid(self) -> None:
+        events = [
+            event
+            for event in load_manual_events()
+            if event["event_id"] == "sempuu-20270111-0900-4ead9ac9"
+        ]
+
+        self.assertEqual(1, len(events))
+        event = events[0]
+        self.assertEqual("Sempuu 旋風", event["organization_name"])
+        self.assertEqual("第3回旋風プラクティスマッチ", event["title"])
+        self.assertEqual("adult_renseikai", event["event_type"])
+        self.assertEqual("2027-01-11", event["event_date"])
+        self.assertEqual("月", event["weekday"])
+        self.assertEqual("09:00", event["start_time"])
+        self.assertEqual("12:30", event["end_time"])
+        self.assertEqual("浜北武道館（中瀬）", event["venue"])
+        self.assertEqual("静岡県", event["area"])
+        self.assertIsNone(event["address"])
+        self.assertEqual(
+            "新東名 浜松浜北インター下車3分。近くにコンビニあり。",
+            event["access"],
+        )
+        self.assertEqual("1,500円／チーム、500円／人", event["fee"])
+        self.assertTrue(event["application_required"])
+        self.assertEqual("registration_required", event["participation_type"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DeGgoJCzvWx/",
+            event["source_url"],
+        )
+        self.assertEqual("official_site", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual("2026-10-06T10:36:08+09:00", event["verified_at"])
+        self.assertEqual("2027-01-10", event["review_due_at"])
+        self.assertIn("8:00開場・8:15受付・アップ", event["raw_note"])
+        self.assertIn("2人以上でチーム参加可", event["raw_note"])
+        self.assertIn("個人参加可", event["raw_note"])
+        self.assertIn("18歳以上・高3生可", event["raw_note"])
+        self.assertIn("審判・時計は参加者で担当", event["raw_note"])
+        self.assertIn("Instagram DM", event["raw_note"])
+
+        self.assertEqual([event], select_events(events, "renseikai"))
+        self.assertEqual([], select_events(events, "keiko"))
 
     def test_oyaji_renseikai_event_is_valid_and_listed_as_renseikai(
         self,
