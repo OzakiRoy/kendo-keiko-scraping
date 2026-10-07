@@ -14,6 +14,7 @@ echo "[INFO] clean build directory"
 rm -rf "${BUILD_DIR}" "${ZIP_PATH}"
 
 mkdir -p "${BUILD_DIR}/data" "${BUILD_DIR}/public"
+mkdir -p "${BUILD_DIR}/public/tools" "${BUILD_DIR}/public/assets"
 
 echo "[INFO] install dependencies"
 python -m pip install \
@@ -58,6 +59,15 @@ cp \
   "${ROOT_DIR}/public/ogp.png" \
   "${ROOT_DIR}/public/site.webmanifest" \
   "${BUILD_DIR}/public/"
+
+cp \
+  "${ROOT_DIR}/public/tools/team-builder.html" \
+  "${BUILD_DIR}/public/tools/"
+
+cp \
+  "${ROOT_DIR}/public/assets/team-builder.css" \
+  "${ROOT_DIR}/public/assets/team-builder.js" \
+  "${BUILD_DIR}/public/assets/"
 
 echo "[INFO] remove Python cache files"
 find "${BUILD_DIR}" \
@@ -150,6 +160,9 @@ required_files=(
   "public/icon-512.png"
   "public/ogp.png"
   "public/site.webmanifest"
+  "public/tools/team-builder.html"
+  "public/assets/team-builder.css"
+  "public/assets/team-builder.js"
 )
 
 ZIP_CONTENTS_FILE="$(mktemp)"

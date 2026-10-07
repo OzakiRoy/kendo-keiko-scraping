@@ -34,6 +34,8 @@ PARTICIPATION_LABELS = {
     "unknown": "公式情報を確認",
 }
 
+PUBLIC_TOOL_PATHS = ("/tools/team-builder.html",)
+
 
 def safe_http_url(value: object) -> str:
     if not value:
@@ -349,12 +351,13 @@ def build_sitemap_xml(
     lastmod: dt.date | None = None,
 ) -> str:
     lastmod = lastmod or dt.date.today()
+    paths = [page["path"] for page in PAGES.values()] + list(PUBLIC_TOOL_PATHS)
     entries = "\n".join(
         "  <url>\n"
-        f"    <loc>{escape(urljoin(site_url, page['path']), quote=True)}</loc>\n"
+        f"    <loc>{escape(urljoin(site_url, path), quote=True)}</loc>\n"
         f"    <lastmod>{lastmod.isoformat()}</lastmod>\n"
         "  </url>"
-        for page in PAGES.values()
+        for path in paths
     )
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'

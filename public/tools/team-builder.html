@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>チーム分けツール｜剣道稽古ナビ</title>
+  <meta name="description" content="参加者の年齢・段位を参考に、指定したチーム数の混成チーム案をブラウザ内で作成できます。">
+  <link rel="canonical" href="https://kendo-keiko.com/tools/team-builder.html">
+  <meta property="og:title" content="チーム分けツール｜剣道稽古ナビ">
+  <meta property="og:description" content="参加者の年齢・段位を参考に、指定したチーム数の混成チーム案をブラウザ内で作成できます。">
+  <meta property="og:url" content="https://kendo-keiko.com/tools/team-builder.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="剣道稽古ナビ">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:image" content="https://kendo-keiko.com/ogp.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="チーム分けツール｜剣道稽古ナビ">
+  <meta name="twitter:description" content="参加者の年齢・段位を参考に、指定したチーム数の混成チーム案をブラウザ内で作成できます。">
+  <meta name="twitter:image" content="https://kendo-keiko.com/ogp.png">
+  <meta name="theme-color" content="#8c1d24">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HY0WCBCXKW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-HY0WCBCXKW');
+  </script>
+  <link rel="stylesheet" href="/assets/team-builder.css">
+  <script src="/assets/team-builder.js" defer></script>
+</head>
+<body>
+<header class="tool-header">
+  <div class="tool-header__inner">
+    <a class="tool-brand" href="/" aria-label="剣道稽古ナビトップへ">
+      <img src="/icon-192.png" width="52" height="52" alt="">
+      <span><small>KENDO KEIKO NAVI</small><strong>剣道稽古ナビ</strong></span>
+    </a>
+    <nav aria-label="サイト内メニュー">
+      <a href="/">イベント一覧</a>
+      <a href="/tools/team-builder.html" aria-current="page">チーム分け</a>
+    </nav>
+  </div>
+</header>
+<div id="keiko-team-balance">
+  <section class="kb-app" aria-labelledby="kb-title">
+    <div class="kb-brand"><span class="kb-seal" aria-hidden="true">稽</span><span>剣道稽古ナビ</span></div>
+    <h2 id="kb-title">チーム分け</h2>
+    <div class="kb-subtitle">指定した人数・条件から、編成案を作る</div>
+    <div class="kb-config">
+      <label for="kb-count">作るチーム数</label>
+      <input id="kb-count" class="kb-input" type="number" min="1" max="60" step="1" value="4" inputmode="numeric">
+      <span class="kb-count-label">チーム</span>
+    </div>
+    <fieldset class="kb-conditions">
+      <legend>平均値の偏りを抑える条件</legend>
+      <div class="kb-checks">
+        <label class="kb-check"><input id="kb-use-dan" type="checkbox" checked><span>段位</span></label>
+        <label class="kb-check"><input id="kb-use-age" type="checkbox" checked><span>年齢</span></label>
+      </div>
+    </fieldset>
+    <details id="kb-editor" class="kb-edit">
+      <summary id="kb-roster-summary">選手を登録・編集（サンプル12人）</summary>
+      <div class="kb-roster-head" aria-hidden="true"><span>選手名</span><span>年齢</span><span>段位</span><span></span></div>
+      <div id="kb-roster"></div>
+      <button id="kb-add" class="kb-secondary kb-add" type="button">＋ 選手を追加</button>
+      <div class="kb-grade-hint">段位なしは「0」。選ばない条件の項目は空欄でも可。</div>
+    </details>
+    <div id="kb-error" class="kb-error" role="alert" hidden></div>
+    <button id="kb-generate" class="kb-generate" type="button">チームを作る</button>
+    <div id="kb-status" class="kb-status" aria-live="polite" aria-atomic="true"></div>
+    <div id="kb-results" hidden>
+      <div id="kb-division" class="kb-division"></div>
+      <div id="kb-board" class="kb-board" aria-label="チーム編成案"></div>
+      <button id="kb-print" class="kb-secondary kb-print" type="button" hidden>印刷／PDF保存</button>
+      <details id="kb-manual" class="kb-manual">
+        <summary>編成を手直しする</summary>
+        <div class="kb-swaps">
+          <div class="kb-swap-field"><label for="kb-swap-a">入れ替える選手（1）</label><select id="kb-swap-a" class="kb-select"></select></div>
+          <div class="kb-swap-field"><label for="kb-swap-b">入れ替える選手（2）</label><select id="kb-swap-b" class="kb-select"></select></div>
+        </div>
+        <button id="kb-swap" class="kb-secondary" type="button">2人を入れ替える</button>
+        <div id="kb-swap-status" class="kb-swap-status" aria-live="polite"></div>
+      </details>
+    </div>
+    <p class="kb-note">入力内容・編成結果は保存されません。再読み込みやページを閉じると失われます。結果を残す場合は、スクリーンショットや印刷をご利用ください。対応する環境では、印刷画面からPDFとして保存できます。</p>
+    <div class="kb-footer">年齢・段位は参考情報です。実力の均等を保証するものではありません。</div>
+  </section>
+</div>
+<footer class="tool-footer"><a href="/">剣道稽古ナビ</a> · 参加前には主催者の公式情報をご確認ください。</footer>
+</body>
+</html>
