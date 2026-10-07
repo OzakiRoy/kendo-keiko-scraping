@@ -43,6 +43,21 @@ class ListingPagesTests(unittest.TestCase):
                 self.assertEqual(1, html.count("gtag('config', 'G-HY0WCBCXKW')"))
                 self.assertNotIn('G-M91BRN6W55', html)
 
+    def test_design_shell_is_shared_and_home_hero_is_home_only(self):
+        pages = fixture_pages()
+        for key, html in pages.items():
+            with self.subTest(key=key):
+                self.assertEqual(1, html.count('<link rel="stylesheet" href="/assets/site.css">'))
+                self.assertIn('class="site-header"', html)
+                self.assertIn('class="site-footer"', html)
+                self.assertIn('class="notice"', html)
+        self.assertIn("次の稽古に、出会おう。", pages["index.html"])
+        self.assertIn('src="/assets/hero-keiko.jpg"', pages["index.html"])
+        self.assertNotIn("次の稽古に、出会おう。", pages["keiko/index.html"])
+        self.assertNotIn('src="/assets/hero-keiko.jpg"', pages["keiko/index.html"])
+        self.assertIn("稽古会を探す", pages["keiko/index.html"])
+        self.assertIn("大人向け錬成会・練習試合を探す", pages["renseikai/index.html"])
+
     def test_static_scope_counts_seo_and_idempotence(self):
         payload = public_fixture()
         original = copy.deepcopy(payload)

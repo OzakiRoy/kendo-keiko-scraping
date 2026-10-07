@@ -65,6 +65,8 @@ cp \
   "${BUILD_DIR}/public/tools/"
 
 cp \
+  "${ROOT_DIR}/public/assets/site.css" \
+  "${ROOT_DIR}/public/assets/hero-keiko.jpg" \
   "${ROOT_DIR}/public/assets/team-builder.css" \
   "${ROOT_DIR}/public/assets/team-builder.js" \
   "${BUILD_DIR}/public/assets/"
@@ -161,6 +163,8 @@ required_files=(
   "public/ogp.png"
   "public/site.webmanifest"
   "public/tools/team-builder.html"
+  "public/assets/site.css"
+  "public/assets/hero-keiko.jpg"
   "public/assets/team-builder.css"
   "public/assets/team-builder.js"
 )

@@ -17,6 +17,7 @@ class TeamBuilderAssetTests(unittest.TestCase):
     def test_public_assets_and_links(self):
         html = (PUBLIC / "tools/team-builder.html").read_text(encoding="utf-8")
         self.assertIn('<link rel="canonical" href="https://kendo-keiko.com/tools/team-builder.html">', html)
+        self.assertIn('<link rel="stylesheet" href="/assets/site.css">', html)
         self.assertIn('<link rel="stylesheet" href="/assets/team-builder.css">', html)
         self.assertIn('<script src="/assets/team-builder.js" defer></script>', html)
         self.assertEqual(1, html.count("gtag('config', 'G-HY0WCBCXKW')"))
@@ -25,6 +26,8 @@ class TeamBuilderAssetTests(unittest.TestCase):
         self.assertIn("https://kendo-keiko.com/tools/team-builder.html", (PUBLIC / "sitemap.xml").read_text(encoding="utf-8"))
         self.assertTrue((PUBLIC / "assets/team-builder.css").is_file())
         self.assertTrue((PUBLIC / "assets/team-builder.js").is_file())
+        self.assertTrue((PUBLIC / "assets/site.css").is_file())
+        self.assertTrue((PUBLIC / "assets/hero-keiko.jpg").is_file())
 
 
 class TeamBuilderBrowserTests(unittest.TestCase):

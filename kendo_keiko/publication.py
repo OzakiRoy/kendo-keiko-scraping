@@ -35,12 +35,20 @@ PUBLIC_BRAND_ASSETS: tuple[tuple[str, str], ...] = (
     ("ogp.png", "image/png"),
     ("site.webmanifest", "application/manifest+json; charset=utf-8"),
 )
+PUBLIC_DESIGN_ASSETS: tuple[tuple[str, str], ...] = (
+    ("assets/site.css", "text/css; charset=utf-8"),
+    ("assets/hero-keiko.jpg", "image/jpeg"),
+)
 PUBLIC_TOOL_ASSETS: tuple[tuple[str, str], ...] = (
     ("tools/team-builder.html", "text/html; charset=utf-8"),
     ("assets/team-builder.css", "text/css; charset=utf-8"),
     ("assets/team-builder.js", "text/javascript; charset=utf-8"),
 )
-PUBLIC_ASSETS: tuple[tuple[str, str], ...] = PUBLIC_BRAND_ASSETS + PUBLIC_TOOL_ASSETS
+PUBLIC_ASSETS: tuple[tuple[str, str], ...] = (
+    *PUBLIC_DESIGN_ASSETS,
+    *PUBLIC_TOOL_ASSETS,
+    *PUBLIC_BRAND_ASSETS,
+)
 
 
 def public_asset_cache_control(key: str) -> str:
@@ -270,8 +278,12 @@ def publish_public_site(
         template_path = Path(__file__).resolve().parent.parent / "public/index.html"
         template = template_path.read_text(encoding="utf-8")
         pages = render_listing_pages(template, payload, site_url=site_url)
-        # The tool link is present in every page, so upload its entrypoint and
-        # assets before replacing the pages that link to it.
+        # Shared design assets are uploaded before pages that reference them.
+        design_asset_keys = publish_public_assets(
+            bucket=events_bucket,
+            region_name=region_name,
+            assets=PUBLIC_DESIGN_ASSETS,
+        )
         tool_asset_keys = publish_public_assets(
             bucket=events_bucket,
             region_name=region_name,
@@ -302,7 +314,7 @@ def publish_public_site(
             region_name=region_name,
             assets=PUBLIC_BRAND_ASSETS,
         )
-        asset_keys = tool_asset_keys + brand_asset_keys
+        asset_keys = design_asset_keys + tool_asset_keys + brand_asset_keys
         result.update(
             {
                 "index_published": True,

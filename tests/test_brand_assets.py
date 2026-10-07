@@ -37,6 +37,9 @@ class BrandAssetsTests(unittest.TestCase):
         self.assertIn('content="summary_large_image"', html)
         self.assertIn('href="/site.webmanifest"', html)
         self.assertIn('src="/icon-192.png"', html)
+        self.assertIn('<link rel="stylesheet" href="/assets/site.css">', html)
+        self.assertIn('src="/assets/hero-keiko.jpg"', html)
+        self.assertIn("次の稽古に、出会おう。", html)
 
     def test_committed_png_dimensions(self) -> None:
         expected = {
