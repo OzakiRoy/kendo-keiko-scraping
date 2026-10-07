@@ -39,13 +39,24 @@ PUBLIC_DESIGN_ASSETS: tuple[tuple[str, str], ...] = (
     ("assets/site.css", "text/css; charset=utf-8"),
     ("assets/hero-keiko.jpg", "image/jpeg"),
 )
-PUBLIC_TOOL_ASSETS: tuple[tuple[str, str], ...] = (
-    ("tools/team-builder.html", "text/html; charset=utf-8"),
+PUBLIC_FONT_ASSETS: tuple[tuple[str, str], ...] = (
+    ("assets/fonts/NotoSansJP[wght].ttf", "font/ttf"),
+    ("assets/fonts/NotoSerifJP[wght].ttf", "font/ttf"),
+)
+PUBLIC_TOOL_SUPPORT_ASSETS: tuple[tuple[str, str], ...] = (
     ("assets/team-builder.css", "text/css; charset=utf-8"),
     ("assets/team-builder.js", "text/javascript; charset=utf-8"),
 )
+PUBLIC_TOOL_ENTRY_ASSETS: tuple[tuple[str, str], ...] = (
+    ("tools/team-builder.html", "text/html; charset=utf-8"),
+)
+PUBLIC_TOOL_ASSETS: tuple[tuple[str, str], ...] = (
+    *PUBLIC_TOOL_SUPPORT_ASSETS,
+    *PUBLIC_TOOL_ENTRY_ASSETS,
+)
 PUBLIC_ASSETS: tuple[tuple[str, str], ...] = (
     *PUBLIC_DESIGN_ASSETS,
+    *PUBLIC_FONT_ASSETS,
     *PUBLIC_TOOL_ASSETS,
     *PUBLIC_BRAND_ASSETS,
 )
@@ -210,6 +221,8 @@ def publish_public_assets(
 
     for key, content_type in assets:
         asset_path = public_dir / key
+        if not asset_path.is_file() and key.startswith("assets/fonts/"):
+            asset_path = public_dir.parent / "assets" / "fonts" / Path(key).name
         if not asset_path.is_file():
             raise FileNotFoundError(f"public asset not found: {asset_path}")
         s3.put_object(
@@ -284,10 +297,20 @@ def publish_public_site(
             region_name=region_name,
             assets=PUBLIC_DESIGN_ASSETS,
         )
-        tool_asset_keys = publish_public_assets(
+        font_asset_keys = publish_public_assets(
             bucket=events_bucket,
             region_name=region_name,
-            assets=PUBLIC_TOOL_ASSETS,
+            assets=PUBLIC_FONT_ASSETS,
+        )
+        tool_support_asset_keys = publish_public_assets(
+            bucket=events_bucket,
+            region_name=region_name,
+            assets=PUBLIC_TOOL_SUPPORT_ASSETS,
+        )
+        tool_entry_asset_keys = publish_public_assets(
+            bucket=events_bucket,
+            region_name=region_name,
+            assets=PUBLIC_TOOL_ENTRY_ASSETS,
         )
         page_keys = []
         # Categories first, then the homepage containing their navigation.
@@ -314,7 +337,13 @@ def publish_public_site(
             region_name=region_name,
             assets=PUBLIC_BRAND_ASSETS,
         )
-        asset_keys = design_asset_keys + tool_asset_keys + brand_asset_keys
+        asset_keys = (
+            design_asset_keys
+            + font_asset_keys
+            + tool_support_asset_keys
+            + tool_entry_asset_keys
+            + brand_asset_keys
+        )
         result.update(
             {
                 "index_published": True,

@@ -40,6 +40,11 @@ class BrandAssetsTests(unittest.TestCase):
         self.assertIn('src="/icon-192.png"', html)
         self.assertIn('<link rel="stylesheet" href="/assets/site.css">', html)
         self.assertIn('src="/assets/hero-keiko.jpg"', html)
+        css = (PUBLIC_DIR / "assets/site.css").read_text(encoding="utf-8")
+        self.assertIn('@font-face', css)
+        self.assertIn('/assets/fonts/NotoSansJP[wght].ttf', css)
+        self.assertIn('/assets/fonts/NotoSerifJP[wght].ttf', css)
+        self.assertIn('class="home-hero__heading"', html)
         self.assertIn("次の稽古に、出会おう。", html)
 
     def test_committed_png_dimensions(self) -> None:

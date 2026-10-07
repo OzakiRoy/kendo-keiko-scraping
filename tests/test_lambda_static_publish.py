@@ -71,6 +71,8 @@ class LambdaStaticPublishTests(unittest.TestCase):
         expected_assets = {
             "assets/site.css",
             "assets/hero-keiko.jpg",
+            "assets/fonts/NotoSansJP[wght].ttf",
+            "assets/fonts/NotoSerifJP[wght].ttf",
             "favicon.svg",
             "favicon.ico",
             "favicon-32x32.png",
@@ -124,11 +126,15 @@ class LambdaStaticPublishTests(unittest.TestCase):
         self.assertEqual("text/css; charset=utf-8", objects["assets/site.css"]["ContentType"])
         self.assertEqual("image/jpeg", objects["assets/hero-keiko.jpg"]["ContentType"])
         self.assertEqual("text/javascript; charset=utf-8", objects["assets/team-builder.js"]["ContentType"])
+        self.assertEqual("font/ttf", objects["assets/fonts/NotoSansJP[wght].ttf"]["ContentType"])
+        self.assertEqual("font/ttf", objects["assets/fonts/NotoSerifJP[wght].ttf"]["ContentType"])
         self.assertEqual("max-age=300", objects["tools/team-builder.html"]["CacheControl"])
         self.assertEqual("max-age=300", objects["assets/team-builder.css"]["CacheControl"])
         self.assertEqual("max-age=300", objects["assets/team-builder.js"]["CacheControl"])
         self.assertEqual("max-age=300", objects["assets/site.css"]["CacheControl"])
         self.assertEqual("max-age=300", objects["assets/hero-keiko.jpg"]["CacheControl"])
+        self.assertEqual("max-age=300", objects["assets/fonts/NotoSansJP[wght].ttf"]["CacheControl"])
+        self.assertEqual("max-age=300", objects["assets/fonts/NotoSerifJP[wght].ttf"]["CacheControl"])
         self.assertEqual(
             "application/manifest+json; charset=utf-8",
             objects["site.webmanifest"]["ContentType"],
@@ -141,6 +147,8 @@ class LambdaStaticPublishTests(unittest.TestCase):
         self.assertLess(keys.index("tools/team-builder.html"), keys.index("keiko/index.html"))
         self.assertLess(keys.index("assets/site.css"), keys.index("keiko/index.html"))
         self.assertLess(keys.index("assets/hero-keiko.jpg"), keys.index("keiko/index.html"))
+        self.assertLess(keys.index("assets/team-builder.css"), keys.index("tools/team-builder.html"))
+        self.assertLess(keys.index("assets/team-builder.js"), keys.index("tools/team-builder.html"))
         self.assertIn(
             'href="/tools/team-builder.html"',
             index_html,

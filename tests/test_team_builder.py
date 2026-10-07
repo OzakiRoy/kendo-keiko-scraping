@@ -45,9 +45,9 @@ class TeamBuilderBrowserTests(unittest.TestCase):
         cls.browser.close()
         cls.playwright.stop()
 
-    def page(self, *, mobile: bool = False):
+    def page(self, *, mobile: bool = False, width: int | None = None):
         context = self.browser.new_context(
-            viewport={"width": 360 if mobile else 1280, "height": 900}
+            viewport={"width": width or (360 if mobile else 1280), "height": 900}
         )
         self.addCleanup(context.close)
         context.set_default_timeout(30_000)
@@ -217,6 +217,24 @@ class TeamBuilderBrowserTests(unittest.TestCase):
         self.assertEqual("none", page.locator("#kb-manual").evaluate("el => getComputedStyle(el).display"))
         self.assertEqual(4, page.locator("#kb-board .kb-team").count())
         self.assertTrue(page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
+
+    def test_required_widths_and_print_hide_site_chrome(self):
+        for width in (320, 390, 768, 1440):
+            page = self.page(width=width)
+            self.assertTrue(page.locator(".site-header").is_visible(), width)
+            self.assertTrue(page.locator(".site-footer").is_visible(), width)
+            self.assertTrue(page.locator(".tool-page-intro").is_visible(), width)
+            self.assertTrue(
+                page.evaluate("document.documentElement.scrollWidth <= innerWidth"),
+                width,
+            )
+
+        page = self.page(width=1440)
+        page.emulate_media(media="print")
+        self.assertFalse(page.locator(".site-header").is_visible())
+        self.assertFalse(page.locator(".site-footer").is_visible())
+        self.assertFalse(page.locator(".tool-page-intro").is_visible())
+        self.assertTrue(page.locator("#kb-results").is_visible())
 
     def test_seven_players_one_team_and_condition_off(self):
         page = self.page()

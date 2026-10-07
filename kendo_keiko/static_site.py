@@ -475,8 +475,10 @@ def render_page_shell(template: str, category: str, site_url: str) -> str:
     home_hero = "" if category != "all" else (
         '<section class="home-hero" aria-labelledby="home-heading">\n'
         '  <div class="home-hero__copy">\n'
-        '    <p class="section-heading__en">FIND YOUR NEXT KEIKO</p>\n'
-        '    <h1 id="home-heading">次の稽古に、出会おう。</h1>\n'
+        '    <div class="home-hero__heading">\n'
+        '      <p class="section-heading__en">FIND YOUR NEXT KEIKO</p>\n'
+        '      <h1 id="home-heading">次の稽古に、出会おう。</h1>\n'
+        '    </div>\n'
         '    <p class="home-hero__intro">参加できる稽古会・錬成会を、日付・地域・参加条件から探せます。</p>\n'
         '  </div>\n'
         '  <figure class="home-hero__photo">\n'

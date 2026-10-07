@@ -14,7 +14,7 @@ echo "[INFO] clean build directory"
 rm -rf "${BUILD_DIR}" "${ZIP_PATH}"
 
 mkdir -p "${BUILD_DIR}/data" "${BUILD_DIR}/public"
-mkdir -p "${BUILD_DIR}/public/tools" "${BUILD_DIR}/public/assets"
+mkdir -p "${BUILD_DIR}/public/tools" "${BUILD_DIR}/public/assets/fonts"
 
 echo "[INFO] install dependencies"
 python -m pip install \
@@ -70,6 +70,11 @@ cp \
   "${ROOT_DIR}/public/assets/team-builder.css" \
   "${ROOT_DIR}/public/assets/team-builder.js" \
   "${BUILD_DIR}/public/assets/"
+
+cp \
+  "${ROOT_DIR}/assets/fonts/NotoSansJP[wght].ttf" \
+  "${ROOT_DIR}/assets/fonts/NotoSerifJP[wght].ttf" \
+  "${BUILD_DIR}/public/assets/fonts/"
 
 echo "[INFO] remove Python cache files"
 find "${BUILD_DIR}" \
@@ -167,6 +172,8 @@ required_files=(
   "public/assets/hero-keiko.jpg"
   "public/assets/team-builder.css"
   "public/assets/team-builder.js"
+  "public/assets/fonts/NotoSansJP[wght].ttf"
+  "public/assets/fonts/NotoSerifJP[wght].ttf"
 )
 
 ZIP_CONTENTS_FILE="$(mktemp)"
@@ -187,7 +194,7 @@ if grep -Eq '\.(pyc|pyo)$' "${ZIP_CONTENTS_FILE}"; then
   exit 1
 fi
 
-if grep -Eq '(^|/)(\.venv|browsers|browser-libs|browser-debs|playwright|pyee|greenlet|PIL|assets/fonts)(/|[-.])|(^|/)requirements-(dev|story)\.txt$' "${ZIP_CONTENTS_FILE}"; then
+if grep -Eq '(^|/)(\.venv|browsers|browser-libs|browser-debs|playwright|pyee|greenlet|PIL)(/|[-.])|(^|/)requirements-(dev|story)\.txt$' "${ZIP_CONTENTS_FILE}"; then
   echo "[ERROR] development-only dependency found in ZIP" >&2
   exit 1
 fi
