@@ -1,0 +1,115 @@
+* { box-sizing: border-box; }
+html { background: #f3f1ec; }
+body {
+  margin: 0;
+  color: #1b1b1b;
+  background: #f3f1ec;
+  font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  line-height: 1.8;
+}
+a { color: #8c1d24; text-underline-offset: .2em; }
+.tool-header { background: #fff; border-top: 7px solid #1b1b1b; border-bottom: 1px solid #d6d1c8; }
+.tool-header__inner {
+  width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 14px 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+}
+.tool-brand { display: inline-flex; align-items: center; gap: 10px; color: #1b1b1b; text-decoration: none; }
+.tool-brand img { display: block; width: 52px; height: 52px; }
+.tool-brand span { display: grid; gap: 0; line-height: 1.2; }
+.tool-brand small { color: #706d67; font-size: 10px; letter-spacing: .12em; }
+.tool-brand strong { font-family: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif; font-size: 20px; }
+.tool-header nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.tool-header nav a { padding: 7px 11px; border: 1px solid #d6d1c8; border-radius: 4px; font-size: 13px; }
+.tool-header nav a[aria-current="page"] { border-color: #8c1d24; font-weight: 700; }
+#keiko-team-balance { padding: 28px 8px 12px; }
+    #keiko-team-balance .kb-app {
+      --kb-paper: light-dark(#f8f2e8, #241e20);
+      --kb-field: light-dark(#fffaf3, #30292b);
+      --kb-ink: light-dark(#30272a, #f3eae5);
+      --kb-soft: light-dark(#73666a, #c8b8bf);
+      --kb-line: light-dark(#dfd2c7, #514046);
+      --kb-accent: light-dark(#873149, #eaa1b4);
+      --kb-button: light-dark(#873149, #ae516b);
+      --kb-button-text: light-dark(#fff8ef, #fff8ef);
+      max-width: 660px; margin: 0 auto; padding: 20px;
+      background: var(--kb-paper); color: var(--kb-ink);
+      border: 1px solid var(--kb-line); border-radius: 16px;
+      font: 400 16px/1.6 system-ui, -apple-system, "Noto Sans JP", sans-serif;
+      box-sizing: border-box;
+    }
+    #keiko-team-balance .kb-app * { box-sizing: border-box; }
+    #keiko-team-balance [hidden] { display: none !important; }
+    #keiko-team-balance .kb-brand { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--kb-soft); }
+    #keiko-team-balance .kb-seal { width: 30px; height: 30px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid var(--kb-accent); border-radius: 50%; color: var(--kb-accent); font: 500 18px/1 "Yu Mincho", serif; }
+    #keiko-team-balance h2 { margin: 13px 0 3px; font: 500 24px/1.4 "Yu Mincho", "Noto Serif JP", serif; letter-spacing: .04em; }
+    #keiko-team-balance .kb-subtitle { margin-bottom: 17px; font-size: 12px; color: var(--kb-soft); }
+    #keiko-team-balance .kb-config { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    #keiko-team-balance .kb-config label { font-size: 13px; font-weight: 500; }
+    #keiko-team-balance .kb-input, #keiko-team-balance .kb-select {
+      min-width: 0; width: 100%; min-height: 44px; padding: 7px 9px;
+      background: var(--kb-field); color: var(--kb-ink); border: 1px solid var(--kb-line);
+      border-radius: 7px; font: inherit;
+    }
+    #keiko-team-balance #kb-count { width: 68px; }
+    #keiko-team-balance .kb-count-label { color: var(--kb-soft); font-size: 13px; }
+    #keiko-team-balance .kb-conditions { padding: 0; margin: 0 0 14px; border: 0; }
+    #keiko-team-balance .kb-conditions legend { padding: 0; font-size: 13px; font-weight: 500; }
+    #keiko-team-balance .kb-checks { display: flex; gap: 16px; flex-wrap: wrap; }
+    #keiko-team-balance .kb-check { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; font-size: 14px; }
+    #keiko-team-balance .kb-check input { width: 17px; height: 17px; accent-color: var(--kb-accent); margin: 0; }
+    #keiko-team-balance .kb-edit { margin-bottom: 14px; border-top: 1px solid var(--kb-line); border-bottom: 1px solid var(--kb-line); }
+    #keiko-team-balance summary { min-height: 44px; padding: 9px 0; font-size: 14px; }
+    #keiko-team-balance .kb-roster-head, #keiko-team-balance .kb-roster-row { display: grid; grid-template-columns: minmax(52px, 1fr) 48px 58px 44px; align-items: center; gap: 6px; }
+    #keiko-team-balance .kb-roster-head { margin: 5px 0 6px; color: var(--kb-soft); font-size: 12px; }
+    #keiko-team-balance .kb-roster-row { margin-bottom: 6px; }
+    #keiko-team-balance .kb-roster-row .kb-input { padding-left: 6px; padding-right: 4px; }
+    #keiko-team-balance .kb-secondary {
+      min-height: 44px; padding: 7px 12px; border: 1px solid var(--kb-line); border-radius: 7px;
+      background: var(--kb-field); color: var(--kb-ink); font: inherit;
+    }
+    #keiko-team-balance .kb-remove { width: 44px; padding: 0; }
+    #keiko-team-balance .kb-add { margin: 4px 0 8px; font-size: 13px; }
+    #keiko-team-balance .kb-grade-hint { margin: 0 0 10px; font-size: 12px; color: var(--kb-soft); }
+    #keiko-team-balance .kb-error { margin: 8px 0; font-size: 13px; color: var(--kb-accent); overflow-wrap: anywhere; }
+    #keiko-team-balance .kb-generate {
+      display: block; width: 100%; min-height: 48px; padding: 10px 15px; border: 0; border-radius: 9px;
+      background: var(--kb-button); color: var(--kb-button-text); font: 500 16px/1.5 system-ui, sans-serif;
+    }
+    #keiko-team-balance .kb-status { margin: 9px 0 13px; font-size: 12px; color: var(--kb-soft); min-height: 20px; overflow-wrap: anywhere; }
+    #keiko-team-balance .kb-division { margin-bottom: 9px; font-size: 13px; font-weight: 500; }
+    #keiko-team-balance .kb-board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    #keiko-team-balance .kb-team { padding: 13px; background: var(--kb-field); border: 1px solid var(--kb-line); border-radius: 9px; min-width: 0; }
+    #keiko-team-balance .kb-team h3 { margin: 0; font-size: 15px; font-weight: 500; color: var(--kb-ink); }
+    #keiko-team-balance .kb-metrics { display: flex; gap: 5px 13px; flex-wrap: wrap; margin: 6px 0 9px; font-size: 12px; color: var(--kb-soft); font-variant-numeric: tabular-nums; }
+    #keiko-team-balance .kb-members { list-style: none; margin: 0; padding: 0; }
+    #keiko-team-balance .kb-member { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0 10px; margin: 5px 0; font-size: 14px; }
+    #keiko-team-balance .kb-member-name { min-width: 0; overflow-wrap: anywhere; }
+    #keiko-team-balance .kb-member-detail { font-size: 12px; color: var(--kb-soft); }
+    #keiko-team-balance .kb-manual { margin-top: 12px; border-top: 1px solid var(--kb-line); }
+    #keiko-team-balance .kb-swaps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 5px 0 10px; }
+    #keiko-team-balance .kb-swap-field { min-width: 0; }
+    #keiko-team-balance .kb-swap-field label { display: block; font-size: 12px; color: var(--kb-soft); margin-bottom: 4px; }
+    #keiko-team-balance .kb-swap-status { margin: 7px 0 10px; font-size: 12px; color: var(--kb-soft); overflow-wrap: anywhere; }
+    #keiko-team-balance .kb-footer { margin-top: 15px; text-align: center; font-size: 12px; color: var(--kb-soft); }
+    #keiko-team-balance .kb-note { margin: 18px 0 0; padding: 11px 13px; border: 1px solid var(--kb-line); border-radius: 8px; color: var(--kb-soft); font-size: 12px; line-height: 1.7; }
+    #keiko-team-balance .kb-print { display: block; margin: 14px 0 0; }
+.tool-footer { width: min(660px, calc(100% - 32px)); margin: 0 auto; padding: 14px 0 30px; color: #706d67; font-size: 12px; text-align: center; }
+@media print {
+  html, body { background: #fff; }
+  .tool-header, .tool-footer, .kb-brand, .kb-subtitle, .kb-config, .kb-conditions,
+  .kb-edit, .kb-error, .kb-status, .kb-generate, .kb-manual, .kb-print, .kb-note,
+  .kb-footer { display: none !important; }
+  #keiko-team-balance { padding: 0; }
+  #keiko-team-balance .kb-app { max-width: none; padding: 0; border: 0; background: #fff; color: #1b1b1b; }
+  #keiko-team-balance #kb-results { display: block !important; }
+  #keiko-team-balance .kb-division { margin: 0 0 12px; }
+  #keiko-team-balance .kb-board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  #keiko-team-balance .kb-team { break-inside: avoid; page-break-inside: avoid; }
+  #keiko-team-balance .kb-member-name { overflow-wrap: anywhere; }
+  @page { margin: 14mm; }
+}
+    @media (max-width: 520px) {
+      #keiko-team-balance .kb-app { padding: 15px; }
+      #keiko-team-balance .kb-board { grid-template-columns: 1fr; }
+      #keiko-team-balance .kb-swaps { grid-template-columns: 1fr; }
+    }

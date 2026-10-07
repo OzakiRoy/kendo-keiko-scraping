@@ -25,7 +25,7 @@ from kendo_keiko.static_site import (
 
 JST = ZoneInfo("Asia/Tokyo")
 
-PUBLIC_ASSETS: tuple[tuple[str, str], ...] = (
+PUBLIC_BRAND_ASSETS: tuple[tuple[str, str], ...] = (
     ("favicon.svg", "image/svg+xml"),
     ("favicon.ico", "image/x-icon"),
     ("favicon-32x32.png", "image/png"),
@@ -35,6 +35,19 @@ PUBLIC_ASSETS: tuple[tuple[str, str], ...] = (
     ("ogp.png", "image/png"),
     ("site.webmanifest", "application/manifest+json; charset=utf-8"),
 )
+PUBLIC_TOOL_ASSETS: tuple[tuple[str, str], ...] = (
+    ("tools/team-builder.html", "text/html; charset=utf-8"),
+    ("assets/team-builder.css", "text/css; charset=utf-8"),
+    ("assets/team-builder.js", "text/javascript; charset=utf-8"),
+)
+PUBLIC_ASSETS: tuple[tuple[str, str], ...] = PUBLIC_BRAND_ASSETS + PUBLIC_TOOL_ASSETS
+
+
+def public_asset_cache_control(key: str) -> str:
+    """Keep the tool entrypoint and its unversioned assets quickly refreshable."""
+    if key.startswith(("tools/", "assets/")):
+        return "max-age=300"
+    return "max-age=86400"
 
 
 def json_default(value: Any) -> Any:
@@ -181,12 +194,13 @@ def publish_public_assets(
     *,
     bucket: str,
     region_name: str,
+    assets: tuple[tuple[str, str], ...] = PUBLIC_ASSETS,
 ) -> list[str]:
     public_dir = Path(__file__).resolve().parent.parent / "public"
     published_keys: list[str] = []
     s3 = boto3.client("s3", region_name=region_name)
 
-    for key, content_type in PUBLIC_ASSETS:
+    for key, content_type in assets:
         asset_path = public_dir / key
         if not asset_path.is_file():
             raise FileNotFoundError(f"public asset not found: {asset_path}")
@@ -195,7 +209,7 @@ def publish_public_assets(
             Key=key,
             Body=asset_path.read_bytes(),
             ContentType=content_type,
-            CacheControl="max-age=86400",
+            CacheControl=public_asset_cache_control(key),
         )
         published_keys.append(key)
 
@@ -256,6 +270,13 @@ def publish_public_site(
         template_path = Path(__file__).resolve().parent.parent / "public/index.html"
         template = template_path.read_text(encoding="utf-8")
         pages = render_listing_pages(template, payload, site_url=site_url)
+        # The tool link is present in every page, so upload its entrypoint and
+        # assets before replacing the pages that link to it.
+        tool_asset_keys = publish_public_assets(
+            bucket=events_bucket,
+            region_name=region_name,
+            assets=PUBLIC_TOOL_ASSETS,
+        )
         page_keys = []
         # Categories first, then the homepage containing their navigation.
         for key in ("keiko/index.html", "renseikai/index.html", "index.html"):
@@ -276,10 +297,12 @@ def publish_public_site(
             region_name=region_name,
             cache_control="max-age=3600",
         )
-        asset_keys = publish_public_assets(
+        brand_asset_keys = publish_public_assets(
             bucket=events_bucket,
             region_name=region_name,
+            assets=PUBLIC_BRAND_ASSETS,
         )
+        asset_keys = tool_asset_keys + brand_asset_keys
         result.update(
             {
                 "index_published": True,

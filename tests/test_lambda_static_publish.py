@@ -77,6 +77,9 @@ class LambdaStaticPublishTests(unittest.TestCase):
             "icon-512.png",
             "ogp.png",
             "site.webmanifest",
+            "tools/team-builder.html",
+            "assets/team-builder.css",
+            "assets/team-builder.js",
         }
         self.assertEqual(
             {"events.json", "index.html", "keiko/index.html", "renseikai/index.html", "sitemap.xml", *expected_assets},
@@ -114,6 +117,12 @@ class LambdaStaticPublishTests(unittest.TestCase):
         self.assertIn('content="summary_large_image"', index_html)
         self.assertEqual("image/svg+xml", objects["favicon.svg"]["ContentType"])
         self.assertEqual("image/png", objects["ogp.png"]["ContentType"])
+        self.assertEqual("text/html; charset=utf-8", objects["tools/team-builder.html"]["ContentType"])
+        self.assertEqual("text/css; charset=utf-8", objects["assets/team-builder.css"]["ContentType"])
+        self.assertEqual("text/javascript; charset=utf-8", objects["assets/team-builder.js"]["ContentType"])
+        self.assertEqual("max-age=300", objects["tools/team-builder.html"]["CacheControl"])
+        self.assertEqual("max-age=300", objects["assets/team-builder.css"]["CacheControl"])
+        self.assertEqual("max-age=300", objects["assets/team-builder.js"]["CacheControl"])
         self.assertEqual(
             "application/manifest+json; charset=utf-8",
             objects["site.webmanifest"]["ContentType"],
@@ -121,6 +130,13 @@ class LambdaStaticPublishTests(unittest.TestCase):
         self.assertEqual("max-age=86400", objects["ogp.png"]["CacheControl"])
         sitemap = objects["sitemap.xml"]["Body"].decode("utf-8")
         self.assertIn("https://kendo-keiko.com/", sitemap)
+        self.assertIn("https://kendo-keiko.com/tools/team-builder.html", sitemap)
+        keys = [item["Key"] for item in fake_s3.objects]
+        self.assertLess(keys.index("tools/team-builder.html"), keys.index("keiko/index.html"))
+        self.assertIn(
+            'href="/tools/team-builder.html"',
+            index_html,
+        )
         self.assertTrue(response["s3_published"])
         self.assertTrue(response["index_published"])
         self.assertTrue(response["sitemap_published"])

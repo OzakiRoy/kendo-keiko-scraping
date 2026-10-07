@@ -66,7 +66,10 @@ class ListingPagesTests(unittest.TestCase):
         self.assertEqual(2, pages['index.html'].count('class="event-kind">種別未分類'))
         self.assertEqual(3, len({BeautifulSoup(h,'html.parser').title.text for h in pages.values()}))
         root = ElementTree.fromstring(build_sitemap_xml())
-        self.assertEqual(3, len(root))
+        self.assertEqual(4, len(root))
+        self.assertIn("https://kendo-keiko.com/tools/team-builder.html", {
+            node.text for node in root.findall("{http://www.sitemaps.org/schemas/sitemap/0.9}url/{http://www.sitemaps.org/schemas/sitemap/0.9}loc")
+        })
 
     def test_cli_generates_all_pages(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -98,6 +101,7 @@ class ListingPagesTests(unittest.TestCase):
         from kendo_keiko.listing import select_events, type_label
         template = (ROOT/'public/index.html').read_text()
         self.assertEqual(template, render_page_shell(template, 'all', 'https://kendo-keiko.com/'))
+        self.assertIn('href="/tools/team-builder.html"', template)
         for event in ({}, {'event_type': None}, {'event_type': 'future_type'},
                       {'event_type': ['open_keiko']}):
             self.assertEqual([event], select_events([event], 'all'))
