@@ -57,7 +57,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   font: 700 11px/1.2 Georgia, serif;
   letter-spacing: .12em;
 }
-.brand-copy h1 {
+.site-name {
   margin: 2px 0 0;
   font: 500 22px/1.35 var(--serif);
   letter-spacing: .04em;
@@ -86,7 +86,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .home-hero { display: grid; gap: 24px; padding: 32px 0 28px; }
 .home-hero__copy { width: min(calc(100% - 48px), var(--content-width)); margin: 0 auto; display: grid; gap: 8px; }
-.home-hero h2, .page-intro h2 {
+.home-hero h1, .page-intro h1 {
   margin: 0;
   font: 500 clamp(28px, 4vw, 36px)/1.35 var(--serif);
   letter-spacing: .035em;

@@ -28,7 +28,8 @@ class BrandAssetsTests(unittest.TestCase):
             "<title>剣道稽古ナビ｜稽古会・錬成会・練習試合を地域と日付から検索</title>",
             html,
         )
-        self.assertIn("<h1>剣道稽古ナビ</h1>", html)
+        self.assertIn('<p class="site-name">剣道稽古ナビ</p>', html)
+        self.assertIn('<h1 id="home-heading">次の稽古に、出会おう。</h1>', html)
         self.assertIn(
             "参加できる稽古会を、日付・地域・参加条件から探す",
             html,

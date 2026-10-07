@@ -476,7 +476,7 @@ def render_page_shell(template: str, category: str, site_url: str) -> str:
         '<section class="home-hero" aria-labelledby="home-heading">\n'
         '  <div class="home-hero__copy">\n'
         '    <p class="section-heading__en">FIND YOUR NEXT KEIKO</p>\n'
-        '    <h2 id="home-heading">次の稽古に、出会おう。</h2>\n'
+        '    <h1 id="home-heading">次の稽古に、出会おう。</h1>\n'
         '    <p class="home-hero__intro">参加できる稽古会・錬成会を、日付・地域・参加条件から探せます。</p>\n'
         '  </div>\n'
         '  <figure class="home-hero__photo">\n'
@@ -487,7 +487,7 @@ def render_page_shell(template: str, category: str, site_url: str) -> str:
     category_intro = "" if category == "all" else (
         '<section class="page-intro" aria-labelledby="page-heading">\n'
         '  <p class="section-heading__en">KENDO KEIKO NAVI</p>\n'
-        f'  <h2 id="page-heading">{escape(page["heading"])}</h2>\n'
+        f'  <h1 id="page-heading">{escape(page["heading"])}</h1>\n'
         f'  <p class="page-intro__text">{escape(page["description"])} 参加前には必ず主催者の公式情報をご確認ください。</p>\n'
         '</section>'
     )
