@@ -144,6 +144,7 @@
         markDirty();
         summary();
         clearResult('選手情報を更新しました。編成し直してください。');
+        if (!players.length) setDirty(false);
       }
       function renderRoster() {
         rosterElement.replaceChildren();

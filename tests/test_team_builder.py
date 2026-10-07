@@ -4,6 +4,7 @@ import os
 import unittest
 from pathlib import Path
 
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
 
 
@@ -144,6 +145,58 @@ class TeamBuilderBrowserTests(unittest.TestCase):
         page.locator("#kb-swap").click()
         self.assertIn("を入れ替えました", page.locator("#kb-swap-status").inner_text())
         self.assertEqual(12, len(set(self.roster_ids(page))))
+
+    def test_empty_roster_clears_beforeunload_warning(self):
+        page = self.page()
+        page.locator("#kb-editor").evaluate("el => { el.open = true; }")
+        while page.locator("#kb-roster .kb-roster-row").count():
+            page.locator("#kb-roster .kb-remove").last.click()
+        self.assertEqual(0, page.locator("#kb-roster .kb-roster-row").count())
+        self.assertTrue(page.locator("#kb-results").is_hidden())
+        self.assertFalse(
+            page.evaluate(
+                """() => {
+                  const event = new Event('beforeunload', {cancelable: true});
+                  window.dispatchEvent(event);
+                  return event.defaultPrevented;
+                }"""
+            )
+        )
+
+    def test_real_reload_dialog_cancel_preserves_and_accept_resets(self):
+        page = self.page()
+        page.locator("#kb-count").fill("3")
+        page.locator("#kb-count").dispatch_event("change")
+        page.locator("#kb-editor").evaluate("el => { el.open = true; }")
+        page.locator("#kb-name-1").fill("変更済み")
+
+        cancelled = []
+
+        def dismiss(dialog):
+            cancelled.append(dialog.type)
+            dialog.dismiss()
+
+        page.once("dialog", dismiss)
+        try:
+            page.reload(timeout=1_000)
+        except PlaywrightTimeoutError:
+            pass
+        self.assertEqual(["beforeunload"], cancelled)
+        self.assertEqual("変更済み", page.locator("#kb-name-1").input_value())
+        self.assertEqual("3", page.locator("#kb-count").input_value())
+
+        accepted = []
+
+        def accept(dialog):
+            accepted.append(dialog.type)
+            dialog.accept()
+
+        page.once("dialog", accept)
+        page.reload()
+        page.wait_for_function("document.querySelectorAll('#kb-board .kb-team').length === 4")
+        self.assertEqual(["beforeunload"], accepted)
+        self.assertEqual("選手A", page.locator("#kb-name-1").input_value())
+        self.assertEqual("4", page.locator("#kb-count").input_value())
 
     def test_invalid_input_print_media_and_narrow_layout(self):
         page = self.page(mobile=True)
