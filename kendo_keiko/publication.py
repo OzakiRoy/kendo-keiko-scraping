@@ -39,9 +39,25 @@ PUBLIC_DESIGN_ASSETS: tuple[tuple[str, str], ...] = (
     ("assets/site.css", "text/css; charset=utf-8"),
     ("assets/hero-keiko.jpg", "image/jpeg"),
 )
-PUBLIC_FONT_ASSETS: tuple[tuple[str, str], ...] = (
-    ("assets/fonts/NotoSansJP[wght].ttf", "font/ttf"),
-    ("assets/fonts/NotoSerifJP[wght].ttf", "font/ttf"),
+_PUBLIC_FONT_VARIANTS = (
+    "latin",
+    "kana",
+    "symbols",
+    "cjk-01",
+    "cjk-02",
+    "cjk-03",
+    "cjk-04",
+    "cjk-05",
+    "cjk-06",
+    "cjk-07",
+)
+PUBLIC_FONT_ASSETS: tuple[tuple[str, str], ...] = tuple(
+    (
+        f"assets/fonts/{family}-{variant}.woff2",
+        "font/woff2",
+    )
+    for family in ("NotoSansJP", "NotoSerifJP")
+    for variant in _PUBLIC_FONT_VARIANTS
 )
 PUBLIC_TOOL_SUPPORT_ASSETS: tuple[tuple[str, str], ...] = (
     ("assets/team-builder.css", "text/css; charset=utf-8"),
@@ -222,7 +238,7 @@ def publish_public_assets(
     for key, content_type in assets:
         asset_path = public_dir / key
         if not asset_path.is_file() and key.startswith("assets/fonts/"):
-            asset_path = public_dir.parent / "assets" / "fonts" / Path(key).name
+            asset_path = public_dir.parent / "assets" / "fonts" / "web" / Path(key).name
         if not asset_path.is_file():
             raise FileNotFoundError(f"public asset not found: {asset_path}")
         s3.put_object(

@@ -10,6 +10,12 @@
 
 The font is bundled so Story generation never depends on an operating-system font or implicit fallback.
 
+The website uses the same variable fonts as WOFF2 subsets under `assets/fonts/web/`.
+The subsets are split by Latin, kana/symbols, and seven CJK Unicode ranges so the
+browser can fetch only the ranges used by a page. They are generated from the
+bundled TTF files with `fonttools pyftsubset --flavor=woff2`; the original TTF
+files remain the source of truth for Story generation.
+
 `NotoSerifJP[wght].ttf` is the unmodified Noto Serif JP variable font used for the Story headline and brand typography.
 
 - Source commit: `8a7c74854f766ae441c7584925cc0ec626fc5aa6`

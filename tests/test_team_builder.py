@@ -28,6 +28,8 @@ class TeamBuilderAssetTests(unittest.TestCase):
         self.assertTrue((PUBLIC / "assets/team-builder.js").is_file())
         self.assertTrue((PUBLIC / "assets/site.css").is_file())
         self.assertTrue((PUBLIC / "assets/hero-keiko.jpg").is_file())
+        css = (PUBLIC / "assets/team-builder.css").read_text(encoding="utf-8")
+        self.assertGreater(css.rfind("@media print"), css.rfind(".tool-site-footer"))
 
 
 class TeamBuilderBrowserTests(unittest.TestCase):
@@ -59,6 +61,8 @@ class TeamBuilderBrowserTests(unittest.TestCase):
                 return
             relative = path.removeprefix("https://team-builder.test/")
             asset = PUBLIC / relative
+            if not asset.is_file() and relative.startswith("assets/fonts/"):
+                asset = ROOT / "assets/fonts/web" / Path(relative).name
             if asset.is_file():
                 request.fulfill(path=asset)
             else:
@@ -66,11 +70,19 @@ class TeamBuilderBrowserTests(unittest.TestCase):
 
         context.route("**/*", route)
         page = context.new_page()
+        font_responses = []
+        page.on(
+            "response",
+            lambda response: font_responses.append(response)
+            if "/assets/fonts/" in response.url
+            else None,
+        )
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto("https://team-builder.test/tools/team-builder.html")
         page.wait_for_function("document.querySelectorAll('#kb-board .kb-team').length === 4")
         self.assertEqual([], errors)
+        page._font_responses = font_responses
         return page
 
     @staticmethod
@@ -235,6 +247,21 @@ class TeamBuilderBrowserTests(unittest.TestCase):
         self.assertFalse(page.locator(".site-footer").is_visible())
         self.assertFalse(page.locator(".tool-page-intro").is_visible())
         self.assertTrue(page.locator("#kb-results").is_visible())
+        self.assertEqual("rgb(255, 255, 255)", page.evaluate("getComputedStyle(document.documentElement).backgroundColor"))
+        self.assertEqual("rgb(255, 255, 255)", page.evaluate("getComputedStyle(document.body).backgroundColor"))
+        self.assertEqual(0, page.locator(".tool-main").evaluate("el => parseFloat(getComputedStyle(el).paddingTop)"))
+        self.assertEqual(0, page.locator(".tool-main").evaluate("el => parseFloat(getComputedStyle(el).marginLeft)"))
+
+    def test_web_fonts_load_as_woff2_without_404(self):
+        page = self.page(width=390)
+        page.evaluate("document.fonts.ready")
+        self.assertTrue(page._font_responses)
+        self.assertTrue(all(response.status == 200 for response in page._font_responses))
+        self.assertTrue(page.evaluate("document.fonts.check('16px Noto Sans JP', '剣道')"))
+        self.assertTrue(page.evaluate("document.fonts.check('24px Noto Serif JP', '剣道')"))
+        self.assertTrue(
+            all(response.url.endswith(".woff2") for response in page._font_responses)
+        )
 
     def test_seven_players_one_team_and_condition_off(self):
         page = self.page()

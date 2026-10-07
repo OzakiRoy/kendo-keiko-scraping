@@ -17,17 +17,163 @@
 
 @font-face {
   font-family: "Noto Sans JP";
-  src: url("/assets/fonts/NotoSansJP[wght].ttf") format("truetype");
+  src: url("/assets/fonts/NotoSansJP-latin.woff2") format("woff2");
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
+  unicode-range: U+0000-00FF, U+2000-206F, U+20A0-20CF;
 }
 @font-face {
   font-family: "Noto Serif JP";
-  src: url("/assets/fonts/NotoSerifJP[wght].ttf") format("truetype");
+  src: url("/assets/fonts/NotoSerifJP-latin.woff2") format("woff2");
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
+  unicode-range: U+0000-00FF, U+2000-206F, U+20A0-20CF;
+}
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url("/assets/fonts/NotoSansJP-kana.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+3000-303F, U+3040-30FF;
+}
+@font-face {
+  font-family: "Noto Serif JP";
+  src: url("/assets/fonts/NotoSerifJP-kana.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+3000-303F, U+3040-30FF;
+}
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url("/assets/fonts/NotoSansJP-symbols.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+FE00-FEFF, U+FF00-FFEF;
+}
+@font-face {
+  font-family: "Noto Serif JP";
+  src: url("/assets/fonts/NotoSerifJP-symbols.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+FE00-FEFF, U+FF00-FFEF;
+}
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url("/assets/fonts/NotoSansJP-cjk-01.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+3400-4DBF;
+}
+@font-face {
+  font-family: "Noto Serif JP";
+  src: url("/assets/fonts/NotoSerifJP-cjk-01.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+3400-4DBF;
+}
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url("/assets/fonts/NotoSansJP-cjk-02.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+4E00-5FFF;
+}
+@font-face {
+  font-family: "Noto Serif JP";
+  src: url("/assets/fonts/NotoSerifJP-cjk-02.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+4E00-5FFF;
+}
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url("/assets/fonts/NotoSansJP-cjk-03.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+6000-6FFF;
+}
+@font-face {
+  font-family: "Noto Serif JP";
+  src: url("/assets/fonts/NotoSerifJP-cjk-03.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+6000-6FFF;
+}
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url("/assets/fonts/NotoSansJP-cjk-04.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+7000-7FFF;
+}
+@font-face {
+  font-family: "Noto Serif JP";
+  src: url("/assets/fonts/NotoSerifJP-cjk-04.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+7000-7FFF;
+}
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url("/assets/fonts/NotoSansJP-cjk-05.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+8000-8FFF;
+}
+@font-face {
+  font-family: "Noto Serif JP";
+  src: url("/assets/fonts/NotoSerifJP-cjk-05.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+8000-8FFF;
+}
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url("/assets/fonts/NotoSansJP-cjk-06.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+9000-9FFF;
+}
+@font-face {
+  font-family: "Noto Serif JP";
+  src: url("/assets/fonts/NotoSerifJP-cjk-06.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+9000-9FFF;
+}
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url("/assets/fonts/NotoSansJP-cjk-07.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+F900-FAFF;
+}
+@font-face {
+  font-family: "Noto Serif JP";
+  src: url("/assets/fonts/NotoSerifJP-cjk-07.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+F900-FAFF;
 }
 
 *, *::before, *::after { box-sizing: border-box; }

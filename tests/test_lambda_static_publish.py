@@ -71,8 +71,14 @@ class LambdaStaticPublishTests(unittest.TestCase):
         expected_assets = {
             "assets/site.css",
             "assets/hero-keiko.jpg",
-            "assets/fonts/NotoSansJP[wght].ttf",
-            "assets/fonts/NotoSerifJP[wght].ttf",
+            *{
+                f"assets/fonts/{family}-{variant}.woff2"
+                for family in ("NotoSansJP", "NotoSerifJP")
+                for variant in (
+                    "latin", "kana", "symbols", "cjk-01", "cjk-02",
+                    "cjk-03", "cjk-04", "cjk-05", "cjk-06", "cjk-07",
+                )
+            },
             "favicon.svg",
             "favicon.ico",
             "favicon-32x32.png",
@@ -126,15 +132,15 @@ class LambdaStaticPublishTests(unittest.TestCase):
         self.assertEqual("text/css; charset=utf-8", objects["assets/site.css"]["ContentType"])
         self.assertEqual("image/jpeg", objects["assets/hero-keiko.jpg"]["ContentType"])
         self.assertEqual("text/javascript; charset=utf-8", objects["assets/team-builder.js"]["ContentType"])
-        self.assertEqual("font/ttf", objects["assets/fonts/NotoSansJP[wght].ttf"]["ContentType"])
-        self.assertEqual("font/ttf", objects["assets/fonts/NotoSerifJP[wght].ttf"]["ContentType"])
+        self.assertEqual("font/woff2", objects["assets/fonts/NotoSansJP-latin.woff2"]["ContentType"])
+        self.assertEqual("font/woff2", objects["assets/fonts/NotoSerifJP-cjk-07.woff2"]["ContentType"])
         self.assertEqual("max-age=300", objects["tools/team-builder.html"]["CacheControl"])
         self.assertEqual("max-age=300", objects["assets/team-builder.css"]["CacheControl"])
         self.assertEqual("max-age=300", objects["assets/team-builder.js"]["CacheControl"])
         self.assertEqual("max-age=300", objects["assets/site.css"]["CacheControl"])
         self.assertEqual("max-age=300", objects["assets/hero-keiko.jpg"]["CacheControl"])
-        self.assertEqual("max-age=300", objects["assets/fonts/NotoSansJP[wght].ttf"]["CacheControl"])
-        self.assertEqual("max-age=300", objects["assets/fonts/NotoSerifJP[wght].ttf"]["CacheControl"])
+        self.assertEqual("max-age=300", objects["assets/fonts/NotoSansJP-latin.woff2"]["CacheControl"])
+        self.assertEqual("max-age=300", objects["assets/fonts/NotoSerifJP-cjk-07.woff2"]["CacheControl"])
         self.assertEqual(
             "application/manifest+json; charset=utf-8",
             objects["site.webmanifest"]["ContentType"],

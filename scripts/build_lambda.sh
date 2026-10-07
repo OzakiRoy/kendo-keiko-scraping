@@ -71,10 +71,7 @@ cp \
   "${ROOT_DIR}/public/assets/team-builder.js" \
   "${BUILD_DIR}/public/assets/"
 
-cp \
-  "${ROOT_DIR}/assets/fonts/NotoSansJP[wght].ttf" \
-  "${ROOT_DIR}/assets/fonts/NotoSerifJP[wght].ttf" \
-  "${BUILD_DIR}/public/assets/fonts/"
+cp "${ROOT_DIR}"/assets/fonts/web/*.woff2 "${BUILD_DIR}/public/assets/fonts/"
 
 echo "[INFO] remove Python cache files"
 find "${BUILD_DIR}" \
@@ -172,9 +169,11 @@ required_files=(
   "public/assets/hero-keiko.jpg"
   "public/assets/team-builder.css"
   "public/assets/team-builder.js"
-  "public/assets/fonts/NotoSansJP[wght].ttf"
-  "public/assets/fonts/NotoSerifJP[wght].ttf"
 )
+
+for font in "${ROOT_DIR}"/assets/fonts/web/*.woff2; do
+  required_files+=("public/assets/fonts/$(basename "${font}")")
+done
 
 ZIP_CONTENTS_FILE="$(mktemp)"
 trap 'rm -f "${ZIP_CONTENTS_FILE}"' EXIT
