@@ -472,18 +472,54 @@ def render_page_shell(template: str, category: str, site_url: str) -> str:
             content=content,
             indent=indent,
         )
+    home_hero = "" if category != "all" else (
+        '<section class="home-hero" aria-labelledby="home-heading">\n'
+        '  <div class="home-hero__copy">\n'
+        '    <div class="home-hero__heading">\n'
+        '      <p class="section-heading__en">FIND YOUR NEXT KEIKO</p>\n'
+        '      <h1 id="home-heading">次の稽古に、出会おう。</h1>\n'
+        '    </div>\n'
+        '    <p class="home-hero__intro">参加できる稽古会・錬成会を、日付・地域・参加条件から探せます。</p>\n'
+        '  </div>\n'
+        '  <figure class="home-hero__photo">\n'
+        '    <img src="/assets/hero-keiko.jpg" width="1363" height="1154" alt="剣道の稽古風景">\n'
+        '  </figure>\n'
+        '</section>'
+    )
+    category_intro = "" if category == "all" else (
+        '<section class="page-intro" aria-labelledby="page-heading">\n'
+        '  <p class="section-heading__en">KENDO KEIKO NAVI</p>\n'
+        f'  <h1 id="page-heading">{escape(page["heading"])}</h1>\n'
+        f'  <p class="page-intro__text">{escape(page["description"])} 参加前には必ず主催者の公式情報をご確認ください。</p>\n'
+        '</section>'
+    )
+    if category != "all":
+        template = _replace_marked_content(
+            template,
+            start_marker="<!-- HOME_HERO_START -->",
+            end_marker="<!-- HOME_HERO_END -->",
+            content=home_hero,
+            indent="    ",
+        )
+        template = _replace_marked_content(
+            template,
+            start_marker="<!-- CATEGORY_INTRO_START -->",
+            end_marker="<!-- CATEGORY_INTRO_END -->",
+            content=category_intro,
+            indent="    ",
+        )
+    template = re.sub(
+        r'<body(?: class="[^"]*")?>',
+        f'<body class="site-page site-page--{escape(category, quote=True)}">',
+        template,
+        count=1,
+    )
     template = re.sub(
         r'(<h2 id="search-heading">).*?(</h2>)',
         lambda match: match[1] + escape(page["heading"]) + match[2],
         template,
     )
-    return re.sub(
-        r'(<p class="lead">).*?(</p>)',
-        lambda match: match[1] + escape(page["description"]) +
-        ' 参加前には必ず主催者の公式情報をご確認ください。' + match[2],
-        template,
-        flags=re.S,
-    )
+    return template
 
 
 def render_listing_pages(

@@ -14,7 +14,7 @@ echo "[INFO] clean build directory"
 rm -rf "${BUILD_DIR}" "${ZIP_PATH}"
 
 mkdir -p "${BUILD_DIR}/data" "${BUILD_DIR}/public"
-mkdir -p "${BUILD_DIR}/public/tools" "${BUILD_DIR}/public/assets"
+mkdir -p "${BUILD_DIR}/public/tools" "${BUILD_DIR}/public/assets/fonts"
 
 echo "[INFO] install dependencies"
 python -m pip install \
@@ -65,9 +65,13 @@ cp \
   "${BUILD_DIR}/public/tools/"
 
 cp \
+  "${ROOT_DIR}/public/assets/site.css" \
+  "${ROOT_DIR}/public/assets/hero-keiko.jpg" \
   "${ROOT_DIR}/public/assets/team-builder.css" \
   "${ROOT_DIR}/public/assets/team-builder.js" \
   "${BUILD_DIR}/public/assets/"
+
+cp "${ROOT_DIR}"/assets/fonts/web/*.woff2 "${BUILD_DIR}/public/assets/fonts/"
 
 echo "[INFO] remove Python cache files"
 find "${BUILD_DIR}" \
@@ -161,9 +165,15 @@ required_files=(
   "public/ogp.png"
   "public/site.webmanifest"
   "public/tools/team-builder.html"
+  "public/assets/site.css"
+  "public/assets/hero-keiko.jpg"
   "public/assets/team-builder.css"
   "public/assets/team-builder.js"
 )
+
+for font in "${ROOT_DIR}"/assets/fonts/web/*.woff2; do
+  required_files+=("public/assets/fonts/$(basename "${font}")")
+done
 
 ZIP_CONTENTS_FILE="$(mktemp)"
 trap 'rm -f "${ZIP_CONTENTS_FILE}"' EXIT
@@ -183,7 +193,7 @@ if grep -Eq '\.(pyc|pyo)$' "${ZIP_CONTENTS_FILE}"; then
   exit 1
 fi
 
-if grep -Eq '(^|/)(\.venv|browsers|browser-libs|browser-debs|playwright|pyee|greenlet|PIL|assets/fonts)(/|[-.])|(^|/)requirements-(dev|story)\.txt$' "${ZIP_CONTENTS_FILE}"; then
+if grep -Eq '(^|/)(\.venv|browsers|browser-libs|browser-debs|playwright|pyee|greenlet|PIL)(/|[-.])|(^|/)requirements-(dev|story)\.txt$' "${ZIP_CONTENTS_FILE}"; then
   echo "[ERROR] development-only dependency found in ZIP" >&2
   exit 1
 fi

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
+  <meta name="color-scheme" content="only light">
   <title>チーム分けツール｜剣道稽古ナビ</title>
   <meta name="description" content="参加者の年齢・段位を参考に、指定したチーム数の混成チーム案をブラウザ内で作成できます。">
   <link rel="canonical" href="https://kendo-keiko.com/tools/team-builder.html">
@@ -32,22 +32,34 @@
     gtag('js', new Date());
     gtag('config', 'G-HY0WCBCXKW');
   </script>
+  <link rel="stylesheet" href="/assets/site.css">
   <link rel="stylesheet" href="/assets/team-builder.css">
   <script src="/assets/team-builder.js" defer></script>
 </head>
 <body>
-<header class="tool-header">
-  <div class="tool-header__inner">
-    <a class="tool-brand" href="/" aria-label="剣道稽古ナビトップへ">
-      <img src="/icon-192.png" width="52" height="52" alt="">
-      <span><small>KENDO KEIKO NAVI</small><strong>剣道稽古ナビ</strong></span>
-    </a>
-    <nav aria-label="サイト内メニュー">
-      <a href="/">イベント一覧</a>
+<header class="site-header">
+  <div class="site-header__inner">
+    <div class="brand-lockup">
+      <a class="brand-home-link" href="/" aria-label="剣道稽古ナビトップへ">
+        <img class="brand-mark" src="/icon-192.png" width="48" height="48" alt="">
+      </a>
+      <div class="brand-copy">
+        <p class="site-kicker">KENDO KEIKO NAVI</p>
+        <p class="site-name">剣道稽古ナビ</p>
+      </div>
+    </div>
+    <nav class="site-nav" aria-label="主要メニュー">
+      <a href="/keiko/">稽古会を探す</a>
       <a href="/tools/team-builder.html" aria-current="page">チーム分け</a>
     </nav>
   </div>
 </header>
+<main class="tool-main">
+  <section class="page-intro tool-page-intro" aria-labelledby="tool-page-heading">
+    <p class="section-heading__en">KENDO KEIKO NAVI</p>
+    <h1 id="tool-page-heading">チーム分け</h1>
+    <p class="page-intro__text">参加者の年齢・段位を参考に、稽古会のチーム編成案を作れます。</p>
+  </section>
 <div id="keiko-team-balance">
   <section class="kb-app" aria-labelledby="kb-title">
     <div class="kb-brand"><span class="kb-seal" aria-hidden="true">稽</span><span>剣道稽古ナビ</span></div>
@@ -93,6 +105,16 @@
     <div class="kb-footer">年齢・段位は参考情報です。実力の均等を保証するものではありません。</div>
   </section>
 </div>
-<footer class="tool-footer"><a href="/">剣道稽古ナビ</a> · 参加前には主催者の公式情報をご確認ください。</footer>
+</main>
+<footer class="site-footer tool-site-footer">
+  <section class="notice">
+    <h2>ご利用にあたって</h2>
+    <p>剣道稽古ナビは、関東周辺で開催される剣道の稽古会情報を探しやすくすることを目的とした個人運営の情報サイトです。</p>
+    <p>掲載している日程・時間・場所・参加費等の情報は、各団体の公式サイト等で公開されている情報をもとに、自動取得または管理者による確認を行い整理しています。情報の正確性・最新性を保証するものではありません。</p>
+    <p>稽古会への参加前には、必ず各団体の公式サイト・公式SNS等で最新情報をご確認ください。中止・変更・参加条件・費用・定員等について、本サイトでは責任を負いかねます。</p>
+    <p>掲載内容の修正・削除依頼、その他お問い合わせは、サイト運営者までご連絡ください。</p>
+    <p>お問い合わせ・掲載削除依頼: <a href="https://www.royozaki.net/" target="_blank" rel="noopener noreferrer">運営者プロフィール</a></p>
+  </section>
+</footer>
 </body>
 </html>

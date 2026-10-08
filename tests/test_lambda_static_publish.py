@@ -69,6 +69,16 @@ class LambdaStaticPublishTests(unittest.TestCase):
 
         objects = {item["Key"]: item for item in fake_s3.objects}
         expected_assets = {
+            "assets/site.css",
+            "assets/hero-keiko.jpg",
+            *{
+                f"assets/fonts/{family}-{variant}.woff2"
+                for family in ("NotoSansJP", "NotoSerifJP")
+                for variant in (
+                    "latin", "kana", "symbols", "cjk-01", "cjk-02",
+                    "cjk-03", "cjk-04", "cjk-05", "cjk-06", "cjk-07",
+                )
+            },
             "favicon.svg",
             "favicon.ico",
             "favicon-32x32.png",
@@ -119,10 +129,18 @@ class LambdaStaticPublishTests(unittest.TestCase):
         self.assertEqual("image/png", objects["ogp.png"]["ContentType"])
         self.assertEqual("text/html; charset=utf-8", objects["tools/team-builder.html"]["ContentType"])
         self.assertEqual("text/css; charset=utf-8", objects["assets/team-builder.css"]["ContentType"])
+        self.assertEqual("text/css; charset=utf-8", objects["assets/site.css"]["ContentType"])
+        self.assertEqual("image/jpeg", objects["assets/hero-keiko.jpg"]["ContentType"])
         self.assertEqual("text/javascript; charset=utf-8", objects["assets/team-builder.js"]["ContentType"])
+        self.assertEqual("font/woff2", objects["assets/fonts/NotoSansJP-latin.woff2"]["ContentType"])
+        self.assertEqual("font/woff2", objects["assets/fonts/NotoSerifJP-cjk-07.woff2"]["ContentType"])
         self.assertEqual("max-age=300", objects["tools/team-builder.html"]["CacheControl"])
         self.assertEqual("max-age=300", objects["assets/team-builder.css"]["CacheControl"])
         self.assertEqual("max-age=300", objects["assets/team-builder.js"]["CacheControl"])
+        self.assertEqual("max-age=300", objects["assets/site.css"]["CacheControl"])
+        self.assertEqual("max-age=300", objects["assets/hero-keiko.jpg"]["CacheControl"])
+        self.assertEqual("max-age=300", objects["assets/fonts/NotoSansJP-latin.woff2"]["CacheControl"])
+        self.assertEqual("max-age=300", objects["assets/fonts/NotoSerifJP-cjk-07.woff2"]["CacheControl"])
         self.assertEqual(
             "application/manifest+json; charset=utf-8",
             objects["site.webmanifest"]["ContentType"],
@@ -133,6 +151,10 @@ class LambdaStaticPublishTests(unittest.TestCase):
         self.assertIn("https://kendo-keiko.com/tools/team-builder.html", sitemap)
         keys = [item["Key"] for item in fake_s3.objects]
         self.assertLess(keys.index("tools/team-builder.html"), keys.index("keiko/index.html"))
+        self.assertLess(keys.index("assets/site.css"), keys.index("keiko/index.html"))
+        self.assertLess(keys.index("assets/hero-keiko.jpg"), keys.index("keiko/index.html"))
+        self.assertLess(keys.index("assets/team-builder.css"), keys.index("tools/team-builder.html"))
+        self.assertLess(keys.index("assets/team-builder.js"), keys.index("tools/team-builder.html"))
         self.assertIn(
             'href="/tools/team-builder.html"',
             index_html,

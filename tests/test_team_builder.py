@@ -17,6 +17,7 @@ class TeamBuilderAssetTests(unittest.TestCase):
     def test_public_assets_and_links(self):
         html = (PUBLIC / "tools/team-builder.html").read_text(encoding="utf-8")
         self.assertIn('<link rel="canonical" href="https://kendo-keiko.com/tools/team-builder.html">', html)
+        self.assertIn('<link rel="stylesheet" href="/assets/site.css">', html)
         self.assertIn('<link rel="stylesheet" href="/assets/team-builder.css">', html)
         self.assertIn('<script src="/assets/team-builder.js" defer></script>', html)
         self.assertEqual(1, html.count("gtag('config', 'G-HY0WCBCXKW')"))
@@ -25,6 +26,10 @@ class TeamBuilderAssetTests(unittest.TestCase):
         self.assertIn("https://kendo-keiko.com/tools/team-builder.html", (PUBLIC / "sitemap.xml").read_text(encoding="utf-8"))
         self.assertTrue((PUBLIC / "assets/team-builder.css").is_file())
         self.assertTrue((PUBLIC / "assets/team-builder.js").is_file())
+        self.assertTrue((PUBLIC / "assets/site.css").is_file())
+        self.assertTrue((PUBLIC / "assets/hero-keiko.jpg").is_file())
+        css = (PUBLIC / "assets/team-builder.css").read_text(encoding="utf-8")
+        self.assertGreater(css.rfind("@media print"), css.rfind(".tool-site-footer"))
 
 
 class TeamBuilderBrowserTests(unittest.TestCase):
@@ -42,9 +47,9 @@ class TeamBuilderBrowserTests(unittest.TestCase):
         cls.browser.close()
         cls.playwright.stop()
 
-    def page(self, *, mobile: bool = False):
+    def page(self, *, mobile: bool = False, width: int | None = None):
         context = self.browser.new_context(
-            viewport={"width": 360 if mobile else 1280, "height": 900}
+            viewport={"width": width or (360 if mobile else 1280), "height": 900}
         )
         self.addCleanup(context.close)
         context.set_default_timeout(30_000)
@@ -56,6 +61,8 @@ class TeamBuilderBrowserTests(unittest.TestCase):
                 return
             relative = path.removeprefix("https://team-builder.test/")
             asset = PUBLIC / relative
+            if not asset.is_file() and relative.startswith("assets/fonts/"):
+                asset = ROOT / "assets/fonts/web" / Path(relative).name
             if asset.is_file():
                 request.fulfill(path=asset)
             else:
@@ -63,11 +70,19 @@ class TeamBuilderBrowserTests(unittest.TestCase):
 
         context.route("**/*", route)
         page = context.new_page()
+        font_responses = []
+        page.on(
+            "response",
+            lambda response: font_responses.append(response)
+            if "/assets/fonts/" in response.url
+            else None,
+        )
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto("https://team-builder.test/tools/team-builder.html")
         page.wait_for_function("document.querySelectorAll('#kb-board .kb-team').length === 4")
         self.assertEqual([], errors)
+        page._font_responses = font_responses
         return page
 
     @staticmethod
@@ -214,6 +229,39 @@ class TeamBuilderBrowserTests(unittest.TestCase):
         self.assertEqual("none", page.locator("#kb-manual").evaluate("el => getComputedStyle(el).display"))
         self.assertEqual(4, page.locator("#kb-board .kb-team").count())
         self.assertTrue(page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
+
+    def test_required_widths_and_print_hide_site_chrome(self):
+        for width in (320, 390, 768, 1440):
+            page = self.page(width=width)
+            self.assertTrue(page.locator(".site-header").is_visible(), width)
+            self.assertTrue(page.locator(".site-footer").is_visible(), width)
+            self.assertTrue(page.locator(".tool-page-intro").is_visible(), width)
+            self.assertTrue(
+                page.evaluate("document.documentElement.scrollWidth <= innerWidth"),
+                width,
+            )
+
+        page = self.page(width=1440)
+        page.emulate_media(media="print")
+        self.assertFalse(page.locator(".site-header").is_visible())
+        self.assertFalse(page.locator(".site-footer").is_visible())
+        self.assertFalse(page.locator(".tool-page-intro").is_visible())
+        self.assertTrue(page.locator("#kb-results").is_visible())
+        self.assertEqual("rgb(255, 255, 255)", page.evaluate("getComputedStyle(document.documentElement).backgroundColor"))
+        self.assertEqual("rgb(255, 255, 255)", page.evaluate("getComputedStyle(document.body).backgroundColor"))
+        self.assertEqual(0, page.locator(".tool-main").evaluate("el => parseFloat(getComputedStyle(el).paddingTop)"))
+        self.assertEqual(0, page.locator(".tool-main").evaluate("el => parseFloat(getComputedStyle(el).marginLeft)"))
+
+    def test_web_fonts_load_as_woff2_without_404(self):
+        page = self.page(width=390)
+        page.evaluate("document.fonts.ready")
+        self.assertTrue(page._font_responses)
+        self.assertTrue(all(response.status == 200 for response in page._font_responses))
+        self.assertTrue(page.evaluate("document.fonts.check('16px Noto Sans JP', '剣道')"))
+        self.assertTrue(page.evaluate("document.fonts.check('24px Noto Serif JP', '剣道')"))
+        self.assertTrue(
+            all(response.url.endswith(".woff2") for response in page._font_responses)
+        )
 
     def test_seven_players_one_team_and_condition_off(self):
         page = self.page()

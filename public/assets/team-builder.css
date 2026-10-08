@@ -1,4 +1,6 @@
 * { box-sizing: border-box; }
+/* Shared site design is loaded by the tool page; these rules keep the app-specific
+   surface while inheriting the same light palette and typography. */
 html { background: #f3f1ec; }
 body {
   margin: 0;
@@ -94,13 +96,55 @@ a { color: #8c1d24; text-underline-offset: .2em; }
     #keiko-team-balance .kb-note { margin: 18px 0 0; padding: 11px 13px; border: 1px solid var(--kb-line); border-radius: 8px; color: var(--kb-soft); font-size: 12px; line-height: 1.7; }
     #keiko-team-balance .kb-print { display: block; margin: 14px 0 0; }
 .tool-footer { width: min(660px, calc(100% - 32px)); margin: 0 auto; padding: 14px 0 30px; color: #706d67; font-size: 12px; text-align: center; }
+@media (max-width: 520px) {
+      #keiko-team-balance .kb-app { padding: 15px; }
+      #keiko-team-balance .kb-board { grid-template-columns: 1fr; }
+      #keiko-team-balance .kb-swaps { grid-template-columns: 1fr; }
+}
+
+body {
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--sans);
+}
+.tool-main { width: min(calc(100% - 48px), var(--content-width)); margin: 0 auto; padding: 32px 0 64px; }
+.tool-page-intro { padding-bottom: 8px; }
+.tool-page-intro h1 { margin: 0; font: 500 30px/1.4 var(--serif); }
+#keiko-team-balance { padding: 12px 0; }
+#keiko-team-balance .kb-app { max-width: 820px; margin: 0 auto; border-color: var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); }
+#keiko-team-balance .kb-brand, #keiko-team-balance .kb-subtitle { display: none; }
+#keiko-team-balance .kb-app {
+  --kb-paper: var(--surface);
+  --kb-field: #fffdfa;
+  --kb-ink: var(--ink);
+  --kb-soft: var(--muted);
+  --kb-line: var(--line);
+  --kb-accent: var(--accent);
+  --kb-button: var(--accent);
+}
+#keiko-team-balance .kb-app { font-family: var(--sans); }
+#keiko-team-balance .kb-generate { font-family: var(--sans); }
+.tool-site-footer .notice { width: min(calc(100% - 48px), var(--content-width)); }
+@media (max-width: 520px) {
+  .tool-main, .tool-site-footer .notice { width: min(calc(100% - 32px), var(--content-width)); }
+  .tool-main { padding-top: 24px; }
+}
+
+/* Print/PDF is intentionally result-only and must remain the final rule. */
 @media print {
-  html, body { background: #fff; }
-  .tool-header, .tool-footer, .kb-brand, .kb-subtitle, .kb-config, .kb-conditions,
-  .kb-edit, .kb-error, .kb-status, .kb-generate, .kb-manual, .kb-print, .kb-note,
-  .kb-footer { display: none !important; }
-  #keiko-team-balance { padding: 0; }
-  #keiko-team-balance .kb-app { max-width: none; padding: 0; border: 0; background: #fff; color: #1b1b1b; }
+  html, body { background: #fff !important; }
+  .site-header, .site-footer, .tool-page-intro,
+  #keiko-team-balance .kb-brand, #keiko-team-balance .kb-subtitle,
+  #keiko-team-balance .kb-config, #keiko-team-balance .kb-conditions,
+  #keiko-team-balance .kb-edit, #keiko-team-balance .kb-error,
+  #keiko-team-balance .kb-status, #keiko-team-balance .kb-generate,
+  #keiko-team-balance .kb-manual, #keiko-team-balance .kb-print,
+  #keiko-team-balance .kb-note, #keiko-team-balance .kb-footer {
+    display: none !important;
+  }
+  .tool-main { width: auto !important; margin: 0 !important; padding: 0 !important; }
+  #keiko-team-balance { padding: 0 !important; }
+  #keiko-team-balance .kb-app { max-width: none !important; padding: 0 !important; border: 0; background: #fff; color: #1b1b1b; }
   #keiko-team-balance #kb-results { display: block !important; }
   #keiko-team-balance .kb-division { margin: 0 0 12px; }
   #keiko-team-balance .kb-board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -108,8 +152,3 @@ a { color: #8c1d24; text-underline-offset: .2em; }
   #keiko-team-balance .kb-member-name { overflow-wrap: anywhere; }
   @page { margin: 14mm; }
 }
-    @media (max-width: 520px) {
-      #keiko-team-balance .kb-app { padding: 15px; }
-      #keiko-team-balance .kb-board { grid-template-columns: 1fr; }
-      #keiko-team-balance .kb-swaps { grid-template-columns: 1fr; }
-    }

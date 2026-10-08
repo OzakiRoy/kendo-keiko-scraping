@@ -936,30 +936,53 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/assets/site.css">
 </head>
-<body>
+<body class="site-page site-page--all">
   <!-- LISTING_CONFIG_START -->
   <script type="application/json" id="listing-config">{"category": "all", "categories": {"all": {"label": "すべて", "types": null}, "keiko": {"label": "稽古会", "types": ["open_keiko", "federation_keiko"]}, "renseikai": {"label": "錬成会・練習試合", "types": ["adult_renseikai"]}}, "typeLabels": {"open_keiko": "オープン・合同稽古会", "federation_keiko": "連盟稽古会", "adult_renseikai": "錬成会・練習試合"}, "unknownTypeLabel": "種別未分類"}</script>
   <!-- LISTING_CONFIG_END -->
   <header class="site-header">
     <div class="site-header__inner">
       <div class="brand-lockup">
-        <img class="brand-mark" src="/icon-192.png" width="74" height="74" alt="">
+        <a class="brand-home-link" href="/" aria-label="剣道稽古ナビトップへ">
+          <img class="brand-mark" src="/icon-192.png" width="48" height="48" alt="">
+        </a>
         <div class="brand-copy">
           <p class="site-kicker">KENDO KEIKO NAVI</p>
-          <h1>剣道稽古ナビ</h1>
+          <p class="site-name">剣道稽古ナビ</p>
         </div>
       </div>
-      <p class="site-tagline">参加できる稽古会を、日付・地域・参加条件から探す</p>
-      <p class="team-builder-link"><a href="/tools/team-builder.html">参加者のチーム分けツール</a></p>
-      <p class="lead">参加できる剣道のオープン稽古会・合同稽古会・連盟稽古会と、大人向け錬成会・練習試合を開催日順に掲載。地域・日付・参加条件から探せます。 参加前には必ず主催者の公式情報をご確認ください。</p>
+      <nav class="site-nav" aria-label="主要メニュー">
+        <a href="/keiko/">稽古会を探す</a>
+        <a href="/tools/team-builder.html">チーム分け</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HOME_HERO_START -->
+  <section class="home-hero" aria-labelledby="home-heading">
+    <div class="home-hero__copy">
+      <div class="home-hero__heading">
+        <p class="section-heading__en">FIND YOUR NEXT KEIKO</p>
+        <h1 id="home-heading">次の稽古に、出会おう。</h1>
+      </div>
+      <p class="home-hero__intro">参加できる稽古会・錬成会を、日付・地域・参加条件から探せます。</p>
+      <!-- 参加前には必ず主催者の公式情報をご確認ください -->
+    </div>
+    <figure class="home-hero__photo">
+      <img src="/assets/hero-keiko.jpg" width="1363" height="1154" alt="剣道の稽古風景">
+    </figure>
+  </section>
+  <!-- HOME_HERO_END -->
+
+  <main class="site-main">
+    <!-- CATEGORY_INTRO_START --><!-- CATEGORY_INTRO_END -->
+    <div class="page-meta">
       <!-- EVENT_META_START -->
       <div class="meta" id="meta">稽古会情報を読み込んでいます...</div>
       <!-- EVENT_META_END -->
     </div>
-  </header>
-
-  <main class="site-main">
     <!-- LISTING_NAV_START -->
     <nav class="listing-nav" aria-label="イベント一覧">
       <a href="/" aria-current="page">総合一覧</a>

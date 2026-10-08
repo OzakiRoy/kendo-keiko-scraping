@@ -28,7 +28,8 @@ class BrandAssetsTests(unittest.TestCase):
             "<title>剣道稽古ナビ｜稽古会・錬成会・練習試合を地域と日付から検索</title>",
             html,
         )
-        self.assertIn("<h1>剣道稽古ナビ</h1>", html)
+        self.assertIn('<p class="site-name">剣道稽古ナビ</p>', html)
+        self.assertIn('<h1 id="home-heading">次の稽古に、出会おう。</h1>', html)
         self.assertIn(
             "参加できる稽古会を、日付・地域・参加条件から探す",
             html,
@@ -37,6 +38,15 @@ class BrandAssetsTests(unittest.TestCase):
         self.assertIn('content="summary_large_image"', html)
         self.assertIn('href="/site.webmanifest"', html)
         self.assertIn('src="/icon-192.png"', html)
+        self.assertIn('<link rel="stylesheet" href="/assets/site.css">', html)
+        self.assertIn('src="/assets/hero-keiko.jpg"', html)
+        css = (PUBLIC_DIR / "assets/site.css").read_text(encoding="utf-8")
+        self.assertIn('@font-face', css)
+        self.assertIn('/assets/fonts/NotoSansJP-latin.woff2', css)
+        self.assertIn('/assets/fonts/NotoSerifJP-cjk-07.woff2', css)
+        self.assertNotIn('.ttf', css)
+        self.assertIn('class="home-hero__heading"', html)
+        self.assertIn("次の稽古に、出会おう。", html)
 
     def test_committed_png_dimensions(self) -> None:
         expected = {
