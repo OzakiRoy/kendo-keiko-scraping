@@ -55,6 +55,10 @@ class ManualEventDataTests(unittest.TestCase):
             "2026-12-12",
             "2026-12-19",
             "2026-12-26",
+            "2027-01-09",
+            "2027-01-16",
+            "2027-01-23",
+            "2027-01-30",
         ]
 
         self.assertEqual("竹生島稽古会（剣道稽古会）", organization.name)
@@ -73,7 +77,7 @@ class ManualEventDataTests(unittest.TestCase):
         )
         self.assertTrue(organization.default_application_required)
 
-        self.assertEqual(16, len(events))
+        self.assertEqual(20, len(events))
         self.assertEqual(expected_dates, [event["event_date"] for event in events])
 
         for event in events:
@@ -119,7 +123,7 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertIn("グループLINE", event["raw_note"])
             self.assertIn("入会金・年会費なし", event["raw_note"])
 
-        takashima_events = events[:-1]
+        takashima_events = events[:15]
         self.assertEqual(15, len(takashima_events))
         for event in takashima_events:
             self.assertEqual(
@@ -127,12 +131,29 @@ class ManualEventDataTests(unittest.TestCase):
                 event["venue"],
             )
 
-        kusatsu_event = events[-1]
+        kusatsu_event = events[15]
         self.assertEqual("2026-12-26", kusatsu_event["event_date"])
         self.assertEqual(
             "滋賀県草津市内（詳細は事前登録後に案内）",
             kusatsu_event["venue"],
         )
+
+        january_events = events[16:]
+        self.assertEqual(4, len(january_events))
+        self.assertEqual(
+            [
+                "2027-01-09",
+                "2027-01-16",
+                "2027-01-23",
+                "2027-01-30",
+            ],
+            [event["event_date"] for event in january_events],
+        )
+        for event in january_events:
+            self.assertEqual(
+                "草津市総合体育館　剣道場",
+                event["venue"],
+            )
 
         index_html = (
             Path(__file__).resolve().parents[1] / "public" / "index.html"
