@@ -288,6 +288,20 @@
     "default_application_required": null
   },
   {
+    "organization_id": "shinmei_kendoteam",
+    "name": "振鳴剣道部",
+    "area": "群馬県",
+    "website_url": "https://www.instagram.com/shinmei_kendoteam/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "公式Instagramの告知画像を管理者が確認し、手動登録",
+    "public_description": "群馬県伊勢崎市で開催される振鳴剣道部の、社会人剣道家向け稽古予定を掲載しています。",
+    "default_participation_type": "anyone",
+    "default_application_required": false
+  },
+  {
     "organization_id": "tokyo",
     "name": "東京都剣道連盟",
     "area": "東京都",

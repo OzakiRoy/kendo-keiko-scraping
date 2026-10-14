@@ -2173,6 +2173,79 @@ class ManualEventDataTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("<h3>悠友会 剣道サークル</h3>", index_html)
 
+    def test_shinmei_kendoteam_event_is_valid_and_linked_to_organization(
+        self,
+    ) -> None:
+        organizations = load_organizations()
+        organization = find_organization(
+            organizations,
+            "shinmei_kendoteam",
+        )
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "shinmei_kendoteam"
+        ]
+
+        self.assertEqual("振鳴剣道部", organization.name)
+        self.assertEqual("群馬県", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/shinmei_kendoteam/",
+            organization.website_url,
+        )
+        self.assertEqual("sns", organization.source_type)
+        self.assertEqual("manual", organization.scraper_type)
+        self.assertFalse(organization.scraper_enabled)
+        self.assertEqual("open_keiko", organization.event_type)
+        self.assertEqual("anyone", organization.default_participation_type)
+        self.assertFalse(organization.default_application_required)
+        self.assertEqual(1, len(events))
+
+        event = events[0]
+        self.assertEqual(
+            "shinmei_kendoteam-20261107-0930-f60d1c3f",
+            event["event_id"],
+        )
+        self.assertEqual("振鳴剣道部", event["organization_name"])
+        self.assertEqual("振鳴剣道部 稽古", event["title"])
+        self.assertEqual("2026-11-07", event["event_date"])
+        self.assertEqual("土", event["weekday"])
+        self.assertEqual("09:30", event["start_time"])
+        self.assertEqual("12:30", event["end_time"])
+        self.assertEqual("赤堀剣道場", event["venue"])
+        self.assertEqual("群馬県", event["area"])
+        self.assertEqual(
+            "〒379-2204 群馬県伊勢崎市西久保町1丁目64",
+            event["address"],
+        )
+        self.assertIsNone(event["access"])
+        self.assertEqual(
+            "稽古参加費無料（体育館使用料を参加人数で割る形）",
+            event["fee"],
+        )
+        self.assertFalse(event["application_required"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertEqual("open_keiko", event["event_type"])
+        self.assertEqual(
+            "https://www.instagram.com/shinmei_kendoteam/",
+            event["source_url"],
+        )
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual("2026-10-14T15:11:12+09:00", event["verified_at"])
+        self.assertEqual("2026-11-06", event["review_due_at"])
+        self.assertIn("対象は社会人剣道家", event["raw_note"])
+        self.assertIn("飛び入り参加OK", event["raw_note"])
+        self.assertIn("出稽古OK", event["raw_note"])
+        self.assertIn("途中参加・途中帰宅OK", event["raw_note"])
+        self.assertIn("一本勝負・試合稽古", event["raw_note"])
+
+        index_html = (
+            Path(__file__).resolve().parents[1] / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("<h3>振鳴剣道部</h3>", index_html)
+
 
 if __name__ == "__main__":
     unittest.main()
