@@ -1716,7 +1716,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("unknown", organization.event_type)
         self.assertEqual("unknown", organization.default_participation_type)
         self.assertIsNone(organization.default_application_required)
-        self.assertEqual(7, len(events))
+        self.assertEqual(15, len(events))
 
         event = next(
             event
@@ -1756,7 +1756,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn("bluered12@sempuu.net", event["raw_note"])
 
         self.assertEqual(events, select_events(events, "all"))
-        self.assertEqual(3, len(select_events(events, "keiko")))
+        self.assertEqual(11, len(select_events(events, "keiko")))
         self.assertEqual(4, len(select_events(events, "renseikai")))
         self.assertIn(event, select_events(events, "renseikai"))
 
@@ -1849,6 +1849,7 @@ class ManualEventDataTests(unittest.TestCase):
                 "sempuu-20261012-0900-8fabdfff",
                 "sempuu-20270111-0900-4ead9ac9",
             }
+            and not event["title"].startswith("風鈴")
         ]
 
         self.assertEqual(5, len(events))
@@ -1936,6 +1937,70 @@ class ManualEventDataTests(unittest.TestCase):
                     event["verified_at"],
                 )
                 self.assertEqual(review_due_at, event["review_due_at"])
+
+    def test_sempuu_furin_november_events_are_valid_and_listed_as_keiko(
+        self,
+    ) -> None:
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "sempuu"
+            and event["title"] == "風鈴Furin🎐"
+        ]
+        expected = {
+            "2026-11-02": ("月", "sempuu-20261102-0900-be7acac7"),
+            "2026-11-04": ("水", "sempuu-20261104-0900-4fd9aab1"),
+            "2026-11-09": ("月", "sempuu-20261109-0900-135acc52"),
+            "2026-11-11": ("水", "sempuu-20261111-0900-7e2d139e"),
+            "2026-11-16": ("月", "sempuu-20261116-0900-2f9d8f87"),
+            "2026-11-18": ("水", "sempuu-20261118-0900-01fa9fd3"),
+            "2026-11-25": ("水", "sempuu-20261125-0900-32c287a0"),
+            "2026-11-30": ("月", "sempuu-20261130-0900-8a6968ff"),
+        }
+
+        self.assertEqual(set(expected), {event["event_date"] for event in events})
+        self.assertEqual(8, len(events))
+        for event in events:
+            with self.subTest(event_id=event["event_id"]):
+                weekday, event_id = expected[event["event_date"]]
+                self.assertEqual(event_id, event["event_id"])
+                self.assertEqual("Sempuu 旋風", event["organization_name"])
+                self.assertEqual(weekday, event["weekday"])
+                self.assertEqual("09:00", event["start_time"])
+                self.assertEqual("11:00", event["end_time"])
+                self.assertEqual("open_keiko", event["event_type"])
+                self.assertEqual(
+                    "浜北武道館（浜松市浜名区中瀬）",
+                    event["venue"],
+                )
+                self.assertEqual("静岡県", event["area"])
+                self.assertIsNone(event["address"])
+                self.assertEqual(
+                    "新東名浜松浜北インター下車3分",
+                    event["access"],
+                )
+                self.assertEqual("500円", event["fee"])
+                self.assertFalse(event["application_required"])
+                self.assertEqual("anyone", event["participation_type"])
+                self.assertEqual(
+                    "https://www.sempuu.net/events-1",
+                    event["source_url"],
+                )
+                self.assertEqual("official_site", event["source_type"])
+                self.assertEqual("manual", event["update_mode"])
+                self.assertEqual("active", event["status"])
+                self.assertEqual(
+                    "2026-10-21T09:34:31+09:00",
+                    event["verified_at"],
+                )
+                self.assertEqual("2026-11-01", event["review_due_at"])
+                self.assertIn("公式Instagram投稿", event["raw_note"])
+                self.assertIn("どなたでも参加可能", event["raw_note"])
+                self.assertIn("日本剣道形", event["raw_note"])
+
+        self.assertEqual(events, select_events(events, "all"))
+        self.assertEqual(events, select_events(events, "keiko"))
+        self.assertEqual([], select_events(events, "renseikai"))
 
     def test_sempuu_january_2027_practice_match_is_valid(self) -> None:
         events = [
