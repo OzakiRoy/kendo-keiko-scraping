@@ -1193,7 +1193,7 @@ class ManualEventDataTests(unittest.TestCase):
             if event["organization_id"] == "kizunakai"
         ]
 
-        self.assertEqual(5, len(events))
+        self.assertEqual(6, len(events))
 
         events_by_date = {
             event["event_date"]: event
@@ -1207,6 +1207,7 @@ class ManualEventDataTests(unittest.TestCase):
                 "2026-09-11",
                 "2026-10-02",
                 "2026-10-23",
+                "2026-11-05",
             },
             set(events_by_date),
         )
@@ -1327,6 +1328,40 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn("参加自由", event["raw_note"])
         self.assertIn("途中参加可", event["raw_note"])
         self.assertIn("20名程度で締切る", event["raw_note"])
+
+        event = events_by_date["2026-11-05"]
+
+        self.assertEqual(
+            "kizunakai-20261105-2000-9b8149d3",
+            event["event_id"],
+        )
+        self.assertEqual("絆剱会", event["organization_name"])
+        self.assertEqual("絆剱会ゆる稽古会", event["title"])
+        self.assertEqual("2026-11-05", event["event_date"])
+        self.assertEqual("木", event["weekday"])
+        self.assertEqual("20:00", event["start_time"])
+        self.assertEqual("22:00", event["end_time"])
+        self.assertEqual(
+            "坂戸市 大家地域交流センター 多目的ホール",
+            event["venue"],
+        )
+        self.assertEqual("埼玉県", event["area"])
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertEqual("一般200円／大学生以下100円", event["fee"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual("contact_required", event["participation_type"])
+        self.assertEqual(
+            "https://www.instagram.com/p/De4MER2hIIc/",
+            event["source_url"],
+        )
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual("2026-10-26T11:08:03+09:00", event["verified_at"])
+        self.assertEqual("2026-11-04", event["review_due_at"])
+        self.assertIn("20名程度で締め切り", event["raw_note"])
+        self.assertIn("参加希望者は連絡", event["raw_note"])
 
         event = events_by_date["2026-10-02"]
 
@@ -1921,7 +1956,7 @@ class ManualEventDataTests(unittest.TestCase):
             for event in load_manual_events()
             if event["organization_id"] == "seijukai_sato_dojo"
         ]
-        self.assertEqual(3, len(events))
+        self.assertEqual(7, len(events))
         expected = {
             "2026-10-11": (
                 "seijukai_sato_dojo-20261011-1700-3e97f2ec",
@@ -1944,6 +1979,34 @@ class ManualEventDataTests(unittest.TestCase):
                 "大宮武道館",
                 "2026-10-30",
             ),
+            "2026-11-08": (
+                "seijukai_sato_dojo-20261108-1000-f56bc96e",
+                "日",
+                "10:00",
+                None,
+                "2026-11-07",
+            ),
+            "2026-11-15": (
+                "seijukai_sato_dojo-20261115-1100-a359e038",
+                "日",
+                "11:00",
+                "大宮体育館",
+                "2026-11-14",
+            ),
+            "2026-11-21": (
+                "seijukai_sato_dojo-20261121-1500-fa205969",
+                "土",
+                "15:00",
+                "岩槻文化公園",
+                "2026-11-20",
+            ),
+            "2026-11-28": (
+                "seijukai_sato_dojo-20261128-1500-df51624a",
+                "土",
+                "15:00",
+                "大宮体育館",
+                "2026-11-27",
+            ),
         }
 
         for event in events:
@@ -1965,13 +2028,69 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertEqual("anyone", event["participation_type"])
             self.assertEqual("manual", event["update_mode"])
             self.assertEqual("sns", event["source_type"])
+            if event["event_date"] < "2026-11-01":
+                self.assertEqual(
+                    "https://www.instagram.com/p/Dd6UaNlJFpL/",
+                    event["source_url"],
+                )
+                self.assertEqual("2026-10-01T09:17:00+09:00", event["verified_at"])
+                self.assertIn("#誰でも", event["raw_note"])
+            else:
+                self.assertEqual(
+                    "https://www.instagram.com/p/De4coKOB1Sc/",
+                    event["source_url"],
+                )
+                self.assertEqual("2026-10-26T11:08:03+09:00", event["verified_at"])
+                self.assertIn("誰でも参加OK", event["raw_note"])
+            self.assertEqual(review_due_at, event["review_due_at"])
+
+        november_events = [
+            event for event in events if event["event_date"].startswith("2026-11-")
+        ]
+        self.assertEqual(4, len(november_events))
+        for event in november_events:
             self.assertEqual(
-                "https://www.instagram.com/p/Dd6UaNlJFpL/",
+                "https://www.instagram.com/p/De4coKOB1Sc/",
                 event["source_url"],
             )
-            self.assertEqual("2026-10-01T09:17:00+09:00", event["verified_at"])
-            self.assertEqual(review_due_at, event["review_due_at"])
-            self.assertIn("#誰でも", event["raw_note"])
+            self.assertEqual("2026-10-26T11:08:03+09:00", event["verified_at"])
+            self.assertEqual("anyone", event["participation_type"])
+            self.assertIsNone(event["application_required"])
+        self.assertIn(
+            "11月8日は会場をDMで案内",
+            next(event["raw_note"] for event in november_events if event["event_date"] == "2026-11-08"),
+        )
+
+    def test_ruroken_november_event_is_valid(self) -> None:
+        events = [
+            event
+            for event in load_manual_events()
+            if event["organization_id"] == "ruroken"
+        ]
+        event = next(event for event in events if event["event_date"] == "2026-11-03")
+
+        self.assertEqual("ruroken-20261103-0915-b7f60b3a", event["event_id"])
+        self.assertEqual("流浪剣", event["organization_name"])
+        self.assertEqual("2026年11月 稽古会", event["title"])
+        self.assertEqual("火", event["weekday"])
+        self.assertEqual("09:15", event["start_time"])
+        self.assertEqual("11:45", event["end_time"])
+        self.assertEqual("ひかりスポーツセンター", event["venue"])
+        self.assertEqual("東京都", event["area"])
+        self.assertEqual("東京都昭島市中神町1-17-1", event["address"])
+        self.assertEqual("JR青梅線 東中神駅から徒歩5分。駐車場あり。", event["access"])
+        self.assertIsNone(event["fee"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual("contact_required", event["participation_type"])
+        self.assertEqual("https://www.instagram.com/p/DeyyT_bt78V/", event["source_url"])
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual("2026-10-26T11:08:03+09:00", event["verified_at"])
+        self.assertEqual("2026-11-02", event["review_due_at"])
+        self.assertIn("9:00集合", event["raw_note"])
+        self.assertIn("参加・見学とも可能", event["raw_note"])
+        self.assertIn("参加費は公式情報で確認できない", event["raw_note"])
 
         index_html = (
             Path(__file__).resolve().parents[1] / "public" / "index.html"
