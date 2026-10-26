@@ -236,7 +236,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("眞心会", organization.name)
         self.assertEqual("manual", organization.scraper_type)
         self.assertFalse(organization.scraper_enabled)
-        self.assertEqual(22, len(events))
+        self.assertEqual(29, len(events))
         self.assertEqual(
             [
                 "2026-07-28",
@@ -261,6 +261,13 @@ class ManualEventDataTests(unittest.TestCase):
                 "2026-10-22",
                 "2026-10-27",
                 "2026-10-29",
+                "2026-11-05",
+                "2026-11-10",
+                "2026-11-12",
+                "2026-11-17",
+                "2026-11-19",
+                "2026-11-24",
+                "2026-11-26",
             ],
             [event["event_date"] for event in events],
         )
@@ -282,6 +289,60 @@ class ManualEventDataTests(unittest.TestCase):
         for event in october_events:
             event_date = date.fromisoformat(event["event_date"])
             self.assertEqual("眞心会 通常稽古", event["title"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("anyone", event["participation_type"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual("active", event["status"])
+            self.assertEqual("19:30", event["start_time"])
+            self.assertEqual("20:30", event["end_time"])
+            self.assertEqual(
+                "春里中学校屋内体育館1階武道場",
+                event["venue"],
+            )
+            self.assertEqual(
+                "埼玉県さいたま市見沼区小深作268-19",
+                event["address"],
+            )
+            self.assertEqual(
+                "駐車場あり（正門・北門・西門の3か所）",
+                event["access"],
+            )
+            self.assertEqual("会費不要", event["fee"])
+            self.assertEqual(
+                (event_date - timedelta(days=1)).isoformat(),
+                event["review_due_at"],
+            )
+
+        november_events = [
+            event
+            for event in events
+            if event["event_date"].startswith("2026-11-")
+        ]
+        self.assertEqual(7, len(november_events))
+        self.assertEqual(
+            [
+                "2026-11-05",
+                "2026-11-10",
+                "2026-11-12",
+                "2026-11-17",
+                "2026-11-19",
+                "2026-11-24",
+                "2026-11-26",
+            ],
+            [event["event_date"] for event in november_events],
+        )
+        for event in november_events:
+            event_date = date.fromisoformat(event["event_date"])
+            self.assertEqual("眞心会 通常稽古", event["title"])
+            self.assertEqual(
+                "木" if event_date.weekday() == 3 else "火",
+                event["weekday"],
+            )
+            self.assertEqual(
+                "https://magokorokai.crayonsite.com/",
+                event["source_url"],
+            )
+            self.assertEqual("official_site", event["source_type"])
             self.assertEqual("manual", event["update_mode"])
             self.assertEqual("anyone", event["participation_type"])
             self.assertFalse(event["application_required"])
