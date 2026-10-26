@@ -374,6 +374,84 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertEqual("manual", event["update_mode"])
             self.assertEqual("active", event["status"])
 
+    def test_hagakurey_november_events_are_valid(self) -> None:
+        weekend_source = "https://www.instagram.com/p/De1-HaYTBzP/"
+        weeknight_source = "https://www.instagram.com/p/De1-irCTe3w/"
+        events = [
+            event
+            for event in load_manual_events()
+            if event["source_url"] in {weekend_source, weeknight_source}
+        ]
+
+        weekend_schedules = {
+            "2026-11-07": ("17:00", "19:00", "渋谷区スポーツセンター"),
+            "2026-11-08": ("18:00", "21:00", "墨田区総合体育館"),
+            "2026-11-14": (
+                "15:00",
+                "18:00",
+                "中央区総合スポーツセンター",
+            ),
+            "2026-11-15": ("19:00", "21:00", "渋谷区スポーツセンター"),
+            "2026-11-21": ("15:00", "18:00", "墨田区総合体育館"),
+            "2026-11-22": ("18:00", "21:00", "墨田区総合体育館"),
+            "2026-11-28": ("17:00", "19:00", "渋谷区スポーツセンター"),
+            "2026-11-29": ("18:00", "21:00", "墨田区総合体育館"),
+        }
+        weeknight_dates = [
+            "2026-11-05",
+            "2026-11-06",
+            "2026-11-10",
+            "2026-11-12",
+            "2026-11-13",
+            "2026-11-20",
+            "2026-11-25",
+            "2026-11-26",
+            "2026-11-27",
+        ]
+
+        self.assertEqual(17, len(events))
+        events_by_date = {event["event_date"]: event for event in events}
+        self.assertEqual(
+            sorted([*weekend_schedules, *weeknight_dates]),
+            sorted(events_by_date),
+        )
+
+        for event_date, (start, end, venue) in weekend_schedules.items():
+            event = events_by_date[event_date]
+            self.assertEqual(weekend_source, event["source_url"])
+            self.assertEqual("HAGAKUREY 11月土日稽古", event["title"])
+            self.assertEqual(start, event["start_time"])
+            self.assertEqual(end, event["end_time"])
+            self.assertEqual(venue, event["venue"])
+            self.assertEqual("anyone", event["participation_type"])
+            self.assertFalse(event["application_required"])
+            self.assertIsNone(event["fee"])
+            if venue == "墨田区総合体育館":
+                self.assertEqual(
+                    "東京都墨田区錦糸4-15-1",
+                    event["address"],
+                )
+                self.assertIn("JR錦糸町駅北口", event["access"])
+            else:
+                self.assertIsNone(event["address"])
+                self.assertIsNone(event["access"])
+            self.assertEqual(
+                (date.fromisoformat(event_date) - timedelta(days=1)).isoformat(),
+                event["review_due_at"],
+            )
+
+        for event_date in weeknight_dates:
+            event = events_by_date[event_date]
+            self.assertEqual(weeknight_source, event["source_url"])
+            self.assertEqual("HAGAKUREY 11月平日夜練", event["title"])
+            self.assertEqual("21:00", event["start_time"])
+            self.assertEqual("22:30", event["end_time"])
+            self.assertEqual("墨田区総合体育館", event["venue"])
+            self.assertEqual("contact_required", event["participation_type"])
+            self.assertFalse(event["application_required"])
+            self.assertIsNone(event["fee"])
+            self.assertIn("初参加者はDM", event["raw_note"])
+
 
     def test_hagakurey_september_events_are_valid(self) -> None:
         source_url = "https://www.instagram.com/p/DcgkP0szPim/"
