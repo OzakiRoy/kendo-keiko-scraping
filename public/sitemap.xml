@@ -2,17 +2,26 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://kendo-keiko.com/</loc>
-    <lastmod>2026-07-21</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2026-10-26</lastmod>
   </url>
   <url>
     <loc>https://kendo-keiko.com/keiko/</loc>
+    <lastmod>2026-10-26</lastmod>
   </url>
   <url>
     <loc>https://kendo-keiko.com/renseikai/</loc>
+    <lastmod>2026-10-26</lastmod>
+  </url>
+  <url>
+    <loc>https://kendo-keiko.com/area/kanto/</loc>
+    <lastmod>2026-10-26</lastmod>
+  </url>
+  <url>
+    <loc>https://kendo-keiko.com/area/tokyo/</loc>
+    <lastmod>2026-10-26</lastmod>
   </url>
   <url>
     <loc>https://kendo-keiko.com/tools/team-builder.html</loc>
+    <lastmod>2026-10-26</lastmod>
   </url>
 </urlset>

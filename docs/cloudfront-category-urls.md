@@ -7,6 +7,8 @@
 - GET/HEAD `/keiko` → 301 `/keiko/`（クエリ保持）
 - GET/HEAD `/renseikai` → 301 `/renseikai/`（クエリ保持）
 - `/keiko/`, `/renseikai/` → 同ディレクトリのindex.htmlへ内部書き換え
+- GET/HEAD `/area/kanto`, `/area/tokyo` → 301で末尾スラッシュを追加（クエリ保持）
+- `/area/kanto/`, `/area/tokyo/` → 各地域のindex.htmlへ内部書き換え
 - それ以外のパス・メソッドは変更しない。`/keiko/index.html` は直接配信しcanonicalで `/keiko/` を指定する。
 
 クエリはCloudFront eventの既存エンコードを保ち、multiValueの重複値を欠落・二重エンコードさせない。空値は `name=` として保持する。パラメータの異なる名前同士の元の並び・`flag` と `flag=` の表記差はevent構造から復元できないため保証しない。リダイレクトはブラウザへの固定化を避けるため `Cache-Control: no-store`。
@@ -44,6 +46,20 @@ Functionテスト入力例:
 - Function導入中の不具合: 保存した元の関連付けへ戻すか、カテゴリ処理を含まない元のFunctionコードを新しいETagで復元・publishする。Deployed完了後に既存URLへの影響が解消したことを確認する。初回関連付けを外すとカテゴリの末尾スラッシュURLは使えなくなるため、トップのリンク公開前に行う。
 - トップ公開後の全面rollback: 先に直前の正常なPublisherコード・トップ・sitemapを復元し、新しいカテゴリへのリンクを除く。カテゴリオブジェクトとURL処理は既存リンク利用者のため可能なら残す。URL処理自体に問題があれば、リンク除去の反映確認後に元の関連付けへ戻す。
 - S3原本・CloudFrontの双方を確認し、必要なパスだけキャッシュを失効させる。既存の定期Publisherが変更を再公開しないようコードも戻す。手動データを削除したり、S3公開設定を変更したりしない。
+
+## 関東・東京都の地域ページを追加する初回手順
+
+マージと本番適用の明示指示後、上記の適用前確認を地域2URLにも行う。旧Functionは地域のディレクトリURLを処理しないため、Publisher更新だけでは公開完了にならない。
+
+1. 最新main・clean・upstream一致を確認し、公開S3原本のevents.jsonから生成CLIで5ページを生成する。スクレイパーを実行する必要はない。
+2. `site.css`、`calendar.css`、`calendar-core.js`、`regional-calendar.js`と地域2キーを先にS3へ配置する。写真・フォント・既存アセットの配信も確認する。入口リンクを含むトップ／カテゴリはまだ更新しない。
+3. `/area/kanto/index.html`と`/area/tokyo/index.html`のS3原本およびCloudFrontで、各地域固有のcanonical・件数・更新日時・静的カード・JSアセットを確認する。200だけでトップへの誤転送を見逃さない。
+4. 保存した現行LIVEコードと関連付けに合わせ、新ルートを統合する。DEVELOPMENTでGET／HEADの地域2パス、末尾スラッシュ・直接index.html、重複クエリ・空値、既存カテゴリ、対象外URL／メソッドを`aws cloudfront test-function`で確認する。ローカルブラウザテストで代用しない。
+5. LIVEへpublish・確認済みBehaviorへ適用し、Deployed後に地域の301／200と正常なカード表示を確認する。既存カテゴリ・OAC・他のFunction／Lambda@Edge処理を維持する。
+6. 通常のpublish_only手順でPublisherを更新・実行し、共通JSON・地域2ページ・既存3ページ・sitemapを更新する。公開スクリプトの5ページ一致検証を確認する。
+7. 実際の地域ページで一覧／月／土日、公式リンク、JS無効、スマートフォンを確認する。必要な場合だけ、新しい`/area/kanto`・`/area/kanto/`・`/area/kanto/index.html`と東京の対応パス、既存入口・アセットをキャッシュ失効の対象へ加える。
+
+地域機能だけを戻す場合は、先に直前のPublisher・入口HTML・sitemapへ戻す。地域のオブジェクトとURL処理は可能なら残し、Function自体を戻す場合も既存カテゴリの処理・関連付けを維持する。定期Publisherが新しい入口を再公開しないことも確認する。
 
 ## 仕様の根拠
 

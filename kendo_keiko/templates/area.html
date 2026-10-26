@@ -1,0 +1,58 @@
+<main class="site-main">
+  <nav aria-label="パンくず"><ol class="area-breadcrumb">
+    <li><a href="/">総合一覧</a></li>$breadcrumb<li aria-current="page">$name</li>
+  </ol></nav>
+  <div class="area-heading"><div><p class="section-heading__en">$eyebrow</p>
+    <h1>$nameの稽古会・錬成会</h1></div></div>
+  <p class="area-description">$description</p>
+  <p class="area-meta"><span>掲載 <strong id="scope-total">$event_count</strong>件</span>
+    <span>掲載団体 <strong id="scope-org-total">$org_count</strong>団体</span><span>更新日時：$generated_at</span></p>
+  <nav class="scope-nav" aria-label="地域のページ">$region_links</nav>
+  <div id="interactive-content" hidden>
+    <section aria-label="開催予定を絞り込む">
+      <div class="area-filters">
+        <label><span class="form-field__label">開催地</span><select id="filter-prefecture"></select></label>
+        <label><span class="form-field__label">会の種類</span><select id="filter-category"><option value="all">すべて</option><option value="keiko">稽古会</option><option value="renseikai">錬成会・練習試合</option></select></label>
+        <label><span class="form-field__label">参加条件</span><select id="filter-participation"></select></label>
+        <label><span class="form-field__label">団体</span><select id="filter-organization"></select></label>
+        <label class="keyword-field"><span class="form-field__label">キーワード</span><input type="search" id="filter-keyword" placeholder="団体名・会場名など" autocomplete="off"></label>
+        <div class="filter-actions"><p id="filter-summary">参加対象や申込方法は公式案内をご確認ください。</p><button type="button" class="reset-button" data-action="reset-filters">条件を解除</button></div>
+      </div>
+    </section>
+    <section class="events-section" aria-labelledby="schedule-heading">
+      <div class="display-bar"><h2 id="schedule-heading">開催予定</h2><div class="display-switch" role="group" aria-label="表示方法">
+        <button type="button" data-view="list" aria-pressed="false">一覧</button>
+        <button type="button" data-view="calendar" aria-pressed="true">カレンダー</button>
+      </div></div>
+      <div class="period-bar" role="group" aria-label="探す期間">
+        <button type="button" data-period="month" aria-pressed="true">月全体</button>
+        <button type="button" data-period="this-weekend" aria-pressed="false">今週末の土日</button>
+        <button type="button" data-period="next-weekend" aria-pressed="false">次の週末の土日</button>
+        <button type="button" data-action="current-month" class="period-reset">今月に戻る</button>
+      </div>
+      <div class="schedule-panel">
+        <div class="calendar-toolbar"><h3 id="period-title"></h3><div class="calendar-nav">
+          <button type="button" id="previous-period" data-action="previous" aria-label="前の月">‹</button>
+          <button type="button" id="next-period" data-action="next" aria-label="次の月">›</button>
+        </div><span class="period-count" id="period-count"></span></div>
+        <div id="calendar-view"><div id="calendar-content"></div></div>
+      </div>
+      <div class="calendar-key" id="calendar-key"><span class="calendar-key__label">稽古会・種別未分類</span><span class="calendar-key__label is-renseikai">錬成会・練習試合</span><p>日付を選ぶと下に詳細を表示します。</p></div>
+      <div id="calendar-detail">
+        <div class="selected-day-heading"><div><small>選択した日の掲載情報</small><h3 id="selected-day-title"></h3></div><span class="count" id="selected-day-count"></span></div>
+        <div id="day-results"></div>
+      </div>
+      <div id="list-view" hidden><div class="selected-day-heading"><h3 id="list-period-title"></h3><span class="count" id="list-period-count"></span></div><div id="list-results"></div></div>
+      <p id="result-announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+    </section>
+  </div>
+  <section id="static-fallback" aria-label="すべての掲載予定"><h2>$nameの掲載予定</h2><noscript><p>JavaScriptが無効のため、すべての掲載予定を一覧で表示しています。</p></noscript><div class="cards">$static_cards</div></section>
+  <section class="regional-information"><h2>$nameで稽古会を探すときに</h2><p>$guidance</p>
+    <p>「一般参加可」の会でも対象者・段位・事前連絡の条件は会ごとに異なります。参加前に、カードの公式案内から最新情報をご確認ください。</p>
+  </section>
+  <details class="organization-section regional-organizations">
+    <summary>$nameの掲載団体（$org_count）</summary>
+    <p class="organization-intro">この地域で開催予定を掲載している団体です。会の詳細や変更情報は、各団体の公式案内をご確認ください。</p>
+    <ul class="organization-list">$organizations</ul>
+  </details>
+</main>

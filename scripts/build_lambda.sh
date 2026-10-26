@@ -69,6 +69,9 @@ cp \
   "${ROOT_DIR}/public/assets/hero-keiko.jpg" \
   "${ROOT_DIR}/public/assets/team-builder.css" \
   "${ROOT_DIR}/public/assets/team-builder.js" \
+  "${ROOT_DIR}/public/assets/calendar.css" \
+  "${ROOT_DIR}/public/assets/calendar-core.js" \
+  "${ROOT_DIR}/public/assets/regional-calendar.js" \
   "${BUILD_DIR}/public/assets/"
 
 cp "${ROOT_DIR}"/assets/fonts/web/*.woff2 "${BUILD_DIR}/public/assets/fonts/"
@@ -101,10 +104,13 @@ from kendo_keiko.scrapers.saitama import scrape as scrape_saitama
 
 from pathlib import Path
 from kendo_keiko.static_site import render_listing_pages
+from kendo_keiko.listing import listing_page_keys
 import kendo_keiko
 root = Path(kendo_keiko.__file__).resolve().parent.parent
 pages = render_listing_pages((root / "public/index.html").read_text(), {"events": []})
-assert set(pages) == {"index.html", "keiko/index.html", "renseikai/index.html"}
+assert set(pages) == set(listing_page_keys())
+for key in ("area/kanto/index.html", "area/tokyo/index.html"):
+    assert 'id="regional-data"' in pages[key]
 print("[INFO] Lambda package imports and all listing templates: OK")
 PY
 )
@@ -143,6 +149,8 @@ required_files=(
   "kendo_keiko/repository.py"
   "kendo_keiko/static_site.py"
   "kendo_keiko/listing.py"
+  "kendo_keiko/regional.py"
+  "kendo_keiko/templates/area.html"
   "kendo_keiko/worker.py"
   "kendo_keiko/scrapers/__init__.py"
   "kendo_keiko/scrapers/ajkf.py"
@@ -169,6 +177,9 @@ required_files=(
   "public/assets/hero-keiko.jpg"
   "public/assets/team-builder.css"
   "public/assets/team-builder.js"
+  "public/assets/calendar.css"
+  "public/assets/calendar-core.js"
+  "public/assets/regional-calendar.js"
 )
 
 for font in "${ROOT_DIR}"/assets/fonts/web/*.woff2; do

@@ -168,7 +168,7 @@ class ListingBrowserTests(unittest.TestCase):
         def invoke(uri,query=None,method='GET'):
             return page.evaluate('(event) => {'+code+'; return handler(event);}',{'request':{'uri':uri,'method':method,'querystring':query or {},'headers':{}}})
         query={'q':{'value':'%E5%89%A3%E9%81%93+%26%3D'},'tag':{'value':'one','multiValue':[{'value':'one'},{'value':'two'}]},'empty':{'value':''}}
-        for category in ['keiko','renseikai']:
+        for category in ['keiko','renseikai','area/kanto','area/tokyo']:
             for method in ['GET','HEAD']:
                 response=invoke('/'+category,query,method)
                 self.assertEqual(301,response['statusCode'])
