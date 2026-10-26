@@ -335,6 +335,8 @@ jq -e '
   and .listing_pages_published == true
   and (.listing_page_keys | index("keiko/index.html") != null)
   and (.listing_page_keys | index("renseikai/index.html") != null)
+  and (.listing_page_keys | index("area/kanto/index.html") != null)
+  and (.listing_page_keys | index("area/tokyo/index.html") != null)
 ' "${response_file}" >/dev/null || fail "Publisher response flags are invalid"
 
 echo "[INFO] verify S3 source object: s3://${EVENTS_BUCKET}/${EVENTS_KEY}"
@@ -370,7 +372,7 @@ fi
 echo "[INFO] verify generated listing pages against S3 events.json"
 python scripts/generate_event_section.py --events "${events_file}" \
   --output-dir "${work_dir}/expected" --site-url "${SITE_URL}"
-for page_key in index.html keiko/index.html renseikai/index.html; do
+for page_key in index.html keiko/index.html renseikai/index.html area/kanto/index.html area/tokyo/index.html; do
   remote_key="${page_key}"
   [[ "${page_key}" != "index.html" ]] || remote_key="${INDEX_KEY}"
   aws s3 cp "s3://${EVENTS_BUCKET}/${remote_key}" "${work_dir}/actual.html" \
@@ -380,5 +382,5 @@ for page_key in index.html keiko/index.html renseikai/index.html; do
 done
 
 echo "[INFO] publish completed successfully"
-echo "[INFO] S3 updated: ${EVENTS_KEY}, ${INDEX_KEY}, keiko/index.html, renseikai/index.html, ${SITEMAP_KEY}, and public assets"
+echo "[INFO] S3 updated: ${EVENTS_KEY}, ${INDEX_KEY}, keiko/index.html, renseikai/index.html, area/kanto/index.html, area/tokyo/index.html, ${SITEMAP_KEY}, and public assets"
 echo "[INFO] CloudFront may serve the previous index.html until its cache expires"

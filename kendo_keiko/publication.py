@@ -16,6 +16,7 @@ from kendo_keiko.manual_events import (
     merge_public_events,
 )
 from kendo_keiko.models import normalize_event_metadata
+from kendo_keiko.listing import listing_page_keys
 from kendo_keiko.static_site import (
     build_sitemap_xml,
     render_static_index,
@@ -38,6 +39,11 @@ PUBLIC_BRAND_ASSETS: tuple[tuple[str, str], ...] = (
 PUBLIC_DESIGN_ASSETS: tuple[tuple[str, str], ...] = (
     ("assets/site.css", "text/css; charset=utf-8"),
     ("assets/hero-keiko.jpg", "image/jpeg"),
+)
+PUBLIC_CALENDAR_ASSETS: tuple[tuple[str, str], ...] = (
+    ("assets/calendar.css", "text/css; charset=utf-8"),
+    ("assets/calendar-core.js", "text/javascript; charset=utf-8"),
+    ("assets/regional-calendar.js", "text/javascript; charset=utf-8"),
 )
 _PUBLIC_FONT_VARIANTS = (
     "latin",
@@ -73,6 +79,7 @@ PUBLIC_TOOL_ASSETS: tuple[tuple[str, str], ...] = (
 PUBLIC_ASSETS: tuple[tuple[str, str], ...] = (
     *PUBLIC_DESIGN_ASSETS,
     *PUBLIC_FONT_ASSETS,
+    *PUBLIC_CALENDAR_ASSETS,
     *PUBLIC_TOOL_ASSETS,
     *PUBLIC_BRAND_ASSETS,
 )
@@ -318,6 +325,11 @@ def publish_public_site(
             region_name=region_name,
             assets=PUBLIC_FONT_ASSETS,
         )
+        calendar_asset_keys = publish_public_assets(
+            bucket=events_bucket,
+            region_name=region_name,
+            assets=PUBLIC_CALENDAR_ASSETS,
+        )
         tool_support_asset_keys = publish_public_assets(
             bucket=events_bucket,
             region_name=region_name,
@@ -329,8 +341,8 @@ def publish_public_site(
             assets=PUBLIC_TOOL_ENTRY_ASSETS,
         )
         page_keys = []
-        # Categories first, then the homepage containing their navigation.
-        for key in ("keiko/index.html", "renseikai/index.html", "index.html"):
+        # Region destinations first, categories next, then the homepage.
+        for key in listing_page_keys():
             output_key = index_key if key == "index.html" else key
             upload_text_to_s3(
                 bucket=events_bucket, key=output_key, body=pages[key],
@@ -356,6 +368,7 @@ def publish_public_site(
         asset_keys = (
             design_asset_keys
             + font_asset_keys
+            + calendar_asset_keys
             + tool_support_asset_keys
             + tool_entry_asset_keys
             + brand_asset_keys

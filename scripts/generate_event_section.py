@@ -39,7 +39,7 @@ def parse_args() -> argparse.Namespace:
     )
     output.add_argument(
         "--output-dir", type=Path,
-        help="3一覧ページとsitemapを生成するディレクトリ（--outputとの併用不可）",
+        help="カテゴリ・地域の一覧ページとsitemapを生成するディレクトリ（--outputとの併用不可）",
     )
     parser.add_argument("--site-url", default="https://kendo-keiko.com/")
     return parser.parse_args()

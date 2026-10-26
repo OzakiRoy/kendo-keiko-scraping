@@ -269,7 +269,7 @@ updated_at
 
 ## 基本SEOの静的生成
 
-開催予定はブラウザのJavaScript表示に加え、Publisher実行時に共通テンプレートから3一覧ページへ静的生成する。`events.json`、`index.html`、`keiko/index.html`、`renseikai/index.html`、`sitemap.xml` を同じデータ更新サイクルでS3へ発行する。
+開催予定はブラウザのJavaScript表示に加え、Publisher実行時に既存3一覧と関東・東京都の地域2ページへ静的生成する。`events.json`、`index.html`、`keiko/index.html`、`renseikai/index.html`、`area/kanto/index.html`、`area/tokyo/index.html`、`sitemap.xml`を同じデータ更新サイクルでS3へ発行する。
 
 実装・デプロイ手順は `docs/basic-seo-setup.md` を参照する。
 
@@ -294,3 +294,7 @@ python manage_manual_events.py list-review-due
 `/` は総合一覧、`/keiko/` は稽古会、`/renseikai/` は大人向け錬成会・練習試合。共通テンプレートから静的生成し、総合一覧の種別フィルターは既存条件とANDで組み合わせられる。未知の種別は総合の「すべて」に残す。
 
 開発依存・ブラウザテスト・生成方法は [カテゴリ一覧](docs/category-listings.md)、本番URLの適用順序は [CloudFront runbook](docs/cloudfront-category-urls.md) を参照する。
+
+## 地域ページとカレンダー
+
+`/area/kanto/` と `/area/tokyo/` では、一覧・月間カレンダー・土日比較を切り替えて開催予定を探せる。既存3一覧と同じ公開payloadから静的生成し、初期HTMLにも全対象カード・件数・更新日時を含む。実装・検証・計測は [地域ページとカレンダー](docs/regional-calendar.md)、初回公開順は [CloudFront runbook](docs/cloudfront-category-urls.md) を参照する。

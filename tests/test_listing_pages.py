@@ -17,6 +17,10 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPECTED = {'index.html': ['adult', 'missing', 'open', 'unknown', 'federation', 'adult-later'],
             'keiko/index.html': ['open', 'federation'],
             'renseikai/index.html': ['adult', 'adult-later']}
+REGIONAL_EXPECTED = {
+    'area/kanto/index.html': EXPECTED['index.html'],
+    'area/tokyo/index.html': ['adult', 'missing', 'open', 'unknown'],
+}
 
 
 def public_fixture():
@@ -62,7 +66,8 @@ class ListingPagesTests(unittest.TestCase):
         payload = public_fixture()
         original = copy.deepcopy(payload)
         pages = fixture_pages()
-        for key, html in pages.items():
+        for key in EXPECTED:
+            html = pages[key]
             with self.subTest(key=key):
                 soup = BeautifulSoup(html, 'html.parser')
                 self.assertEqual(EXPECTED[key], [c['data-event-id'] for c in soup.select('.card')])
@@ -79,9 +84,9 @@ class ListingPagesTests(unittest.TestCase):
                 self.assertEqual(html, render_listing_pages(html, payload)[key])
         self.assertEqual(original, payload)
         self.assertEqual(2, pages['index.html'].count('class="event-kind">種別未分類'))
-        self.assertEqual(3, len({BeautifulSoup(h,'html.parser').title.text for h in pages.values()}))
+        self.assertEqual(5, len({BeautifulSoup(h,'html.parser').title.text for h in pages.values()}))
         root = ElementTree.fromstring(build_sitemap_xml())
-        self.assertEqual(4, len(root))
+        self.assertEqual(6, len(root))
         self.assertIn("https://kendo-keiko.com/tools/team-builder.html", {
             node.text for node in root.findall("{http://www.sitemaps.org/schemas/sitemap/0.9}url/{http://www.sitemaps.org/schemas/sitemap/0.9}loc")
         })
@@ -102,7 +107,7 @@ class ListingPagesTests(unittest.TestCase):
         with patch('kendo_keiko.publication.query_events_from_dynamodb', return_value=public_fixture()['events']), patch('kendo_keiko.publication.load_manual_events', return_value=[]), patch('kendo_keiko.publication.upload_text_to_s3', side_effect=upload), patch('kendo_keiko.publication.publish_public_assets', return_value=[]):
             result = publish_public_site(table_name='test', region_name='ap-northeast-1', from_date='2026-09-20', events_bucket='test')
         self.assertTrue(result['listing_pages_published'])
-        self.assertEqual(set(EXPECTED), set(result['listing_page_keys']))
+        self.assertEqual(set(EXPECTED) | set(REGIONAL_EXPECTED), set(result['listing_page_keys']))
         payload = json.loads(objects['events.json']['body'])
         rendered = render_listing_pages((ROOT/'public/index.html').read_text(), payload)
         for key, html in rendered.items():

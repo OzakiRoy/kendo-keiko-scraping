@@ -90,9 +90,12 @@ class LambdaStaticPublishTests(unittest.TestCase):
             "tools/team-builder.html",
             "assets/team-builder.css",
             "assets/team-builder.js",
+            "assets/calendar.css",
+            "assets/calendar-core.js",
+            "assets/regional-calendar.js",
         }
         self.assertEqual(
-            {"events.json", "index.html", "keiko/index.html", "renseikai/index.html", "sitemap.xml", *expected_assets},
+            {"events.json", "index.html", "keiko/index.html", "renseikai/index.html", "area/kanto/index.html", "area/tokyo/index.html", "sitemap.xml", *expected_assets},
             set(objects),
         )
         self.assertEqual(
@@ -155,6 +158,16 @@ class LambdaStaticPublishTests(unittest.TestCase):
         self.assertLess(keys.index("assets/hero-keiko.jpg"), keys.index("keiko/index.html"))
         self.assertLess(keys.index("assets/team-builder.css"), keys.index("tools/team-builder.html"))
         self.assertLess(keys.index("assets/team-builder.js"), keys.index("tools/team-builder.html"))
+        for region in ("area/kanto/index.html", "area/tokyo/index.html"):
+            self.assertLess(keys.index(region), keys.index("keiko/index.html"))
+            self.assertEqual("text/html; charset=utf-8", objects[region]["ContentType"])
+            self.assertEqual("max-age=300", objects[region]["CacheControl"])
+            for asset in ("assets/calendar.css", "assets/calendar-core.js", "assets/regional-calendar.js"):
+                self.assertLess(keys.index(asset), keys.index(region))
+        self.assertEqual("text/css; charset=utf-8", objects["assets/calendar.css"]["ContentType"])
+        self.assertEqual("text/javascript; charset=utf-8", objects["assets/calendar-core.js"]["ContentType"])
+        self.assertEqual("text/javascript; charset=utf-8", objects["assets/regional-calendar.js"]["ContentType"])
+        self.assertEqual("max-age=300", objects["assets/regional-calendar.js"]["CacheControl"])
         self.assertIn(
             'href="/tools/team-builder.html"',
             index_html,

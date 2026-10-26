@@ -87,7 +87,7 @@ publish dry-runは全テスト・テンプレート検証・Lambda ZIP作成（�
 python scripts/generate_event_section.py --events public/events.json --output-dir /tmp/kendo-site
 ```
 
-3ページとsitemapを生成する。従来の `--output /tmp/index.html` はトップ1ページ出力用として維持する。カテゴリページを試す際は生成先に共通events.jsonとpublicの画像等も配置し、HTTPサーバーのルートにする。
+既存3ページと関東・東京都の地域2ページ、sitemapを生成する。従来の `--output /tmp/index.html` はトップ1ページ出力用として維持する。カテゴリページを試す際は生成先に共通events.jsonとpublicの画像等も配置し、HTTPサーバーのルートにする。
 
 テンプレートの生成領域の同期（イベント・団体データは変更しない）:
 
@@ -102,13 +102,13 @@ PY
 
 ## 生成・公開
 
-Publisherと従来Lambdaハンドラーは共通の `publish_public_site` を使い、統合した1つのpayloadからJSON、3ページ、sitemapを生成する。ページごとにtitle・description・canonical・OGPを設定する。画像は既存OGPを共用する。共通データURLは `/events.json`、favicon等はルート相対パス。
+Publisherと従来Lambdaハンドラーは共通の `publish_public_site` を使い、統合した1つのpayloadからJSON、既存3ページ＋地域2ページ、sitemapを生成する。ページごとにtitle・description・canonical・OGPを設定する。画像は既存OGPを共用する。カテゴリの共通データURLは `/events.json`、favicon等はルート相対パス。地域ページの静的本文と埋込データ、カレンダー操作は[地域ページとカレンダー](regional-calendar.md)を参照。
 
-S3出力キーは `events.json`, `index.html`, `keiko/index.html`, `renseikai/index.html`, `sitemap.xml` と既存アセット。`INDEX_KEY` はトップのみ変更でき、カテゴリキーは固定。`PUBLISH_INDEX_HTML=false` の場合は従来どおりJSONのみ公開。`EVENTS_KEY`を変更してもブラウザは `/events.json` を読むため、本サイトではデフォルト値を維持する。
+S3出力キーは `events.json`, `index.html`, `keiko/index.html`, `renseikai/index.html`, `area/kanto/index.html`, `area/tokyo/index.html`, `sitemap.xml` と公開アセット。`INDEX_KEY` はトップのみ変更でき、カテゴリ・地域キーは固定。`PUBLISH_INDEX_HTML=false` の場合は従来どおりJSONのみ公開。`EVENTS_KEY`を変更してもカテゴリのブラウザは `/events.json` を読むため、本サイトではデフォルト値を維持する。
 
-ZIPには共通テンプレートとlisting.pyを含め、ビルド時にZIP用ディレクトリから3ページ生成を検証する。生成済みカテゴリHTMLをZIPへ固定同梱せず、Publisherの実行ごとに最新データで生成する。成功応答は既存フラグに加え `listing_pages_published=true` と `listing_page_keys` を返す。
+ZIPには共通テンプレート、listing.py、地域テンプレートと生成モジュールを含め、ビルド時にZIP用ディレクトリから5ページ生成を検証する。生成済みHTMLをZIPへ固定同梱せず、Publisherの実行ごとに最新データで生成する。成功応答は既存フラグに加え `listing_pages_published=true` と `listing_page_keys` を返す。
 
-公開スクリプトは成功フラグに加えて、S3原本events.jsonから再生成した3ページとS3のHTMLを比較する。定期公開と重なった場合は比較不一致を調査し、上書きして回避しない。
+公開スクリプトは成功フラグに加えて、S3原本events.jsonから再生成した5ページとS3のHTMLを比較する。定期公開と重なった場合は比較不一致を調査し、上書きして回避しない。
 
 S3への複数ファイル公開はトランザクションではない。同一payloadから生成するが、公開途中・CloudFrontのTTL差では一時的な世代差があり得る。失敗時は原因を解消して再公開し、成功後に原本の一致を確認する。
 

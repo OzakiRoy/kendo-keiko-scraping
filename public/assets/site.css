@@ -15,6 +15,9 @@
   --sans: "Noto Sans JP", "Yu Gothic", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
 }
 
+.area-nav { display: flex; flex-wrap: wrap; gap: 10px; margin: -12px 0 28px; }
+.area-nav a { padding: 10px 16px; border: 1px solid var(--line); border-radius: 4px; }
+
 @font-face {
   font-family: "Noto Sans JP";
   src: url("/assets/fonts/NotoSansJP-latin.woff2") format("woff2");

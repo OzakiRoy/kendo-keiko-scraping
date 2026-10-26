@@ -11,6 +11,7 @@ from urllib.parse import urlparse, urljoin
 from kendo_keiko.listing import (
     CATEGORIES,
     PAGES,
+    REGIONS,
     TYPE_LABELS,
     UNKNOWN_TYPE_LABEL,
     select_events,
@@ -351,7 +352,7 @@ def build_sitemap_xml(
     lastmod: dt.date | None = None,
 ) -> str:
     lastmod = lastmod or dt.date.today()
-    paths = [page["path"] for page in PAGES.values()] + list(PUBLIC_TOOL_PATHS)
+    paths = [page["path"] for page in (*PAGES.values(), *REGIONS.values())] + list(PUBLIC_TOOL_PATHS)
     entries = "\n".join(
         "  <url>\n"
         f"    <loc>{escape(urljoin(site_url, path), quote=True)}</loc>\n"
@@ -447,6 +448,10 @@ def render_page_shell(template: str, category: str, site_url: str) -> str:
         label = "総合一覧" if key == "all" else CATEGORIES[key]["label"]
         navigation.append(f'      <a href="{item["path"]}"{current}>{label}</a>')
     navigation.append('    </nav>')
+    navigation.append('    <nav class="area-nav" aria-label="地域から探す">')
+    for item in REGIONS.values():
+        navigation.append(f'      <a href="{item["path"]}">{item["name"]}の予定</a>')
+    navigation.append('    </nav>')
     controls = []
     if category == "all":
         controls.append(
@@ -528,7 +533,14 @@ def render_listing_pages(
     *,
     site_url: str = "https://kendo-keiko.com/",
 ) -> dict[str, str]:
-    return {
+    from kendo_keiko.regional import render_regional_page
+
+    pages = {
         page["key"]: render_static_index(template, payload, category=category, site_url=site_url)
         for category, page in PAGES.items()
     }
+    pages.update({
+        page["key"]: render_regional_page(template, payload, region, site_url=site_url)
+        for region, page in REGIONS.items()
+    })
+    return pages

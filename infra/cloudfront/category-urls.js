@@ -13,7 +13,8 @@ function querySuffix(query) {
 function handler(event) {
     var request = event.request;
     if (request.method !== 'GET' && request.method !== 'HEAD') return request;
-    if (request.uri === '/keiko' || request.uri === '/renseikai') {
+    var paths = ['/keiko', '/renseikai', '/area/kanto', '/area/tokyo'];
+    if (paths.indexOf(request.uri) !== -1) {
         return {
             statusCode: 301,
             statusDescription: 'Moved Permanently',
@@ -23,7 +24,7 @@ function handler(event) {
             }
         };
     }
-    if (request.uri === '/keiko/' || request.uri === '/renseikai/') {
+    if (paths.indexOf(request.uri.slice(0, -1)) !== -1 && request.uri.slice(-1) === '/') {
         request.uri += 'index.html';
     }
     return request;
