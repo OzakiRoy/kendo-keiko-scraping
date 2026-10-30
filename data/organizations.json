@@ -1,5 +1,19 @@
 [
   {
+    "organization_id": "bochibochikai",
+    "name": "ぼちぼち会",
+    "area": "茨城県",
+    "website_url": "https://www.instagram.com/bochibochikai_/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "公式Instagramの投稿を管理者が確認し、手動登録",
+    "public_description": "ぼちぼち会が茨城県古河市で開催する、所属を問わず経験・年齢にかかわらず参加できるオープン稽古会の予定を掲載しています。参加希望者は主催者へDMでご連絡ください。",
+    "default_participation_type": "contact_required",
+    "default_application_required": true
+  },
+  {
     "organization_id": "ajkf",
     "name": "全日本剣道連盟",
     "area": "全国",
