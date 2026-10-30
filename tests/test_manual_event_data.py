@@ -181,11 +181,11 @@ class ManualEventDataTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("<h3>竹生島稽古会（剣道稽古会）</h3>", index_html)
 
-    def test_bochibochikai_open_keiko_preserves_unconfirmed_fields(self) -> None:
+    def test_bochibochikai_open_keiko_has_official_details(self) -> None:
         organizations = load_organizations()
         organization = find_organization(organizations, "bochibochikai")
         self.assertEqual("ぼちぼち会", organization.name)
-        self.assertIsNone(organization.area)
+        self.assertEqual("茨城県", organization.area)
         self.assertEqual(
             "https://www.instagram.com/bochibochikai_/",
             organization.website_url,
@@ -208,20 +208,35 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("open_keiko", event["event_type"])
         self.assertEqual("2026-11-21", event["event_date"])
         self.assertEqual("土", event["weekday"])
-        self.assertIsNone(event["start_time"])
-        self.assertIsNone(event["end_time"])
-        self.assertIsNone(event["venue"])
-        self.assertIsNone(event["area"])
+        self.assertEqual("13:00", event["start_time"])
+        self.assertEqual("15:00", event["end_time"])
+        self.assertEqual(
+            "ゴコーふれあいスポーツセンター サブアリーナ",
+            event["venue"],
+        )
+        self.assertEqual("茨城県", event["area"])
+        self.assertEqual("茨城県古河市仁連2042-1", event["address"])
+        self.assertEqual("1人100円", event["fee"])
         self.assertTrue(event["application_required"])
         self.assertEqual("contact_required", event["participation_type"])
         self.assertEqual(
             "https://www.instagram.com/p/DfECtAxT626/",
             event["source_url"],
         )
+        self.assertEqual(
+            "bochibochikai-20261121-1300-f65bd7e2",
+            event["event_id"],
+        )
+        self.assertEqual(
+            "2026-11-21#13:00#bochibochikai#bochibochikai-20261121-1300-f65bd7e2",
+            event["gsi1_sk"],
+        )
         self.assertEqual("2026-11-20", event["review_due_at"])
-        self.assertIn("老若男女", event["raw_note"])
+        self.assertIn("経験・年齢・所属", event["raw_note"])
         self.assertIn("DM", event["raw_note"])
-        self.assertIn("時刻・会場・料金", event["raw_note"])
+        self.assertIn("13:00〜15:00", event["raw_note"])
+        self.assertIn("仁連2042-1", event["raw_note"])
+        self.assertNotIn("時刻・会場・料金の記載を確認できない", event["raw_note"])
 
         index_html = (
             Path(__file__).resolve().parents[1] / "public" / "index.html"
