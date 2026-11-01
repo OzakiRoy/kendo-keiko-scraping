@@ -1043,7 +1043,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("manual", organization.scraper_type)
         self.assertFalse(organization.scraper_enabled)
         self.assertEqual("open_keiko", organization.event_type)
-        self.assertEqual(2, len(events))
+        self.assertEqual(3, len(events))
 
         event = events[0]
         self.assertEqual(
@@ -1121,6 +1121,42 @@ class ManualEventDataTests(unittest.TestCase):
             Path(__file__).resolve().parents[1] / "public" / "index.html"
         ).read_text(encoding="utf-8")
         self.assertIn("<h3>ケンドウジョウタテヨ</h3>", index_html)
+
+    def test_kendo_jo_tateyo_november_daredemo(self) -> None:
+        events = [
+            event for event in load_manual_events()
+            if event["organization_id"] == "kendo_jo_tateyo"
+            and event["event_date"] == "2026-11-29"
+        ]
+        self.assertEqual(1, len(events))
+        event = events[0]
+        expected = {
+            "event_id": "kendo_jo_tateyo-20261129-1900-7a10ea3f",
+            "organization_name": "ケンドウジョウタテヨ",
+            "title": "11月だれでも道場",
+            "weekday": "日",
+            "start_time": "19:00",
+            "end_time": "21:00",
+            "venue": "YohaSアリーナ 剣道場",
+            "area": "千葉県",
+            "address": None,
+            "access": "千葉公園駅",
+            "fee": "500円",
+            "application_required": True,
+            "participation_type": "registration_required",
+            "event_type": "open_keiko",
+            "source_type": "sns",
+            "update_mode": "manual",
+            "status": "active",
+            "source_url": "https://www.instagram.com/p/DeZSOgTia83/?img_index=1",
+            "review_due_at": "2026-11-26",
+        }
+        for field, value in expected.items():
+            with self.subTest(field=field):
+                self.assertEqual(value, event[field])
+        for note in ("高校生以上", "フリー参加型の大人稽古会", "締切11/27",
+                     "確認メール", "決済リンク", "19:15から準備体操"):
+            self.assertIn(note, event["raw_note"])
 
 
     def test_kendo_labo_event_is_valid_and_linked_to_organization(
