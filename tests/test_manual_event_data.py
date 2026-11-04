@@ -1247,7 +1247,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("open_keiko", organization.event_type)
         self.assertEqual("unknown", organization.default_participation_type)
         self.assertIsNone(organization.default_application_required)
-        self.assertEqual(3, len(events))
+        self.assertEqual(5, len(events))
 
         event = events[0]
         self.assertEqual(
@@ -1289,11 +1289,16 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn("<h3>一風会</h3>", index_html)
 
         added = {event["event_date"]: event for event in events if event["event_date"] != "2026-09-19"}
-        self.assertEqual({"2026-10-25", "2026-11-02"}, set(added))
+        self.assertEqual(
+            {"2026-10-25", "2026-11-02", "2026-11-21", "2026-12-10"},
+            set(added),
+        )
         self.assertEqual(
             {
                 "2026-10-25": ("13:00", "15:30", "https://www.instagram.com/p/Dd6VqeqzzYC/", "2026-10-24"),
                 "2026-11-02": ("19:00", "21:00", "https://www.instagram.com/p/Dd6XE3jTd_u/", "2026-11-01"),
+                "2026-11-21": ("13:00", "15:30", "https://www.instagram.com/p/DfT87sfzxAK/", "2026-11-20"),
+                "2026-12-10": ("19:00", "21:30", "https://www.instagram.com/p/DfT87sfzxAK/", "2026-12-09"),
             },
             {date: (event["start_time"], event["end_time"], event["source_url"], event["review_due_at"]) for date, event in added.items()},
         )
@@ -1301,8 +1306,23 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertEqual("一風会 稽古会", event["title"])
             self.assertEqual("越谷市立総合体育館 2階 武道場", event["venue"])
             self.assertEqual("open_keiko", event["event_type"])
+        for date in ("2026-10-25", "2026-11-02"):
+            event = added[date]
             self.assertEqual("anyone", event["participation_type"])
             self.assertFalse(event["application_required"])
+        for date in ("2026-11-21", "2026-12-10"):
+            event = added[date]
+            self.assertEqual("埼玉県", event["area"])
+            self.assertEqual("埼玉県越谷市増林2丁目33番地", event["address"])
+            self.assertIsNone(event["access"])
+            self.assertEqual("1人300円", event["fee"])
+            self.assertEqual("contact_required", event["participation_type"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual("sns", event["source_type"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("active", event["status"])
+            self.assertIn("リバ剣や気軽に剣道やりたい方", event["raw_note"])
+            self.assertIn("参加費は1人300円", event["raw_note"])
 
 
     def test_kizunakai_events_are_valid(self) -> None:
