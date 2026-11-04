@@ -1315,13 +1315,14 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertEqual("埼玉県", event["area"])
             self.assertEqual("埼玉県越谷市増林2丁目33番地", event["address"])
             self.assertIsNone(event["access"])
-            self.assertIsNone(event["fee"])
+            self.assertEqual("1人300円", event["fee"])
             self.assertEqual("contact_required", event["participation_type"])
-            self.assertTrue(event["application_required"])
+            self.assertFalse(event["application_required"])
             self.assertEqual("sns", event["source_type"])
             self.assertEqual("manual", event["update_mode"])
             self.assertEqual("active", event["status"])
             self.assertIn("リバ剣や気軽に剣道やりたい方", event["raw_note"])
+            self.assertIn("参加費は1人300円", event["raw_note"])
 
 
     def test_kizunakai_events_are_valid(self) -> None:
