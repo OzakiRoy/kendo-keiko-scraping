@@ -255,11 +255,12 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("剣縁", organization.name)
         self.assertEqual("manual", organization.scraper_type)
         self.assertFalse(organization.scraper_enabled)
-        self.assertEqual(2, len(events))
+        self.assertEqual(3, len(events))
         self.assertEqual(
             [
                 "kenen-20260830-0930-fcace356",
                 "kenen-20260922-1330-4099ce0f",
+                "kenen-20261115-1530-71aaba0b",
             ],
             [event["event_id"] for event in events],
         )
@@ -305,6 +306,24 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn(
             "https://forms.gle/5McZ8QVgjh961haJ6",
             event["raw_note"],
+        )
+
+        event = events[2]
+        self.assertEqual("剣縁の集い 第4回", event["title"])
+        self.assertEqual("2026-11-15", event["event_date"])
+        self.assertEqual("日", event["weekday"])
+        self.assertEqual("15:30", event["start_time"])
+        self.assertEqual("16:30", event["end_time"])
+        self.assertEqual(
+            "東京・渋谷区スポーツセンター 第1武道場",
+            event["venue"],
+        )
+        self.assertEqual("東京都", event["area"])
+        self.assertTrue(event["application_required"])
+        self.assertEqual("registration_required", event["participation_type"])
+        self.assertEqual(
+            "https://kenen.jp/event/ken-en-no-tsudoi-4",
+            event["source_url"],
         )
 
     def test_magokorokai_events_are_valid_and_linked_to_organization(self) -> None:
@@ -1332,7 +1351,7 @@ class ManualEventDataTests(unittest.TestCase):
             if event["organization_id"] == "kizunakai"
         ]
 
-        self.assertEqual(6, len(events))
+        self.assertEqual(7, len(events))
 
         events_by_date = {
             event["event_date"]: event
@@ -1347,6 +1366,7 @@ class ManualEventDataTests(unittest.TestCase):
                 "2026-10-02",
                 "2026-10-23",
                 "2026-11-05",
+                "2026-11-27",
             },
             set(events_by_date),
         )
@@ -2707,6 +2727,82 @@ class ManualEventDataTests(unittest.TestCase):
             Path(__file__).resolve().parents[1] / "public" / "index.html"
         ).read_text(encoding="utf-8")
         self.assertIn("<h3>振鳴剣道部</h3>", index_html)
+
+    def test_november_2026_instagram_events_are_valid(self) -> None:
+        expected = {
+            "kizunakai-20261127-2000-b5b5ae78": {
+                "organization_id": "kizunakai",
+                "organization_name": "絆剱会",
+                "event_type": "open_keiko",
+                "title": "絆剱会ゆる稽古会",
+                "event_date": "2026-11-27",
+                "weekday": "金",
+                "start_time": "20:00",
+                "end_time": "22:00",
+                "venue": "坂戸市 千代田地域交流センター",
+                "area": "埼玉県",
+                "address": None,
+                "access": None,
+                "fee": "一般200円／大学生以下100円",
+                "participation_type": "anyone",
+                "application_required": False,
+                "source_url": "https://www.instagram.com/p/Dfb8NxXtxmn/",
+                "review_due_at": "2026-11-26",
+            },
+            "hagakurey-20261206-1500-58e70c81": {
+                "organization_id": "hagakurey",
+                "organization_name": "HAGAKUREY",
+                "event_type": "open_keiko",
+                "title": "HAGAKUREY Over40 稽古会",
+                "event_date": "2026-12-06",
+                "weekday": "日",
+                "start_time": "15:00",
+                "end_time": "18:00",
+                "venue": "墨田区総合体育館",
+                "area": "東京都",
+                "address": None,
+                "access": None,
+                "fee": None,
+                "participation_type": "anyone",
+                "application_required": False,
+                "source_url": "https://www.instagram.com/p/DfaygbGzjsw/",
+                "review_due_at": "2026-12-05",
+            },
+            "kenen-20261115-1530-71aaba0b": {
+                "organization_id": "kenen",
+                "organization_name": "剣縁",
+                "event_type": "open_keiko",
+                "title": "剣縁の集い 第4回",
+                "event_date": "2026-11-15",
+                "weekday": "日",
+                "start_time": "15:30",
+                "end_time": "16:30",
+                "venue": "東京・渋谷区スポーツセンター 第1武道場",
+                "area": "東京都",
+                "address": "東京都渋谷区西原1-40-18",
+                "access": "京王新線「幡ヶ谷駅」南口から徒歩約6分、小田急線「代々木上原駅」から徒歩約15分",
+                "fee": "1,000円（税込）／名",
+                "participation_type": "registration_required",
+                "application_required": True,
+                "source_url": "https://kenen.jp/event/ken-en-no-tsudoi-4",
+                "review_due_at": "2026-11-14",
+            },
+        }
+
+        events = {
+            event["event_id"]: event
+            for event in load_manual_events()
+            if event["event_id"] in expected
+        }
+        self.assertEqual(set(expected), set(events))
+
+        for event_id, values in expected.items():
+            event = events[event_id]
+            with self.subTest(event_id=event_id):
+                for field, value in values.items():
+                    self.assertEqual(value, event[field])
+                self.assertEqual("manual", event["update_mode"])
+                self.assertEqual("active", event["status"])
 
 
 if __name__ == "__main__":
