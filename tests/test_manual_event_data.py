@@ -1805,7 +1805,7 @@ class ManualEventDataTests(unittest.TestCase):
             organization.default_participation_type,
         )
         self.assertFalse(organization.default_application_required)
-        self.assertEqual(4, len(events))
+        self.assertEqual(5, len(events))
         events_by_date = {
             event["event_date"]: event
             for event in events
@@ -1878,6 +1878,7 @@ class ManualEventDataTests(unittest.TestCase):
                 "17:00",
                 "19:00",
                 "2026-10-09",
+                "2026-09-30T15:26:00+09:00",
             ),
             "2026-10-17": (
                 "iwaki_kamomekai-20261017-1300-b683495c",
@@ -1885,6 +1886,15 @@ class ManualEventDataTests(unittest.TestCase):
                 "13:00",
                 "15:00",
                 "2026-10-16",
+                "2026-09-30T15:26:00+09:00",
+            ),
+            "2026-11-21": (
+                "iwaki_kamomekai-20261121-1700-37e1ba66",
+                "土",
+                "17:00",
+                "19:00",
+                "2026-11-20",
+                "2026-11-12T07:24:40+09:00",
             ),
         }
         for event_date, (
@@ -1893,6 +1903,7 @@ class ManualEventDataTests(unittest.TestCase):
             start_time,
             end_time,
             review_due_at,
+            verified_at,
         ) in expected_new_events.items():
             event = events_by_date[event_date]
             self.assertEqual(event_id, event["event_id"])
@@ -1915,7 +1926,7 @@ class ManualEventDataTests(unittest.TestCase):
                 "https://www.instagram.com/hitachi657/",
                 event["source_url"],
             )
-            self.assertEqual("2026-09-30T15:26:00+09:00", event["verified_at"])
+            self.assertEqual(verified_at, event["verified_at"])
             self.assertEqual(review_due_at, event["review_due_at"])
             self.assertIn("主催者本人（Instagram: @hitachi657）からのDM", event["raw_note"])
             self.assertIn("プロフィールURL自体に今回の日程掲載があるとは扱わない", event["raw_note"])
