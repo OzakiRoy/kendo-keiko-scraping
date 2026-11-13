@@ -1805,7 +1805,7 @@ class ManualEventDataTests(unittest.TestCase):
             organization.default_participation_type,
         )
         self.assertFalse(organization.default_application_required)
-        self.assertEqual(5, len(events))
+        self.assertEqual(6, len(events))
         events_by_date = {
             event["event_date"]: event
             for event in events
@@ -1895,6 +1895,14 @@ class ManualEventDataTests(unittest.TestCase):
                 "19:00",
                 "2026-11-20",
                 "2026-11-12T07:24:40+09:00",
+            ),
+            "2026-12-05": (
+                "iwaki_kamomekai-20261205-1700-eaccbe72",
+                "土",
+                "17:00",
+                "19:00",
+                "2026-12-04",
+                "2026-11-13T10:00:56+09:00",
             ),
         }
         for event_date, (
