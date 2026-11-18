@@ -352,5 +352,19 @@
     "public_description": "悠友会 剣道サークルが大阪府内で開催する、経験者・リバ剣歓迎の稽古予定を掲載しています。参加希望者は公式Instagramへご連絡ください。",
     "default_participation_type": "contact_required",
     "default_application_required": false
+  },
+  {
+    "organization_id": "hashigokai",
+    "name": "覇志伍会",
+    "area": "兵庫県",
+    "website_url": "https://www.instagram.com/hashigokai_kendo/",
+    "source_type": "sns",
+    "scraper_type": "manual",
+    "scraper_enabled": false,
+    "event_type": "open_keiko",
+    "notes": "公式Instagramの投稿を管理者が確認し、手動登録",
+    "public_description": "覇志伍会〔はしごかい〕が兵庫県神戸市で開催する、所属を問わず参加できる剣道稽古会の予定を掲載しています。",
+    "default_participation_type": "anyone",
+    "default_application_required": false
   }
 ]
