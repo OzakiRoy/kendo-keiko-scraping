@@ -2823,6 +2823,43 @@ class ManualEventDataTests(unittest.TestCase):
                 self.assertEqual("manual", event["update_mode"])
                 self.assertEqual("active", event["status"])
 
+    def test_cleanroad_november_2026_image_event_is_valid(self) -> None:
+        organizations = load_organizations()
+        organization = find_organization(organizations, "cleanroad")
+        event = next(
+            event
+            for event in load_manual_events()
+            if event["event_id"] == "cleanroad-20261128-1000-28ccab38"
+        )
+
+        self.assertEqual("クリーンロード", organization.name)
+        self.assertEqual("山形県", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/cleanroad_3556/",
+            organization.website_url,
+        )
+        self.assertEqual("open_keiko", event["event_type"])
+        self.assertEqual("第一回 Clean Road 稽古会", event["title"])
+        self.assertEqual("2026-11-28", event["event_date"])
+        self.assertEqual("土", event["weekday"])
+        self.assertEqual("10:00", event["start_time"])
+        self.assertEqual("12:00", event["end_time"])
+        self.assertEqual("マルミチ本社敷地内", event["venue"])
+        self.assertEqual("山形県", event["area"])
+        self.assertEqual(
+            "山形県東田川郡庄内町西袋駅前64-2",
+            event["address"],
+        )
+        self.assertIsNone(event["access"])
+        self.assertIsNone(event["fee"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DfyaYmETTxY/",
+            event["source_url"],
+        )
+        self.assertEqual("2026-11-27", event["review_due_at"])
+
 
 if __name__ == "__main__":
     unittest.main()
