@@ -2711,7 +2711,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("open_keiko", organization.event_type)
         self.assertEqual("anyone", organization.default_participation_type)
         self.assertFalse(organization.default_application_required)
-        self.assertEqual(1, len(events))
+        self.assertEqual(2, len(events))
 
         event = events[0]
         self.assertEqual(
@@ -2752,6 +2752,40 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn("出稽古OK", event["raw_note"])
         self.assertIn("途中参加・途中帰宅OK", event["raw_note"])
         self.assertIn("一本勝負・試合稽古", event["raw_note"])
+
+        event = next(
+            event
+            for event in events
+            if event["event_date"] == "2026-12-20"
+        )
+        self.assertEqual(
+            "shinmei_kendoteam-20261220-1000-03fc3be5",
+            event["event_id"],
+        )
+        self.assertEqual("振鳴剣道部 稽古", event["title"])
+        self.assertEqual("2026-12-20", event["event_date"])
+        self.assertEqual("日", event["weekday"])
+        self.assertEqual("10:00", event["start_time"])
+        self.assertEqual("12:30", event["end_time"])
+        self.assertEqual("アイオーしんきん伊勢崎アリーナ", event["venue"])
+        self.assertEqual("群馬県", event["area"])
+        self.assertEqual("群馬県伊勢崎市西町93-93", event["address"])
+        self.assertIsNone(event["access"])
+        self.assertEqual("体育館利用料を参加者で割り勘", event["fee"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertEqual("open_keiko", event["event_type"])
+        self.assertEqual(
+            "https://www.instagram.com/p/Df3BXF1TKoK/",
+            event["source_url"],
+        )
+        self.assertEqual("sns", event["source_type"])
+        self.assertEqual("manual", event["update_mode"])
+        self.assertEqual("active", event["status"])
+        self.assertEqual("2026-11-18T10:27:32+09:00", event["verified_at"])
+        self.assertEqual("2026-12-19", event["review_due_at"])
+        self.assertIn("途中参加・途中帰宅可", event["raw_note"])
+        self.assertIn("初参加歓迎", event["raw_note"])
 
         index_html = (
             Path(__file__).resolve().parents[1] / "public" / "index.html"
@@ -2861,6 +2895,77 @@ class ManualEventDataTests(unittest.TestCase):
             event["source_url"],
         )
         self.assertEqual("2026-12-11", event["review_due_at"])
+
+    def test_cleanroad_november_2026_image_event_is_valid(self) -> None:
+        organizations = load_organizations()
+        organization = find_organization(organizations, "cleanroad")
+        event = next(
+            event
+            for event in load_manual_events()
+            if event["event_id"] == "cleanroad-20261128-1000-28ccab38"
+        )
+
+        self.assertEqual("クリーンロード", organization.name)
+        self.assertEqual("山形県", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/cleanroad_3556/",
+            organization.website_url,
+        )
+        self.assertEqual("open_keiko", event["event_type"])
+        self.assertEqual("第一回 Clean Road 稽古会", event["title"])
+        self.assertEqual("2026-11-28", event["event_date"])
+        self.assertEqual("土", event["weekday"])
+        self.assertEqual("10:00", event["start_time"])
+        self.assertEqual("12:00", event["end_time"])
+        self.assertEqual("マルミチ本社敷地内", event["venue"])
+        self.assertEqual("山形県", event["area"])
+        self.assertEqual(
+            "山形県東田川郡庄内町西袋駅前64-2",
+            event["address"],
+        )
+        self.assertIsNone(event["access"])
+        self.assertIsNone(event["fee"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DfyaYmETTxY/",
+            event["source_url"],
+        )
+        self.assertEqual("2026-11-27", event["review_due_at"])
+
+    def test_hashigokai_january_2027_image_event_is_valid(self) -> None:
+        organizations = load_organizations()
+        organization = find_organization(organizations, "hashigokai")
+        event = next(
+            event
+            for event in load_manual_events()
+            if event["event_id"] == "hashigokai-20270103-1000-eb75dacd"
+        )
+
+        self.assertEqual("覇志伍会", organization.name)
+        self.assertEqual("兵庫県", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/hashigokai_kendo/",
+            organization.website_url,
+        )
+        self.assertEqual("open_keiko", event["event_type"])
+        self.assertEqual("覇志伍会 新年合同稽古会", event["title"])
+        self.assertEqual("2027-01-03", event["event_date"])
+        self.assertEqual("日", event["weekday"])
+        self.assertEqual("10:00", event["start_time"])
+        self.assertEqual("12:00", event["end_time"])
+        self.assertEqual("須磨友が丘高等学校 体育館2階", event["venue"])
+        self.assertEqual("兵庫県", event["area"])
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertIsNone(event["fee"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual(
+            "https://www.instagram.com/p/Dfziw2wyoaK/",
+            event["source_url"],
+        )
+        self.assertEqual("2027-01-02", event["review_due_at"])
 
 
 if __name__ == "__main__":
