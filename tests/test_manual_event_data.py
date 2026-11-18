@@ -539,11 +539,16 @@ class ManualEventDataTests(unittest.TestCase):
 
     def test_hagakurey_november_events_are_valid(self) -> None:
         weekend_source = "https://www.instagram.com/p/De1-HaYTBzP/"
+        match_source = "https://www.instagram.com/p/De5oRHjTcZz/"
         weeknight_source = "https://www.instagram.com/p/De1-irCTe3w/"
         events = [
             event
             for event in load_manual_events()
-            if event["source_url"] in {weekend_source, weeknight_source}
+            if event["source_url"] in {
+                weekend_source,
+                match_source,
+                weeknight_source,
+            }
         ]
 
         weekend_schedules = {
@@ -581,8 +586,14 @@ class ManualEventDataTests(unittest.TestCase):
 
         for event_date, (start, end, venue) in weekend_schedules.items():
             event = events_by_date[event_date]
-            self.assertEqual(weekend_source, event["source_url"])
-            self.assertEqual("HAGAKUREY 11月土日稽古", event["title"])
+            if event_date in {"2026-11-21", "2026-11-28"}:
+                self.assertEqual(match_source, event["source_url"])
+                self.assertEqual("HAGAKUREY 11月練習試合", event["title"])
+                self.assertEqual("adult_renseikai", event["event_type"])
+            else:
+                self.assertEqual(weekend_source, event["source_url"])
+                self.assertEqual("HAGAKUREY 11月土日稽古", event["title"])
+                self.assertEqual("open_keiko", event["event_type"])
             self.assertEqual(start, event["start_time"])
             self.assertEqual(end, event["end_time"])
             self.assertEqual(venue, event["venue"])
