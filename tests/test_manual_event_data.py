@@ -2823,6 +2823,34 @@ class ManualEventDataTests(unittest.TestCase):
                 self.assertEqual("manual", event["update_mode"])
                 self.assertEqual("active", event["status"])
 
+    def test_hagakurey_womens_match_december_2026_image_event_is_valid(self) -> None:
+        event = next(
+            event
+            for event in load_manual_events()
+            if event["event_id"] == "hagakurey-20261212-1500-ecbb8e94"
+        )
+
+        self.assertEqual("hagakurey", event["organization_id"])
+        self.assertEqual("HAGAKUREY", event["organization_name"])
+        self.assertEqual("adult_renseikai", event["event_type"])
+        self.assertEqual("HAGAKUREY 女子練習試合", event["title"])
+        self.assertEqual("2026-12-12", event["event_date"])
+        self.assertEqual("土", event["weekday"])
+        self.assertEqual("15:00", event["start_time"])
+        self.assertEqual("18:00", event["end_time"])
+        self.assertEqual("渋谷区スポーツセンター", event["venue"])
+        self.assertEqual("東京都", event["area"])
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertIsNone(event["fee"])
+        self.assertEqual("contact_required", event["participation_type"])
+        self.assertTrue(event["application_required"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DfhThwNTFZO/",
+            event["source_url"],
+        )
+        self.assertEqual("2026-12-11", event["review_due_at"])
+
 
 if __name__ == "__main__":
     unittest.main()
