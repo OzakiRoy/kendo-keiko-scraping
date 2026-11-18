@@ -539,11 +539,16 @@ class ManualEventDataTests(unittest.TestCase):
 
     def test_hagakurey_november_events_are_valid(self) -> None:
         weekend_source = "https://www.instagram.com/p/De1-HaYTBzP/"
+        match_source = "https://www.instagram.com/p/De5oRHjTcZz/"
         weeknight_source = "https://www.instagram.com/p/De1-irCTe3w/"
         events = [
             event
             for event in load_manual_events()
-            if event["source_url"] in {weekend_source, weeknight_source}
+            if event["source_url"] in {
+                weekend_source,
+                match_source,
+                weeknight_source,
+            }
         ]
 
         weekend_schedules = {
@@ -581,8 +586,14 @@ class ManualEventDataTests(unittest.TestCase):
 
         for event_date, (start, end, venue) in weekend_schedules.items():
             event = events_by_date[event_date]
-            self.assertEqual(weekend_source, event["source_url"])
-            self.assertEqual("HAGAKUREY 11月土日稽古", event["title"])
+            if event_date in {"2026-11-21", "2026-11-28"}:
+                self.assertEqual(match_source, event["source_url"])
+                self.assertEqual("HAGAKUREY 11月練習試合", event["title"])
+                self.assertEqual("adult_renseikai", event["event_type"])
+            else:
+                self.assertEqual(weekend_source, event["source_url"])
+                self.assertEqual("HAGAKUREY 11月土日稽古", event["title"])
+                self.assertEqual("open_keiko", event["event_type"])
             self.assertEqual(start, event["start_time"])
             self.assertEqual(end, event["end_time"])
             self.assertEqual(venue, event["venue"])
@@ -2856,6 +2867,34 @@ class ManualEventDataTests(unittest.TestCase):
                     self.assertEqual(value, event[field])
                 self.assertEqual("manual", event["update_mode"])
                 self.assertEqual("active", event["status"])
+
+    def test_hagakurey_womens_match_december_2026_image_event_is_valid(self) -> None:
+        event = next(
+            event
+            for event in load_manual_events()
+            if event["event_id"] == "hagakurey-20261212-1500-ecbb8e94"
+        )
+
+        self.assertEqual("hagakurey", event["organization_id"])
+        self.assertEqual("HAGAKUREY", event["organization_name"])
+        self.assertEqual("adult_renseikai", event["event_type"])
+        self.assertEqual("HAGAKUREY 女子練習試合", event["title"])
+        self.assertEqual("2026-12-12", event["event_date"])
+        self.assertEqual("土", event["weekday"])
+        self.assertEqual("15:00", event["start_time"])
+        self.assertEqual("18:00", event["end_time"])
+        self.assertEqual("渋谷区スポーツセンター", event["venue"])
+        self.assertEqual("東京都", event["area"])
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertIsNone(event["fee"])
+        self.assertEqual("contact_required", event["participation_type"])
+        self.assertTrue(event["application_required"])
+        self.assertEqual(
+            "https://www.instagram.com/p/DfhThwNTFZO/",
+            event["source_url"],
+        )
+        self.assertEqual("2026-12-11", event["review_due_at"])
 
     def test_cleanroad_november_2026_image_event_is_valid(self) -> None:
         organizations = load_organizations()
