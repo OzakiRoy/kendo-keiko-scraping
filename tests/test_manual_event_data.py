@@ -2823,6 +2823,40 @@ class ManualEventDataTests(unittest.TestCase):
                 self.assertEqual("manual", event["update_mode"])
                 self.assertEqual("active", event["status"])
 
+    def test_hashigokai_january_2027_image_event_is_valid(self) -> None:
+        organizations = load_organizations()
+        organization = find_organization(organizations, "hashigokai")
+        event = next(
+            event
+            for event in load_manual_events()
+            if event["event_id"] == "hashigokai-20270103-1000-eb75dacd"
+        )
+
+        self.assertEqual("覇志伍会", organization.name)
+        self.assertEqual("兵庫県", organization.area)
+        self.assertEqual(
+            "https://www.instagram.com/hashigokai_kendo/",
+            organization.website_url,
+        )
+        self.assertEqual("open_keiko", event["event_type"])
+        self.assertEqual("覇志伍会 新年合同稽古会", event["title"])
+        self.assertEqual("2027-01-03", event["event_date"])
+        self.assertEqual("日", event["weekday"])
+        self.assertEqual("10:00", event["start_time"])
+        self.assertEqual("12:00", event["end_time"])
+        self.assertEqual("須磨友が丘高等学校 体育館2階", event["venue"])
+        self.assertEqual("兵庫県", event["area"])
+        self.assertIsNone(event["address"])
+        self.assertIsNone(event["access"])
+        self.assertIsNone(event["fee"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertFalse(event["application_required"])
+        self.assertEqual(
+            "https://www.instagram.com/p/Dfziw2wyoaK/",
+            event["source_url"],
+        )
+        self.assertEqual("2027-01-02", event["review_due_at"])
+
 
 if __name__ == "__main__":
     unittest.main()
