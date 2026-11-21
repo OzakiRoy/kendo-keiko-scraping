@@ -2256,6 +2256,7 @@ class ManualEventDataTests(unittest.TestCase):
             for event in load_manual_events()
             if event["organization_id"] == "ruroken"
         ]
+        self.assertEqual(3, len(events))
         event = next(event for event in events if event["event_date"] == "2026-11-03")
 
         self.assertEqual("ruroken-20261103-0915-b7f60b3a", event["event_id"])
@@ -2280,6 +2281,34 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertIn("9:00集合", event["raw_note"])
         self.assertIn("参加・見学とも可能", event["raw_note"])
         self.assertIn("参加費は公式情報で確認できない", event["raw_note"])
+
+        december_event = next(
+            event for event in events if event["event_date"] == "2026-12-13"
+        )
+        self.assertEqual("ruroken-20261213-1145-85dee46d", december_event["event_id"])
+        self.assertEqual("2026年12月 稽古会", december_event["title"])
+        self.assertEqual("日", december_event["weekday"])
+        self.assertEqual("11:45", december_event["start_time"])
+        self.assertEqual("13:45", december_event["end_time"])
+        self.assertEqual("小平市民総合体育館", december_event["venue"])
+        self.assertEqual("東京都", december_event["area"])
+        self.assertEqual("東京都小平市津田1-1-1", december_event["address"])
+        self.assertEqual(
+            "西武国分寺線 鷹の台駅徒歩3分、駐車場あり",
+            december_event["access"],
+        )
+        self.assertIsNone(december_event["fee"])
+        self.assertFalse(december_event["application_required"])
+        self.assertEqual("contact_required", december_event["participation_type"])
+        self.assertEqual(
+            "https://www.instagram.com/p/Df_NqZeRL7l/",
+            december_event["source_url"],
+        )
+        self.assertEqual("2026-11-21T13:59:07+09:00", december_event["verified_at"])
+        self.assertEqual("2026-12-12", december_event["review_due_at"])
+        self.assertIn("参加・見学可", december_event["raw_note"])
+        self.assertIn("11時30分集合", december_event["raw_note"])
+        self.assertIn("参加費は公式投稿本文に記載なし", december_event["raw_note"])
 
         index_html = (
             Path(__file__).resolve().parents[1] / "public" / "index.html"
