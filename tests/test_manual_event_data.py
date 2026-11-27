@@ -669,6 +669,155 @@ class ManualEventDataTests(unittest.TestCase):
             self.assertIsNone(event["fee"])
             self.assertIn("初参加者はDM", event["raw_note"])
 
+    def test_hagakurey_december_january_events_are_valid(self) -> None:
+        source_url = "https://www.instagram.com/p/DgNdSHOTDeT/"
+        events = [
+            event
+            for event in load_manual_events()
+            if event["source_url"] == source_url
+        ]
+        expected = {
+            "2026-12-05": (
+                "15:00",
+                "18:00",
+                "墨田区総合体育館",
+                "練習試合＋地稽古",
+                "adult_renseikai",
+            ),
+            "2026-12-06": (
+                "15:00",
+                "18:00",
+                "墨田区総合体育館",
+                "Over40稽古会",
+                "open_keiko",
+            ),
+            "2026-12-12": (
+                "15:00",
+                "18:00",
+                "渋谷区スポーツセンター",
+                "女子練習試合＆男子練習試合",
+                "adult_renseikai",
+            ),
+            "2026-12-13": (
+                "18:00",
+                "21:00",
+                "墨田区総合体育館",
+                "通常稽古",
+                "open_keiko",
+            ),
+            "2026-12-19": (
+                "18:00",
+                "21:00",
+                "墨田区総合体育館",
+                "通常稽古",
+                "open_keiko",
+            ),
+            "2026-12-20": (
+                "18:00",
+                "21:00",
+                "墨田区総合体育館",
+                "練習試合＋地稽古",
+                "adult_renseikai",
+            ),
+            "2026-12-26": (
+                "17:00",
+                "19:00",
+                "渋谷区スポーツセンター",
+                "練習試合＋地稽古",
+                "adult_renseikai",
+            ),
+            "2026-12-27": (
+                "15:00",
+                "18:00",
+                "中央区総合スポーツセンター",
+                "通常稽古",
+                "open_keiko",
+            ),
+            "2026-12-29": (
+                "12:00",
+                "15:00",
+                "墨田区総合体育館",
+                "通常稽古",
+                "open_keiko",
+            ),
+            "2026-12-30": (
+                "18:00",
+                "22:00",
+                "BumB東京スポーツ文化館",
+                "通常稽古",
+                "open_keiko",
+            ),
+            "2026-12-31": (
+                "14:00",
+                "16:00",
+                "BumB東京スポーツ文化館",
+                "通常稽古",
+                "open_keiko",
+            ),
+            "2027-01-01": (
+                "14:00",
+                "16:00",
+                "BumB東京スポーツ文化館",
+                "通常稽古",
+                "open_keiko",
+            ),
+            "2027-01-02": (
+                "14:00",
+                "16:00",
+                "BumB東京スポーツ文化館",
+                "通常稽古",
+                "open_keiko",
+            ),
+            "2027-01-03": (
+                "12:00",
+                "15:00",
+                "墨田区総合体育館",
+                "通常稽古",
+                "open_keiko",
+            ),
+            "2027-01-04": (
+                "18:00",
+                "21:00",
+                "墨田区総合体育館",
+                "通常稽古",
+                "open_keiko",
+            ),
+        }
+
+        self.assertEqual(15, len(events))
+        events_by_date = {event["event_date"]: event for event in events}
+        self.assertEqual(list(expected), list(events_by_date))
+        for event_date, (start, end, venue, title, event_type) in expected.items():
+            event = events_by_date[event_date]
+            self.assertEqual("hagakurey", event["organization_id"])
+            self.assertEqual("HAGAKUREY", event["organization_name"])
+            self.assertEqual("東京都", event["area"])
+            self.assertEqual("sns", event["source_type"])
+            self.assertEqual("manual", event["update_mode"])
+            self.assertEqual("active", event["status"])
+            self.assertEqual(start, event["start_time"])
+            self.assertEqual(end, event["end_time"])
+            self.assertEqual(venue, event["venue"])
+            self.assertEqual(title, event["title"])
+            self.assertEqual(event_type, event["event_type"])
+            self.assertEqual("anyone", event["participation_type"])
+            self.assertFalse(event["application_required"])
+            self.assertEqual("学生無料", event["fee"])
+            self.assertIsNone(event["address"])
+            self.assertIsNone(event["access"])
+            self.assertEqual(
+                "2026-11-27T10:25:59+09:00",
+                event["verified_at"],
+            )
+            self.assertEqual(
+                (date.fromisoformat(event_date) - timedelta(days=1)).isoformat(),
+                event["review_due_at"],
+            )
+            self.assertIn("学生は参加費無料", event["raw_note"])
+            self.assertIn("一般の参加費", event["raw_note"])
+
+        self.assertIn("男女分けて練習試合", events_by_date["2026-12-12"]["raw_note"])
+
 
     def test_hagakurey_september_events_are_valid(self) -> None:
         source_url = "https://www.instagram.com/p/DcgkP0szPim/"
@@ -2889,7 +3038,7 @@ class ManualEventDataTests(unittest.TestCase):
                 "organization_id": "hagakurey",
                 "organization_name": "HAGAKUREY",
                 "event_type": "open_keiko",
-                "title": "HAGAKUREY Over40 稽古会",
+                "title": "Over40稽古会",
                 "event_date": "2026-12-06",
                 "weekday": "日",
                 "start_time": "15:00",
@@ -2898,10 +3047,10 @@ class ManualEventDataTests(unittest.TestCase):
                 "area": "東京都",
                 "address": None,
                 "access": None,
-                "fee": None,
+                "fee": "学生無料",
                 "participation_type": "anyone",
                 "application_required": False,
-                "source_url": "https://www.instagram.com/p/DfaygbGzjsw/",
+                "source_url": "https://www.instagram.com/p/DgNdSHOTDeT/",
                 "review_due_at": "2026-12-05",
             },
             "kenen-20261115-1530-71aaba0b": {
@@ -2950,7 +3099,7 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("hagakurey", event["organization_id"])
         self.assertEqual("HAGAKUREY", event["organization_name"])
         self.assertEqual("adult_renseikai", event["event_type"])
-        self.assertEqual("HAGAKUREY 女子練習試合", event["title"])
+        self.assertEqual("女子練習試合＆男子練習試合", event["title"])
         self.assertEqual("2026-12-12", event["event_date"])
         self.assertEqual("土", event["weekday"])
         self.assertEqual("15:00", event["start_time"])
@@ -2959,11 +3108,11 @@ class ManualEventDataTests(unittest.TestCase):
         self.assertEqual("東京都", event["area"])
         self.assertIsNone(event["address"])
         self.assertIsNone(event["access"])
-        self.assertIsNone(event["fee"])
-        self.assertEqual("contact_required", event["participation_type"])
-        self.assertTrue(event["application_required"])
+        self.assertEqual("学生無料", event["fee"])
+        self.assertEqual("anyone", event["participation_type"])
+        self.assertFalse(event["application_required"])
         self.assertEqual(
-            "https://www.instagram.com/p/DfhThwNTFZO/",
+            "https://www.instagram.com/p/DgNdSHOTDeT/",
             event["source_url"],
         )
         self.assertEqual("2026-12-11", event["review_due_at"])
